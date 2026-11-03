@@ -5,7 +5,7 @@ namespace Crafter.Core.Agents;
 
 public interface IKeepsHistory
 {
-    Task<IReadOnlyList<PastChat>> History(Project project, CancellationToken stop = default);
+    Task<Recollection> History(Project project, int latest, CancellationToken stop = default);
 
     Task<IReadOnlyList<Turn>> Replay(Project project, string sessionId, CancellationToken stop = default);
 }
