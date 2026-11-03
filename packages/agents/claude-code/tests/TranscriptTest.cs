@@ -183,4 +183,64 @@ public sealed class TranscriptTest
     {
         Assert.Empty(new Transcript().Hear(line));
     }
+
+    [Fact]
+    public void SaysWhatAlwaysAllowingWouldRemember()
+    {
+        var transcript = new Transcript();
+
+        var replies = transcript.Hear("""{"type":"control_request","request_id":"r-3","request":{"subtype":"can_use_tool","tool_name":"Bash","input":{"command":"npm test"},"permission_suggestions":[{"type":"addRules","rules":[{"toolName":"Bash","ruleContent":"npm test:*"}],"behavior":"allow","destination":"localSettings"},{"type":"addDirectories","directories":["/tmp/out"],"destination":"localSettings"}]}}""");
+
+        Assert.Equal("Bash(npm test:*), /tmp/out in this project", Assert.IsType<NeedsApproval>(Assert.Single(replies)).Remembers);
+        Assert.Contains("\"ruleContent\":\"npm test:*\"", transcript.SuggestionsOf("r-3"));
+    }
+
+    [Theory]
+    [InlineData("""[{"type":"addRules","rules":[{"toolName":"WebFetch"}],"behavior":"allow","destination":"session"}]""", "WebFetch in this chat")]
+    [InlineData("""[{"type":"setMode","mode":"acceptEdits","destination":"session"}]""", "acceptEdits mode in this chat")]
+    [InlineData("""[{"type":"addRules","rules":[{"toolName":"Read"}],"behavior":"allow","destination":"userSettings"}]""", "Read everywhere")]
+    [InlineData("""[{"type":"addRules","rules":[{"toolName":"Bash"}],"behavior":"deny","destination":"session"}]""", null)]
+    [InlineData("[]", null)]
+    public void DescribesEachKindOfSuggestion(string suggestions, string? remembers)
+    {
+        var replies = new Transcript().Hear("""{"type":"control_request","request_id":"r-4","request":{"subtype":"can_use_tool","tool_name":"Bash","permission_suggestions":""" + suggestions + "}}");
+
+        Assert.Equal(remembers, Assert.IsType<NeedsApproval>(Assert.Single(replies)).Remembers);
+    }
+
+    [Fact]
+    public void HearsQuestionsForTheUser()
+    {
+        var transcript = new Transcript();
+
+        var replies = transcript.Hear("""{"type":"control_request","request_id":"r-5","request":{"subtype":"can_use_tool","tool_name":"AskUserQuestion","input":{"questions":[{"question":"Which database?","header":"Storage","multiSelect":false,"options":[{"label":"SQLite","description":"A file"},{"label":"Postgres","description":"A server"}]},{"question":"Which extras?","header":"Extras","multiSelect":true,"options":[{"label":"Cache"}]}]}}}""");
+
+        var asked = Assert.IsType<NeedsAnswers>(Assert.Single(replies));
+        Assert.Equal("r-5", asked.Id);
+        Assert.Equal(2, asked.Questions.Count);
+        Assert.Equal(("Which database?", "Storage", false), (asked.Questions[0].Text, asked.Questions[0].Header, asked.Questions[0].Several));
+        Assert.Equal([new Pick("SQLite", "A file"), new Pick("Postgres", "A server")], asked.Questions[0].Picks);
+        Assert.True(asked.Questions[1].Several);
+        Assert.Equal([new Pick("Cache", string.Empty)], asked.Questions[1].Picks);
+        Assert.Contains("Which database?", transcript.InputOf("r-5"));
+    }
+
+    [Fact]
+    public void AsksForApprovalWhenTheQuestionsMakeNoSense()
+    {
+        var replies = new Transcript().Hear("""{"type":"control_request","request_id":"r-6","request":{"subtype":"can_use_tool","tool_name":"AskUserQuestion","input":{"questions":"?"}}}""");
+
+        Assert.Equal("r-6", Assert.IsType<NeedsApproval>(Assert.Single(replies)).Id);
+    }
+
+    [Fact]
+    public void HearsARequestBeingWithdrawn()
+    {
+        const string line = """{"type":"control_cancel_request","request_id":"r-1"}""";
+
+        Assert.Equal([new Withdrawn("r-1")], new Transcript().Hear(line));
+        Assert.Equal("r-1", Transcript.Withdraws(line));
+        Assert.Null(Transcript.Withdraws("""{"type":"control_request","request_id":"r-1"}"""));
+        Assert.Null(Transcript.Withdraws("control_cancel_request"));
+    }
 }

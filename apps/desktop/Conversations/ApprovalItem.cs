@@ -5,7 +5,7 @@ using Crafter.Core.Conversations;
 
 namespace Crafter.Desktop.Conversations;
 
-public sealed partial class ApprovalItem(NeedsApproval approval, string agent, Action<ApprovalItem, Decision> decide) : ObservableObject
+public sealed partial class ApprovalItem(NeedsApproval approval, string agent, Action<IAwaitsDecision, Decision> decide) : ObservableObject, IAwaitsDecision
 {
     public string Id { get; } = approval.Id;
 
@@ -17,9 +17,16 @@ public sealed partial class ApprovalItem(NeedsApproval approval, string agent, A
 
     public bool HasReason => !string.IsNullOrWhiteSpace(Reason);
 
-    public string TrustLabel { get; } = $"Allow {approval.Tool} in this chat";
+    public string? AlwaysLabel { get; } = approval.Remembers is { } remembered ? $"Always allow {remembered}" : null;
+
+    public bool CanAlwaysAllow => AlwaysLabel is not null;
+
+    public string FeedbackHint { get; } = $"If you deny, tell {agent} why (optional)";
 
     public bool IsOpen => Verdict is null;
+
+    [ObservableProperty]
+    public partial string? Feedback { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsOpen))]
@@ -31,10 +38,11 @@ public sealed partial class ApprovalItem(NeedsApproval approval, string agent, A
     private void Allow() => Decide(new Allow(), "Allowed");
 
     [RelayCommand]
-    private void AllowTool() => Decide(new AllowTool(), "Allowed in this chat");
+    private void AlwaysAllow() => Decide(new AlwaysAllow(), $"Allowed · remembered {approval.Remembers}");
 
     [RelayCommand]
-    private void Deny() => Decide(new Deny(), "Denied");
+    private void Deny() =>
+        Decide(new Deny(Feedback?.Trim() is { Length: > 0 } said ? said : null), Feedback?.Trim() is { Length: > 0 } why ? $"Denied · {why}" : "Denied");
 
     private void Decide(Decision decision, string verdict)
     {

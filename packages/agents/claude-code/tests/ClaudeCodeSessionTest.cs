@@ -155,9 +155,9 @@ public sealed class ClaudeCodeSessionTest
     }
 
     [Theory]
-    [InlineData(typeof(Crafter.Core.Agents.Allow), "allowed")]
-    [InlineData(typeof(Crafter.Core.Agents.Deny), "denied")]
-    public async Task AsksBeforeRunningWhatNeedsApproval(Type decision, string answer)
+    [InlineData(true, "allowed")]
+    [InlineData(false, "denied")]
+    public async Task AsksBeforeRunningWhatNeedsApproval(bool allow, string answer)
     {
         using var claude = new FakeClaude("read -r line\n" + Asks("r-1", "first") + "\n" + FakeClaude.Writes("$first") + "\n" + FakeClaude.Success);
         var session = claude.Session();
@@ -168,7 +168,7 @@ public sealed class ClaudeCodeSessionTest
             replies.Add(reply);
             if (reply is NeedsApproval approval)
             {
-                session.Decide(approval.Id, (Crafter.Core.Agents.Decision)Activator.CreateInstance(decision)!);
+                session.Decide(approval.Id, allow ? new Crafter.Core.Agents.Allow() : new Crafter.Core.Agents.Deny());
             }
         }
 
@@ -177,24 +177,109 @@ public sealed class ClaudeCodeSessionTest
     }
 
     [Fact]
-    public async Task TrustsAToolForTheRestOfTheChat()
+    public async Task RemembersWhatClaudeCodeSuggestedWhenAlwaysAllowed()
     {
         using var claude = new FakeClaude(
-            "read -r line\n" + Asks("r-1", "first") + "\n" + Asks("r-2", "second") + "\n" + FakeClaude.Writes("$first-$second") + "\n" + FakeClaude.Success);
+            "read -r line\n"
+            + "if [[ \" $* \" == *\" --allowedTools Bash(touch:*) \"* ]]; then first=remembered; else\n"
+            + "echo '{\"type\":\"control_request\",\"request_id\":\"r-1\",\"request\":{\"subtype\":\"can_use_tool\",\"tool_name\":\"Bash\",\"input\":{\"command\":\"touch x\"},\"permission_suggestions\":" + Suggested + "}}'\n"
+            + "read -r answer\n"
+            + "if [[ \"$answer\" == *'\"updatedPermissions\":[{\"type\":\"addRules\"'* ]]; then first=always; else first=once; fi\n"
+            + "fi\n"
+            + FakeClaude.Writes("$first") + "\n" + FakeClaude.Success);
+        var session = claude.Session();
+
+        var first = await Decided(session, new Crafter.Core.Agents.AlwaysAllow());
+        var second = await Decided(session, new Crafter.Core.Agents.Allow());
+
+        Assert.Equal("Bash(touch:*) in this chat", first.OfType<NeedsApproval>().Single().Remembers);
+        Assert.Contains(new Wrote("always"), first);
+        Assert.Contains(new Wrote("remembered"), second);
+    }
+
+    [Fact]
+    public async Task AllowingOnceRemembersNothing()
+    {
+        using var claude = new FakeClaude(
+            "read -r line\n"
+            + "echo '{\"type\":\"control_request\",\"request_id\":\"r-1\",\"request\":{\"subtype\":\"can_use_tool\",\"tool_name\":\"Bash\",\"input\":{\"command\":\"touch x\"},\"permission_suggestions\":" + Suggested + "}}'\n"
+            + "read -r answer\n"
+            + "if [[ \"$answer\" == *updatedPermissions* || \" $* \" == *--allowedTools* ]]; then first=remembered; else first=once; fi\n"
+            + FakeClaude.Writes("$first") + "\n" + FakeClaude.Success);
+        var session = claude.Session();
+
+        await Decided(session, new Crafter.Core.Agents.Allow());
+        var second = await Decided(session, new Crafter.Core.Agents.Allow());
+
+        Assert.Contains(new Wrote("once"), second);
+    }
+
+    [Fact]
+    public async Task TellsClaudeCodeWhyItWasDenied()
+    {
+        using var claude = new FakeClaude(
+            "read -r line\n" + Asks("r-1", "first") + "\n"
+            + "if [[ \"$answer\" == *'\"message\":\"The user denied this in Crafter and said: use mkdir\"'* ]]; then why=told; else why=silent; fi\n"
+            + FakeClaude.Writes("$why") + "\n" + FakeClaude.Success);
+
+        var replies = await Decided(claude.Session(), new Crafter.Core.Agents.Deny("  use mkdir "));
+
+        Assert.Contains(new Wrote("told"), replies);
+    }
+
+    [Fact]
+    public async Task HandsTheAnswersBackWithTheQuestions()
+    {
+        using var claude = new FakeClaude(
+            "read -r line\n"
+            + "echo '{\"type\":\"control_request\",\"request_id\":\"r-1\",\"request\":{\"subtype\":\"can_use_tool\",\"tool_name\":\"AskUserQuestion\",\"input\":{\"questions\":[{\"question\":\"Which?\",\"header\":\"Pick\",\"multiSelect\":true,\"options\":[{\"label\":\"A\"},{\"label\":\"B\"}]}]}}}'\n"
+            + "read -r answer\n"
+            + "if [[ \"$answer\" == *'\"behavior\":\"allow\"'*'\"questions\":[{\"question\":\"Which?\"'*'\"answers\":{\"Which?\":\"A, B\"}'* ]]; then heard=answered; else heard=lost; fi\n"
+            + FakeClaude.Writes("$heard") + "\n" + FakeClaude.Success);
         var session = claude.Session();
         List<Reply> replies = [];
 
-        await foreach (var reply in session.Answer(new Prompt("toca"), Stop))
+        await foreach (var reply in session.Answer(new Prompt("pergunta"), Stop))
         {
             replies.Add(reply);
-            if (reply is NeedsApproval approval)
+            if (reply is NeedsAnswers asked)
             {
-                session.Decide(approval.Id, new Crafter.Core.Agents.AllowTool());
+                session.Decide(asked.Id, new Crafter.Core.Agents.Answers(new Dictionary<string, string> { ["Which?"] = "A, B" }));
             }
         }
 
-        Assert.Single(replies.OfType<NeedsApproval>());
-        Assert.Contains(new Wrote("allowed-allowed"), replies);
+        Assert.IsType<NeedsAnswers>(replies[0]);
+        Assert.Contains(new Wrote("answered"), replies);
+    }
+
+    [Fact]
+    public async Task LetsGoOfARequestClaudeCodeWithdraws()
+    {
+        using var claude = new FakeClaude(
+            "read -r line\n"
+            + "echo '{\"type\":\"control_request\",\"request_id\":\"r-1\",\"request\":{\"subtype\":\"can_use_tool\",\"tool_name\":\"Bash\",\"input\":{\"command\":\"touch x\"}}}'\n"
+            + "echo '{\"type\":\"control_cancel_request\",\"request_id\":\"r-1\"}'\n"
+            + FakeClaude.Writes("moved on") + "\n" + FakeClaude.Success);
+
+        var replies = await claude.Session().Answer(new Prompt("toca"), Stop).ToListAsync(Stop);
+
+        Assert.Equal("r-1", Assert.IsType<NeedsApproval>(replies[0]).Id);
+        Assert.Equal([new Withdrawn("r-1"), new Wrote("moved on"), new Finished()], replies[1..]);
+    }
+
+    [Fact]
+    public async Task KeepsWhatClaudeCodeSaidWhileWaiting()
+    {
+        using var claude = new FakeClaude(
+            "read -r line\n"
+            + "echo '{\"type\":\"control_request\",\"request_id\":\"r-1\",\"request\":{\"subtype\":\"can_use_tool\",\"tool_name\":\"Bash\",\"input\":{\"command\":\"touch x\"}}}'\n"
+            + FakeClaude.Writes("meanwhile") + "\n"
+            + "read -r answer\n"
+            + FakeClaude.Writes(" after") + "\n" + FakeClaude.Success);
+
+        var replies = await Decided(claude.Session(), new Crafter.Core.Agents.Allow());
+
+        Assert.Equal([new Wrote("meanwhile"), new Wrote(" after"), new Finished()], replies[1..]);
     }
 
     [Fact]
@@ -224,6 +309,23 @@ public sealed class ClaudeCodeSessionTest
         session.Decide("r-404", new Crafter.Core.Agents.Allow());
 
         Assert.Null(session.SessionId);
+    }
+
+    private const string Suggested = "[{\"type\":\"addRules\",\"rules\":[{\"toolName\":\"Bash\",\"ruleContent\":\"touch:*\"}],\"behavior\":\"allow\",\"destination\":\"session\"}]";
+
+    private static async Task<List<Reply>> Decided(ClaudeCodeSession session, Crafter.Core.Agents.Decision decision)
+    {
+        List<Reply> replies = [];
+        await foreach (var reply in session.Answer(new Prompt("toca"), Stop))
+        {
+            replies.Add(reply);
+            if (reply is NeedsApproval approval)
+            {
+                session.Decide(approval.Id, decision);
+            }
+        }
+
+        return replies;
     }
 
     private static string Asks(string request, string verdict) =>

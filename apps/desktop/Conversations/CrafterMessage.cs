@@ -74,12 +74,20 @@ public sealed partial class CrafterMessage : Message
                 Items.Add(new ApprovalItem(approval, agent, Decided));
                 IsWaiting = true;
                 break;
+            case NeedsAnswers asked:
+                Items.Add(new QuestionItem(asked, agent, Decided));
+                IsWaiting = true;
+                break;
+            case Withdrawn withdrawn:
+                Items.OfType<IAwaitsDecision>().FirstOrDefault(item => item.Id == withdrawn.Id)?.Close("No longer needed");
+                IsWaiting = Items.OfType<IAwaitsDecision>().Any(item => item.IsOpen);
+                break;
             case Ending ending:
                 IsCrafting = false;
                 IsWaiting = false;
                 HasFailed = ending is Failed;
                 Note = NoteFor(ending);
-                foreach (var item in Items.OfType<ApprovalItem>())
+                foreach (var item in Items.OfType<IAwaitsDecision>())
                 {
                     item.Close("Not answered");
                 }
@@ -107,9 +115,9 @@ public sealed partial class CrafterMessage : Message
         return started;
     }
 
-    private void Decided(ApprovalItem item, Decision decision)
+    private void Decided(IAwaitsDecision item, Decision decision)
     {
-        IsWaiting = Items.OfType<ApprovalItem>().Any(each => each.IsOpen);
+        IsWaiting = Items.OfType<IAwaitsDecision>().Any(each => each.IsOpen);
         decide(item.Id, decision);
     }
 

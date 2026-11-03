@@ -67,8 +67,8 @@ public sealed class ChatTest
         var session = new ScriptedSession();
         var chat = new Chat(ChatId.New(), Claude, ChatTitle.Untitled, new Conversation(session));
 
-        chat.Decide("r-1", new AllowTool());
+        chat.Decide("r-1", new AlwaysAllow());
 
-        Assert.Equal([("r-1", (Decision)new AllowTool())], session.Decisions);
+        Assert.Equal([("r-1", (Decision)new AlwaysAllow())], session.Decisions);
     }
 }

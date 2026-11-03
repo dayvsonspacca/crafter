@@ -111,6 +111,33 @@
       <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
     </Style>
 
+    <Style Selector="Button.allow:disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Opacity" Value="0.45" />
+    </Style>
+    <Style Selector="TextBox.feedback">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="Button.pick">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="12,9" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.pick:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.pick:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.pick.chosen /template/ ContentPresenter#PART_ContentPresenter, Button.pick.chosen:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
     <Style Selector="Border.slot">
       <Setter Property="Width" Value="22" />
       <Setter Property="Height" Value="22" />
@@ -640,10 +667,79 @@
                                          Foreground="{DynamicResource ForegroundMutedBrush}"
                                          Text="{Binding Reason}"
                                          IsVisible="{Binding HasReason}" />
-                              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsOpen}">
+                              <TextBox Classes="feedback"
+                                       Text="{Binding Feedback}"
+                                       PlaceholderText="{Binding FeedbackHint}"
+                                       AutomationProperties.Name="Why you deny"
+                                       IsVisible="{Binding IsOpen}" />
+                              <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8" IsVisible="{Binding IsOpen}">
                                 <Button Classes="allow" Content="Allow" Command="{Binding AllowCommand}" />
-                                <Button Classes="tool" Height="34" Padding="14,0" Content="{Binding TrustLabel}" Command="{Binding AllowToolCommand}" />
+                                <Button Classes="tool"
+                                        Height="34"
+                                        Padding="14,0"
+                                        Content="{Binding AlwaysLabel}"
+                                        Command="{Binding AlwaysAllowCommand}"
+                                        IsVisible="{Binding CanAlwaysAllow}" />
                                 <Button Classes="tool" Height="34" Padding="14,0" Content="Deny" Command="{Binding DenyCommand}" />
+                              </WrapPanel>
+                              <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
+                            </StackPanel>
+                          </Border>
+                        </DataTemplate>
+                        <DataTemplate DataType="conversations:QuestionItem">
+                          <Border Classes="approval" Classes.open="{Binding IsOpen}">
+                            <StackPanel Spacing="14">
+                              <TextBlock FontSize="13.5" Text="{Binding Asking}" />
+                              <ItemsControl ItemsSource="{Binding Questions}">
+                                <ItemsControl.ItemsPanel>
+                                  <ItemsPanelTemplate>
+                                    <StackPanel Spacing="16" />
+                                  </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate DataType="conversations:QuestionCard">
+                                    <StackPanel Spacing="8">
+                                      <TextBlock Classes="mono" Text="{Binding Header}" IsVisible="{Binding HasHeader}" />
+                                      <TextBlock FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding Text}" />
+                                      <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
+                                        <TextBlock FontSize="12.5" Foreground="{DynamicResource ForegroundMutedBrush}" Text="{Binding Hint}" />
+                                        <ItemsControl ItemsSource="{Binding Picks}">
+                                          <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                              <StackPanel Spacing="6" />
+                                            </ItemsPanelTemplate>
+                                          </ItemsControl.ItemsPanel>
+                                          <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="conversations:PickItem">
+                                              <Button Classes="pick"
+                                                      Classes.chosen="{Binding IsChosen}"
+                                                      Command="{Binding ToggleCommand}"
+                                                      AutomationProperties.Name="{Binding Label}">
+                                                <StackPanel Spacing="2">
+                                                  <TextBlock FontSize="13.5" TextWrapping="Wrap" Text="{Binding Label}" />
+                                                  <TextBlock FontSize="12.5"
+                                                             TextWrapping="Wrap"
+                                                             Foreground="{DynamicResource ForegroundMutedBrush}"
+                                                             Text="{Binding Description}"
+                                                             IsVisible="{Binding HasDescription}" />
+                                                </StackPanel>
+                                              </Button>
+                                            </DataTemplate>
+                                          </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBox Classes="feedback"
+                                                 Text="{Binding Other}"
+                                                 PlaceholderText="Something else…"
+                                                 AutomationProperties.Name="Your own answer" />
+                                      </StackPanel>
+                                      <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Answer}" IsVisible="{Binding !IsOpen}" />
+                                    </StackPanel>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsOpen}">
+                                <Button Classes="allow" Content="Answer" Command="{Binding SubmitCommand}" />
+                                <Button Classes="tool" Height="34" Padding="14,0" Content="Skip" Command="{Binding SkipCommand}" />
                               </StackPanel>
                               <TextBlock Classes="mono" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
                             </StackPanel>

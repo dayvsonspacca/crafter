@@ -5,11 +5,35 @@ namespace Crafter.Agents.ClaudeCode;
 
 public sealed class Transcript(string? folder = null)
 {
-    private readonly Dictionary<string, string> inputs = [];
+    private const string AsksTheUser = "AskUserQuestion";
+
+    private readonly Dictionary<string, Request> requests = [];
 
     public string? SessionId { get; private set; }
 
-    public string InputOf(string request) => inputs.GetValueOrDefault(request) ?? "{}";
+    public string InputOf(string request) => requests.GetValueOrDefault(request)?.Input ?? "{}";
+
+    public string? SuggestionsOf(string request) => requests.GetValueOrDefault(request)?.Suggestions;
+
+    public static string? Withdraws(string line)
+    {
+        if (!line.Contains("\"control_cancel_request\"", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(line);
+            var root = document.RootElement;
+
+            return root.ValueKind == JsonValueKind.Object && Text(root, "type") == "control_cancel_request" ? Text(root, "request_id") : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
 
     public IReadOnlyList<Reply> Hear(string line)
     {
@@ -40,6 +64,7 @@ public sealed class Transcript(string? folder = null)
                 "assistant" => Actions(root),
                 "user" => Results(root),
                 "control_request" => Approval(root),
+                "control_cancel_request" when Text(root, "request_id") is { } request => [new Withdrawn(request)],
                 "result" => [Conclusion(root)],
                 _ => [],
             };
@@ -90,9 +115,56 @@ public sealed class Transcript(string? folder = null)
         }
 
         var input = Input(asked);
-        inputs[request] = input.ValueKind == JsonValueKind.Object ? input.GetRawText() : "{}";
+        var suggestions = asked.TryGetProperty("permission_suggestions", out var offered) && offered.ValueKind == JsonValueKind.Array && offered.GetArrayLength() > 0
+            ? offered
+            : default;
+        requests[request] = new Request(
+            input.ValueKind == JsonValueKind.Object ? input.GetRawText() : "{}",
+            suggestions.ValueKind == JsonValueKind.Array ? suggestions.GetRawText() : null);
 
-        return [new NeedsApproval(request, Text(asked, "display_name") ?? tool, ClaudeCodeTools.Describe(tool, input, folder).Summary, Text(asked, "description"))];
+        if (tool == AsksTheUser && Questions(input) is { Count: > 0 } questions)
+        {
+            return [new NeedsAnswers(request, questions)];
+        }
+
+        return
+        [
+            new NeedsApproval(
+                request,
+                Text(asked, "display_name") ?? tool,
+                ClaudeCodeTools.Describe(tool, input, folder).Summary,
+                Text(asked, "description"),
+                ClaudeCodePermissions.Remembers(suggestions)),
+        ];
+    }
+
+    private static IReadOnlyList<Question> Questions(JsonElement input) =>
+        input.ValueKind == JsonValueKind.Object && input.TryGetProperty("questions", out var questions) && questions.ValueKind == JsonValueKind.Array
+            ? [.. questions.EnumerateArray().Select(Posed).OfType<Question>()]
+            : [];
+
+    private static Question? Posed(JsonElement question)
+    {
+        if (question.ValueKind != JsonValueKind.Object
+            || Text(question, "question") is not { } text
+            || !question.TryGetProperty("options", out var options)
+            || options.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        IReadOnlyList<Pick> picks =
+        [
+            .. options.EnumerateArray()
+                .Where(option => option.ValueKind == JsonValueKind.Object && Text(option, "label") is { Length: > 0 })
+                .Select(option => new Pick(Text(option, "label")!, Text(option, "description") ?? string.Empty)),
+        ];
+
+        return new Question(
+            text,
+            Text(question, "header") ?? string.Empty,
+            question.TryGetProperty("multiSelect", out var several) && several.ValueKind == JsonValueKind.True,
+            picks);
     }
 
     private Acting Acting(string id, string tool, JsonElement input)
@@ -147,4 +219,6 @@ public sealed class Transcript(string? folder = null)
         element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String
             ? value.GetString()
             : null;
+
+    private sealed record Request(string Input, string? Suggestions);
 }
