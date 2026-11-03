@@ -31,7 +31,8 @@ public sealed partial class AgentPanel : ObservableObject
 
     public string Summary => agent.Summary;
 
-    public IReadOnlyList<object> Settings { get; }
+    [ObservableProperty]
+    public partial IReadOnlyList<object> Settings { get; set; }
 
     public bool IsReady => Readiness is Ready;
 
@@ -80,6 +81,7 @@ public sealed partial class AgentPanel : ObservableObject
     {
         IsChecking = true;
         Readiness = await agent.Check();
+        Settings = [.. agent.Settings.Select(Present)];
         IsChecking = false;
     }
 

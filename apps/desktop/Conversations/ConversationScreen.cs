@@ -35,7 +35,7 @@ public sealed partial class ConversationScreen : ObservableObject
         ProjectName = projectName;
         Draft = string.Empty;
         Elapsed = string.Empty;
-        Badges = agent.Badges;
+        Choosers = Choose();
         clock.Tick += (_, _) => Tick();
         Restore(resumed);
     }
@@ -71,7 +71,7 @@ public sealed partial class ConversationScreen : ObservableObject
     public partial string? Model { get; set; }
 
     [ObservableProperty]
-    public partial IReadOnlyList<string> Badges { get; set; }
+    public partial IReadOnlyList<ChatChooser> Choosers { get; set; }
 
     [ObservableProperty]
     public partial string Elapsed { get; set; }
@@ -115,7 +115,7 @@ public sealed partial class ConversationScreen : ObservableObject
             return;
         }
 
-        Badges = agent.Badges;
+        Choosers = Choose();
         if (State == ChatState.Unread)
         {
             State = ChatState.Idle;
@@ -155,7 +155,6 @@ public sealed partial class ConversationScreen : ObservableObject
         var answer = new CrafterMessage(copy, Retry);
 
         Draft = string.Empty;
-        Badges = agent.Badges;
         Messages.Add(new YourMessage(prompt.Text));
         Messages.Add(answer);
         Mark();
@@ -181,6 +180,16 @@ public sealed partial class ConversationScreen : ObservableObject
         clock.Stop();
         State = IsInView ? ChatState.Idle : ChatState.Unread;
         Concluded?.Invoke(this, EventArgs.Empty);
+    }
+
+    private IReadOnlyList<ChatChooser> Choose() =>
+        [.. agent.Settings.OfType<Choice>().Select(choice => new ChatChooser(choice, agent.Configuration, chat.Adjustments, Adjust))];
+
+    private void Adjust(string key, string? value)
+    {
+        chat.Adjust(chat.Adjustments.With(key, value));
+        Choosers = Choose();
+        keeper.Keep(this);
     }
 
     private void Retry(CrafterMessage answer)

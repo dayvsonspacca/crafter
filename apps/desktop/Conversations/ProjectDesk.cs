@@ -26,7 +26,9 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         foreach (var record in archive.Load(project))
         {
             var agent = crew.Find(record.Agent);
-            Add(new Chat(record.Id, agent.Id, record.Title, new Conversation(agent.Begin(project, record.SessionId), record.Turns)), agent);
+            var session = agent.Begin(project, record.SessionId);
+            session.Adjust(record.Adjustments);
+            Add(new Chat(record.Id, agent.Id, record.Title, new Conversation(session, record.Turns)), agent);
         }
 
         Overview = new ProjectOverview(this, crew, edit);
@@ -84,6 +86,8 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
     }
 
     public void Select(ConversationScreen chat) => Selected = chat;
+
+    public void Keep(ConversationScreen chat) => Save();
 
     public void Describe(Project described)
     {
