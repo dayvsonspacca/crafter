@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>crafter</AssemblyName>
+    <RootNamespace>Crafter.Desktop</RootNamespace>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <PublishAot Condition="'$(RuntimeIdentifier)' != ''">true</PublishAot>
+    <!-- AVLN3001: Workbench takes its dependencies from Composition, so it has no parameterless constructor. -->
+    <NoWarn>$(NoWarn);IL2104;AVLN3001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+    <TrimmerRootAssembly Include="Markdown.Avalonia" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Markdown.Avalonia.Tight" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Crafter.Core/Crafter.Core.csproj" />
+    <ProjectReference Include="../Crafter.Storage/Crafter.Storage.csproj" />
+    <ProjectReference Include="../Crafter.Agents.ClaudeCode/Crafter.Agents.ClaudeCode.csproj" />
+    <ProjectReference Include="../Crafter.Highlight/Crafter.Highlight.csproj" />
+    <ProjectReference Include="../Crafter.Presentation/Crafter.Presentation.csproj" />
+  </ItemGroup>
+</Project>

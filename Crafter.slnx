@@ -1,17 +1,24 @@
 <Solution>
-  <Folder Name="/apps/">
-    <Project Path="apps/desktop/Crafter.Desktop.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="Justfile" />
   </Folder>
-  <Folder Name="/packages/">
-    <Project Path="packages/core/src/Crafter.Core.csproj" />
-    <Project Path="packages/core/tests/Crafter.Core.Tests.csproj" />
-    <Project Path="packages/agents/claude-code/src/Crafter.Agents.ClaudeCode.csproj" />
-    <Project Path="packages/agents/claude-code/tests/Crafter.Agents.ClaudeCode.Tests.csproj" />
-    <Project Path="packages/highlight/src/Crafter.Highlight.csproj" />
-    <Project Path="packages/highlight/tests/Crafter.Highlight.Tests.csproj" />
-    <Project Path="packages/presentation/src/Crafter.Presentation.csproj" />
-    <Project Path="packages/presentation/tests/Crafter.Presentation.Tests.csproj" />
-    <Project Path="packages/storage/src/Crafter.Storage.csproj" />
-    <Project Path="packages/storage/tests/Crafter.Storage.Tests.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/Crafter.Core/Crafter.Core.csproj" />
+    <Project Path="src/Crafter.Storage/Crafter.Storage.csproj" />
+    <Project Path="src/Crafter.Agents.ClaudeCode/Crafter.Agents.ClaudeCode.csproj" />
+    <Project Path="src/Crafter.Highlight/Crafter.Highlight.csproj" />
+    <Project Path="src/Crafter.Presentation/Crafter.Presentation.csproj" />
+    <Project Path="src/Crafter.Desktop/Crafter.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
+    <Project Path="tests/Crafter.Core.Tests/Crafter.Core.Tests.csproj" />
+    <Project Path="tests/Crafter.Storage.Tests/Crafter.Storage.Tests.csproj" />
+    <Project Path="tests/Crafter.Agents.ClaudeCode.Tests/Crafter.Agents.ClaudeCode.Tests.csproj" />
+    <Project Path="tests/Crafter.Highlight.Tests/Crafter.Highlight.Tests.csproj" />
+    <Project Path="tests/Crafter.Presentation.Tests/Crafter.Presentation.Tests.csproj" />
   </Folder>
 </Solution>

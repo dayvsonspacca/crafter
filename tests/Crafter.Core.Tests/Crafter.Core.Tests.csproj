@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/Crafter.Core/Crafter.Core.csproj" />
+  </ItemGroup>
+</Project>

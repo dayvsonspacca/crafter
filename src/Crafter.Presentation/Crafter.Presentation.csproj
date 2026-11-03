@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Crafter.Core/Crafter.Core.csproj" />
+    <ProjectReference Include="../Crafter.Storage/Crafter.Storage.csproj" />
+    <ProjectReference Include="../Crafter.Highlight/Crafter.Highlight.csproj" />
+  </ItemGroup>
+</Project>

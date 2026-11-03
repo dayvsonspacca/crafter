@@ -1,4 +1,4 @@
-![crafter](apps/desktop/Assets/crafter.png)
+![crafter](src/Crafter.Desktop/Assets/crafter.png)
 
 # crafter
 
