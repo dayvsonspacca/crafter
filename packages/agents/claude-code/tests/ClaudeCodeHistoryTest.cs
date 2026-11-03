@@ -17,7 +17,10 @@ public sealed class ClaudeCodeHistoryTest : IDisposable
     [Fact]
     public async Task HasNoHistoryForAProjectItNeverSaw()
     {
-        Assert.Empty(await new ClaudeCodeHistory(home).List(Crafter, Stop));
+        var history = await new ClaudeCodeHistory(home).List(Crafter, 5, Stop);
+
+        Assert.Empty(history.Latest);
+        Assert.Equal(0, history.Total);
     }
 
     [Fact]
@@ -26,10 +29,22 @@ public sealed class ClaudeCodeHistoryTest : IDisposable
         Write("old", DateTime.UtcNow.AddDays(-2), User("Explain the crew"), Assistant("It hires agents."));
         Write("new", DateTime.UtcNow, Queue(), User("Fix reconnect after TimedOut\nand cover it"));
 
-        var chats = await new ClaudeCodeHistory(home).List(Crafter, Stop);
+        var chats = (await new ClaudeCodeHistory(home).List(Crafter, 5, Stop)).Latest;
 
         Assert.Equal(["new", "old"], chats.Select(chat => chat.SessionId));
         Assert.Equal(["Fix reconnect after TimedOut", "Explain the crew"], chats.Select(chat => chat.Title.Text));
+    }
+
+    [Fact]
+    public async Task RemembersTheLastPromptOfALongerChat()
+    {
+        Write("long", DateTime.UtcNow, User("Fix it"), Assistant("Done."), User("Now test it"), Assistant("Tested."));
+        Write("short", DateTime.UtcNow.AddMinutes(-1), User("Explain the crew"));
+
+        var chats = (await new ClaudeCodeHistory(home).List(Crafter, 5, Stop)).Latest;
+
+        Assert.Equal(new Prompt("Now test it"), chats[0].LastPrompt);
+        Assert.Null(chats[1].LastPrompt);
     }
 
     [Fact]
@@ -37,21 +52,23 @@ public sealed class ClaudeCodeHistoryTest : IDisposable
     {
         Write("empty", DateTime.UtcNow, Queue(), User("<command-name>/clear</command-name>"), Meta("Caveat"), "not json", "[]");
 
-        Assert.Empty(await new ClaudeCodeHistory(home).List(Crafter, Stop));
+        Assert.Empty((await new ClaudeCodeHistory(home).List(Crafter, 5, Stop)).Latest);
     }
 
     [Fact]
-    public async Task KeepsOnlyTheLatestTwenty()
+    public async Task KeepsTheLatestAndCountsTheRest()
     {
-        for (var at = 0; at < 25; at++)
+        for (var at = 0; at < 8; at++)
         {
             Write($"s-{at}", DateTime.UtcNow.AddMinutes(at), User($"Prompt {at}"));
         }
 
-        var chats = await new ClaudeCodeHistory(home).List(Crafter, Stop);
+        Write("empty", DateTime.UtcNow.AddMinutes(-5), Queue());
 
-        Assert.Equal(20, chats.Count);
-        Assert.Equal("s-24", chats[0].SessionId);
+        var history = await new ClaudeCodeHistory(home).List(Crafter, 5, Stop);
+
+        Assert.Equal(["s-7", "s-6", "s-5", "s-4", "s-3"], history.Latest.Select(chat => chat.SessionId));
+        Assert.Equal(8, history.Total);
     }
 
     [Fact]
@@ -96,7 +113,7 @@ public sealed class ClaudeCodeHistoryTest : IDisposable
     public async Task LivesInTheClaudeFolderOfTheUser()
     {
         Assert.EndsWith(".claude", ClaudeCodeHistory.Home);
-        Assert.NotNull(await new ClaudeCode(home: home).History(Crafter, Stop));
+        Assert.NotNull(await new ClaudeCode(home: home).History(Crafter, 5, Stop));
         Assert.Empty(await new ClaudeCode(home: home).Replay(Crafter, "missing", Stop));
     }
 

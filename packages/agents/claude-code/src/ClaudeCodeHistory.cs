@@ -9,31 +9,41 @@ namespace Crafter.Agents.ClaudeCode;
 
 public sealed partial class ClaudeCodeHistory(string home)
 {
-    private const int Latest = 20;
-
     public static string Home =>
         Environment.GetEnvironmentVariable("CLAUDE_CONFIG_DIR") is { Length: > 0 } configured
             ? configured
             : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude");
 
-    public Task<IReadOnlyList<PastChat>> List(Project project, CancellationToken stop = default) =>
-        Task.Run(() => (IReadOnlyList<PastChat>)[.. Sessions(project).Select(Summarize).OfType<PastChat>().Take(Latest)], stop);
+    public Task<Recollection> List(Project project, int latest, CancellationToken stop = default) =>
+        Task.Run(() => Recall(project, latest), stop);
 
     public Task<IReadOnlyList<Turn>> Replay(Project project, string sessionId, CancellationToken stop = default) =>
         Task.Run(() => Retell(Path.Combine(FolderOf(project), sessionId + ".jsonl"), sessionId), stop);
 
     private static PastChat? Summarize(FileInfo session)
     {
+        string? first = null;
+        string? last = null;
+
         foreach (var entry in Entries(session.FullName))
         {
             if (Prompt(entry) is { } prompt)
             {
-                return new PastChat(Path.GetFileNameWithoutExtension(session.Name), ChatTitle.From(new Prompt(prompt)), session.LastWriteTimeUtc);
+                first ??= prompt;
+                last = prompt;
             }
         }
 
-        return null;
+        return first is null
+            ? null
+            : new PastChat(
+                Path.GetFileNameWithoutExtension(session.Name),
+                ChatTitle.From(new Prompt(first)),
+                session.LastWriteTimeUtc,
+                ReferenceEquals(first, last) ? null : new Prompt(last!));
     }
+
+    private static bool Opens(FileInfo session) => Entries(session.FullName).Any(entry => Prompt(entry) is not null);
 
     private static IReadOnlyList<Turn> Retell(string file, string sessionId)
     {
@@ -147,6 +157,27 @@ public sealed partial class ClaudeCodeHistory(string home)
         {
             return null;
         }
+    }
+
+    private Recollection Recall(Project project, int latest)
+    {
+        List<PastChat> chats = [];
+        var total = 0;
+
+        foreach (var session in Sessions(project))
+        {
+            if (chats.Count < latest && Summarize(session) is { } chat)
+            {
+                chats.Add(chat);
+                total++;
+            }
+            else if (chats.Count >= latest && Opens(session))
+            {
+                total++;
+            }
+        }
+
+        return new Recollection(chats, total);
     }
 
     private IEnumerable<FileInfo> Sessions(Project project)

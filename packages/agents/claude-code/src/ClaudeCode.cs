@@ -53,7 +53,7 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
     public IAgentSession Begin(Project project, string? resumeFrom = null) =>
         new ClaudeCodeSession(project.Folder, () => options, resumeFrom);
 
-    public Task<IReadOnlyList<PastChat>> History(Project project, CancellationToken stop = default) => history.List(project, stop);
+    public Task<Recollection> History(Project project, int latest, CancellationToken stop = default) => history.List(project, latest, stop);
 
     public Task<IReadOnlyList<Turn>> Replay(Project project, string sessionId, CancellationToken stop = default) =>
         history.Replay(project, sessionId, stop);
