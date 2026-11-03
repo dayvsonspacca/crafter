@@ -56,7 +56,7 @@ public sealed partial class ClaudeCodeHistory(string home)
 
         foreach (var entry in Entries(Lines(file)))
         {
-            if (Prompt(entry) is { } prompt)
+            if (Prompt(entry, commands: true) is { } prompt)
             {
                 Close(turns, answer);
                 turns.Add(new Asked(new Prompt(prompt)));
@@ -81,7 +81,9 @@ public sealed partial class ClaudeCodeHistory(string home)
         }
     }
 
-    private static string? Prompt(JsonElement entry)
+    private static string? Prompt(JsonElement entry) => Prompt(entry, commands: false);
+
+    private static string? Prompt(JsonElement entry, bool commands)
     {
         if (Text(entry, "type") != "user"
             || Flag(entry, "isMeta")
@@ -99,8 +101,36 @@ public sealed partial class ClaudeCodeHistory(string home)
             _ => null,
         };
 
-        return said?.Trim() is { Length: > 0 } prompt && !prompt.StartsWith('<') ? prompt : null;
+        return said is null ? null : Typed(said, commands);
     }
+
+    private static string? Typed(string said, bool commands)
+    {
+        var text = Reminders().Replace(said, string.Empty).Trim();
+        if (text.Length == 0 || text.StartsWith("Caveat:", StringComparison.Ordinal) || text.StartsWith("[Request interrupted by user", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        if (Tagged("command-name", text) is { } command)
+        {
+            var arguments = Tagged("command-args", text);
+
+            return commands ? string.IsNullOrEmpty(arguments) ? command : $"{command} {arguments}" : null;
+        }
+
+        if (text.StartsWith("<bash-input>", StringComparison.Ordinal))
+        {
+            var input = Tagged("bash-input", text);
+
+            return commands && !string.IsNullOrEmpty(input) ? $"! {input}" : null;
+        }
+
+        return Injected().IsMatch(text) ? null : text;
+    }
+
+    private static string? Tagged(string tag, string text) =>
+        Regex.Match(text, $"<{tag}>(.*?)</{tag}>", RegexOptions.Singleline) is { Success: true } found ? found.Groups[1].Value.Trim() : null;
 
     private static string? Answer(JsonElement entry) =>
         Text(entry, "type") == "assistant" && !Flag(entry, "isSidechain") && Message(entry) is { ValueKind: JsonValueKind.Array } blocks
@@ -221,4 +251,10 @@ public sealed partial class ClaudeCodeHistory(string home)
 
     [GeneratedRegex("[^A-Za-z0-9]")]
     private static partial Regex Unsafe();
+
+    [GeneratedRegex("<system-reminder>.*?</system-reminder>", RegexOptions.Singleline)]
+    private static partial Regex Reminders();
+
+    [GeneratedRegex("^<(local-command-stdout|local-command-stderr|local-command-caveat|bash-stdout|bash-stderr|task-notification)>")]
+    private static partial Regex Injected();
 }
