@@ -1,3 +1,5 @@
+using Crafter.Core.Folders;
+
 namespace Crafter.Core.Projects;
 
 public sealed class Bookshelf
@@ -65,31 +67,11 @@ public sealed class Bookshelf
 
     private static Found? Match(Project project, string wanted)
     {
-        if (Hits(project.Name, wanted) is { } inName)
+        if (FuzzyMatch.Hits(project.Name, wanted) is { } inName)
         {
             return new Found(project, inName, []);
         }
 
-        return Hits(project.Folder, wanted) is { } inFolder ? new Found(project, [], inFolder) : null;
-    }
-
-    private static List<int>? Hits(string text, string wanted)
-    {
-        var hits = new List<int>(wanted.Length);
-        var from = 0;
-
-        foreach (var letter in wanted)
-        {
-            var at = text.IndexOf(letter.ToString(), from, StringComparison.OrdinalIgnoreCase);
-            if (at < 0)
-            {
-                return null;
-            }
-
-            hits.Add(at);
-            from = at + 1;
-        }
-
-        return hits;
+        return FuzzyMatch.Hits(project.Folder, wanted) is { } inFolder ? new Found(project, [], inFolder) : null;
     }
 }
