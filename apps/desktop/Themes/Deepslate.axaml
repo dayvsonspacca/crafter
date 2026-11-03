@@ -63,4 +63,14 @@
   <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="{StaticResource ForegroundColor}" />
   <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="{StaticResource ForegroundColor}" />
   <SolidColorBrush x:Key="MenuFlyoutSeparatorBackground" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="{StaticResource SurfaceColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource HoverColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPressed" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver" Color="{StaticResource ForegroundColor}" />
 </ResourceDictionary>

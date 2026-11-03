@@ -23,6 +23,18 @@ public sealed class ChoiceSetting
 
     public IReadOnlyList<ChoiceOption> Options { get; }
 
+    public ChoiceOption Chosen
+    {
+        get => Options.First(option => option.IsChosen);
+        set
+        {
+            if (value is { IsChosen: false })
+            {
+                Pick(value);
+            }
+        }
+    }
+
     private void Pick(ChoiceOption picked)
     {
         foreach (var option in Options)

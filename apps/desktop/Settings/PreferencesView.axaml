@@ -125,36 +125,20 @@
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     </Style>
 
-    <Style Selector="Border.segments">
-      <Setter Property="HorizontalAlignment" Value="Left" />
+    <Style Selector="ComboBox.choice">
+      <Setter Property="MinWidth" Value="260" />
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="12,0,10,0" />
       <Setter Property="CornerRadius" Value="6" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="ClipToBounds" Value="True" />
-    </Style>
-    <Style Selector="Button.segment">
-      <Setter Property="Height" Value="32" />
-      <Setter Property="Padding" Value="12,0" />
-      <Setter Property="CornerRadius" Value="0" />
-      <Setter Property="BorderThickness" Value="0,0,1,0" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="MaxDropDownHeight" Value="260" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>
-    <Style Selector="Button.segment /template/ ContentPresenter#PART_ContentPresenter, Button.segment:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.segment:pressed /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
     </Style>
-    <Style Selector="Button.segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
-    </Style>
-    <Style Selector="Button.segment.chosen /template/ ContentPresenter#PART_ContentPresenter, Button.segment.chosen:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
-    </Style>
-    <Style Selector="Button.segment.chosen">
-      <Setter Property="FontWeight" Value="SemiBold" />
+    <Style Selector="ComboBox.choice:pointerover /template/ Border#Background">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
   </UserControl.Styles>
 
@@ -357,23 +341,16 @@
                         <StackPanel Spacing="8">
                           <TextBlock Classes="title" Text="{Binding Title}" />
                           <TextBlock Classes="about" Text="{Binding About}" />
-                          <Border Classes="segments">
-                            <ItemsControl ItemsSource="{Binding Options}">
-                              <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                  <WrapPanel />
-                                </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="agents:ChoiceOption">
-                                  <Button Classes="segment"
-                                          Classes.chosen="{Binding IsChosen}"
-                                          Content="{Binding Label}"
-                                          Command="{Binding ChooseCommand}" />
-                                </DataTemplate>
-                              </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                          </Border>
+                          <ComboBox Classes="choice"
+                                    ItemsSource="{Binding Options}"
+                                    SelectedItem="{Binding Chosen}"
+                                    AutomationProperties.Name="{Binding Title}">
+                            <ComboBox.ItemTemplate>
+                              <DataTemplate x:DataType="agents:ChoiceOption">
+                                <TextBlock Text="{Binding Label}" />
+                              </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                          </ComboBox>
                         </StackPanel>
                       </Border>
                     </DataTemplate>
