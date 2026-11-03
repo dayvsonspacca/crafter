@@ -3,6 +3,9 @@
         xmlns:local="using:Crafter.Desktop"
         xmlns:conversations="using:Crafter.Desktop.Conversations"
         xmlns:projects="using:Crafter.Desktop.Projects"
+        xmlns:folders="using:Crafter.Desktop.Folders"
+        xmlns:settings="using:Crafter.Desktop.Settings"
+        xmlns:setup="using:Crafter.Desktop.Setup"
         x:Class="Crafter.Desktop.Workbench"
         x:DataType="local:WorkbenchScreen"
         Title="crafter"
@@ -14,23 +17,33 @@
   <DockPanel>
     <local:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
     <Panel>
-      <Panel IsVisible="{Binding Conversation, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <conversations:ConversationView DataContext="{Binding Conversation}" />
-      </Panel>
+      <DockPanel IsVisible="{Binding !ShowsSetup}">
+        <projects:ProjectsSidebar DockPanel.Dock="Left" IsVisible="{Binding IsSidebarVisible}" />
+        <Panel>
+          <DockPanel IsVisible="{Binding ShowsConversation}">
+            <conversations:ChatTabs DockPanel.Dock="Top" DataContext="{Binding Desk}" />
+            <conversations:ConversationView DataContext="{Binding Desk.Selected}" />
+          </DockPanel>
 
-      <StackPanel IsVisible="{Binding Conversation, Converter={x:Static ObjectConverters.IsNull}}"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center"
-                  Spacing="8">
-        <TextBlock HorizontalAlignment="Center" FontSize="15" Text="Open a project to start crafting." />
-        <TextBlock HorizontalAlignment="Center"
-                   FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                   FontSize="11"
-                   Foreground="{DynamicResource ForegroundMutedBrush}"
-                   Text="Ctrl+O to open · Ctrl+K Ctrl+O to add a folder" />
-      </StackPanel>
+          <StackPanel IsVisible="{Binding ShowsHint}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Spacing="8">
+            <TextBlock HorizontalAlignment="Center" FontSize="15" Text="Open a project to start crafting." />
+            <TextBlock HorizontalAlignment="Center"
+                       FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                       FontSize="11"
+                       Foreground="{DynamicResource ForegroundMutedBrush}"
+                       Text="Ctrl+O to open · Ctrl+K Ctrl+O to add a folder · Ctrl+B to hide the sidebar" />
+          </StackPanel>
 
-      <projects:ProjectPaletteView DataContext="{Binding Palette}" />
+          <settings:PreferencesView DataContext="{Binding Preferences}" />
+          <projects:ProjectPaletteView DataContext="{Binding Palette}" />
+          <folders:FolderPickerView DataContext="{Binding Picker}" />
+        </Panel>
+      </DockPanel>
+
+      <setup:SetupView DataContext="{Binding Setup}" />
     </Panel>
   </DockPanel>
 </Window>

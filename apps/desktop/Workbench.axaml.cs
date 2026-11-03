@@ -1,10 +1,12 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
-using Crafter.ClaudeCode;
+using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
+using Crafter.Core.Settings;
 using Crafter.Desktop.Conversations;
 using Crafter.Desktop.Keyboard;
 using Crafter.Desktop.Projects;
@@ -16,19 +18,33 @@ public sealed partial class Workbench : Window
 {
     private readonly Shortcuts shortcuts = new();
 
+    private bool leaving;
+
     public Workbench()
-        : this(
-            WindowManager.Detect(),
-            new Bookshelf(JsonBookshelfStore.InUserConfig(), () => DateTimeOffset.Now),
-            project => new ConversationScreen(new Conversation(new ClaudeCodeSession(project.Folder))))
+        : this(WindowManager.Detect(), Hiring.Crew())
     {
     }
 
-    public Workbench(WindowManager windowManager, Bookshelf bookshelf, Func<Project, ConversationScreen> converse)
+    public Workbench(WindowManager windowManager, Crew crew)
+        : this(
+            windowManager,
+            new Bookshelf(JsonBookshelfStore.InUserConfig(), () => DateTimeOffset.Now),
+            JsonPreferencesStore.InUserConfig(),
+            JsonChatArchive.InUserData(),
+            crew)
+    {
+    }
+
+    public Workbench(
+        WindowManager windowManager,
+        Bookshelf bookshelf,
+        IPreferencesStore preferences,
+        IChatArchive archive,
+        Crew crew)
     {
         InitializeComponent();
 
-        var screen = new WorkbenchScreen(bookshelf, converse, new StorageFolderPicker(this));
+        var screen = new WorkbenchScreen(bookshelf, preferences, archive, crew, Copy);
         DataContext = screen;
         Bar.ArrangeFor(windowManager);
         Listen(screen);
@@ -45,11 +61,32 @@ public sealed partial class Workbench : Window
         }
     }
 
+    protected override async void OnClosing(WindowClosingEventArgs e)
+    {
+        base.OnClosing(e);
+
+        if (leaving || DataContext is not WorkbenchScreen { IsCrafting: true } screen)
+        {
+            return;
+        }
+
+        e.Cancel = true;
+        leaving = true;
+        await screen.LeaveAsync();
+        Close();
+    }
+
     private void Listen(WorkbenchScreen screen)
     {
         shortcuts.On(ProjectShortcuts.Open, () => screen.SearchCommand.Execute(null));
         shortcuts.On(ProjectShortcuts.Add, () => screen.AddCommand.Execute(null));
         shortcuts.On(ProjectShortcuts.Close, () => screen.CloseCommand.Execute(null));
+        shortcuts.On(WorkbenchShortcuts.ToggleSidebar, () => screen.ToggleSidebarCommand.Execute(null));
+        shortcuts.On(WorkbenchShortcuts.TogglePreferences, () => screen.TogglePreferencesCommand.Execute(null));
+        shortcuts.On(ChatShortcuts.New, () => screen.NewChatCommand.Execute(null));
+        shortcuts.On(ChatShortcuts.Close, () => screen.CloseChatCommand.Execute(null));
+        shortcuts.On(ChatShortcuts.Next, () => screen.NextChatCommand.Execute(null));
+        shortcuts.On(ChatShortcuts.Previous, () => screen.PreviousChatCommand.Execute(null));
 
         for (var place = 0; place < ProjectShortcuts.Slots; place++)
         {
@@ -58,9 +95,11 @@ public sealed partial class Workbench : Window
         }
     }
 
+    private Task Copy(string text) => Clipboard?.SetTextAsync(text) ?? Task.CompletedTask;
+
     private void Press(object? sender, KeyEventArgs e)
     {
-        if (shortcuts.Handle(e))
+        if (DataContext is WorkbenchScreen { ShowsSetup: false } && shortcuts.Handle(e))
         {
             e.Handled = true;
         }

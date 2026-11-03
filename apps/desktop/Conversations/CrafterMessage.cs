@@ -11,6 +11,13 @@ public sealed partial class CrafterMessage : Message
         IsCrafting = true;
     }
 
+    public CrafterMessage(string text, Ending ending)
+        : this()
+    {
+        Text = text;
+        Hear(ending);
+    }
+
     [ObservableProperty]
     public partial string Text { get; set; }
 
@@ -42,8 +49,8 @@ public sealed partial class CrafterMessage : Message
     {
         Stopped => "Stopped.",
         CutShort => "Cut short: the answer reached its length limit.",
-        Refused { Category: { } category } => $"Claude declined to answer ({category}).",
-        Refused => "Claude declined to answer.",
+        Refused { Category: { } category } => $"The agent declined to answer ({category}).",
+        Refused => "The agent declined to answer.",
         Failed failed => failed.Reason,
         _ => null,
     };

@@ -21,7 +21,21 @@ public sealed class Shortcut
     {
         var gestures = keys.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        return new Shortcut(keys, KeyGesture.Parse(gestures[0]), gestures.Length > 1 ? KeyGesture.Parse(gestures[1]) : null);
+        return new Shortcut(keys, Gesture(gestures[0]), gestures.Length > 1 ? Gesture(gestures[1]) : null);
+    }
+
+    private static KeyGesture Gesture(string keys)
+    {
+        var plus = keys.LastIndexOf('+');
+        var key = keys[(plus + 1)..];
+        var named = key switch
+        {
+            "," => "OemComma",
+            [var digit] when char.IsAsciiDigit(digit) => $"D{digit}",
+            _ => key,
+        };
+
+        return KeyGesture.Parse(keys[..(plus + 1)] + named);
     }
 
     public override string ToString() => Keys;

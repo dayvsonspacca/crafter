@@ -1,0 +1,175 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:folders="using:Crafter.Desktop.Folders"
+             xmlns:projects="using:Crafter.Desktop.Projects"
+             x:Class="Crafter.Desktop.Folders.FolderPickerView"
+             x:DataType="folders:FolderPicker"
+             IsVisible="{Binding IsOpen}">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.mono">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBlock.dim">
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.hit">
+      <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.heading">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="LetterSpacing" Value="1.1" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+
+    <Style Selector="Border.field">
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="CornerRadius" Value="5" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="TextBox.filter">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="TextBox.filter /template/ Border#PART_BorderElement, TextBox.filter:pointerover /template/ Border#PART_BorderElement, TextBox.filter:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.entries">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.entries ListBoxItem">
+      <Setter Property="Padding" Value="10,5" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+    <Style Selector="ListBox.entries ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ListBox.entries ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter, ListBox.entries ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.entries ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+
+    <Style Selector="Border.tag">
+      <Setter Property="Padding" Value="7,1" />
+      <Setter Property="CornerRadius" Value="99" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <Panel>
+    <Border Background="Transparent" PointerPressed="Dismiss" />
+    <Border Width="640"
+            Margin="16,9,16,0"
+            Padding="8"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            BoxShadow="0 20 50 -14 #BF000000">
+      <StackPanel Spacing="4">
+        <Grid ColumnDefinitions="*,Auto" Margin="4,2,4,6">
+          <TextBlock FontSize="13" FontWeight="SemiBold" Text="{Binding Title}" />
+          <TextBlock Grid.Column="1" Classes="mono dim" VerticalAlignment="Bottom">
+            <Run Text="starts at the projects root · " />
+            <Run Foreground="{DynamicResource ForegroundBrush}" FontWeight="SemiBold" Text="{Binding RootLabel}" />
+          </TextBlock>
+        </Grid>
+
+        <Border Classes="field">
+          <Grid ColumnDefinitions="Auto,*">
+            <TextBlock Classes="mono dim" FontSize="13" VerticalAlignment="Center" Text="{Binding LocationLabel}" />
+            <TextBox x:Name="FilterBox"
+                     Grid.Column="1"
+                     Classes="filter"
+                     Text="{Binding Filter}"
+                     AutomationProperties.Name="Folder" />
+          </Grid>
+        </Border>
+
+        <ListBox Classes="entries"
+                 ItemsSource="{Binding Entries}"
+                 SelectedItem="{Binding Selected}"
+                 MaxHeight="420"
+                 DoubleTapped="Chosen">
+          <ListBox.DataTemplates>
+            <DataTemplate DataType="folders:PickerHeading">
+              <TextBlock Classes="heading" Margin="0,4,0,0" Text="{Binding Text}" />
+            </DataTemplate>
+            <DataTemplate DataType="folders:FolderChoice">
+              <Grid ColumnDefinitions="16,*,Auto" ColumnSpacing="10">
+                <Path Width="16"
+                      Height="16"
+                      StrokeThickness="1"
+                      VerticalAlignment="Center"
+                      Stroke="{DynamicResource ForegroundMutedBrush}"
+                      Data="M1.5,4.5 H5.5 L7,6 H14.5 V13 H1.5 Z"
+                      IsVisible="{Binding !HasPath}" />
+                <Path Width="16"
+                      Height="16"
+                      StrokeThickness="1"
+                      VerticalAlignment="Center"
+                      Stroke="{DynamicResource AccentSecondaryBrush}"
+                      Data="M6,4 A1.5,1.5 0 1 1 5.99,4 Z M6,12 A1.5,1.5 0 1 1 5.99,12 Z M13,6.5 A1.5,1.5 0 1 1 12.99,6.5 Z M4.5,5.5 V10.5 M11.5,8 C11.5,10 8.5,10 5,11"
+                      IsVisible="{Binding HasPath}" />
+                <StackPanel Grid.Column="1" Spacing="1">
+                  <ItemsControl ItemsSource="{Binding Name}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="projects:Piece">
+                        <TextBlock FontSize="13.5" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <ItemsControl ItemsSource="{Binding Path}" IsVisible="{Binding HasPath}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="projects:Piece">
+                        <TextBlock Classes="mono dim" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+                <Border Grid.Column="2"
+                        Classes="tag"
+                        BorderThickness="1"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        IsVisible="{Binding HasTag}">
+                  <TextBlock Classes="mono" FontSize="10.5" Foreground="{DynamicResource AccentSecondaryBrush}" Text="{Binding Tag}" />
+                </Border>
+              </Grid>
+            </DataTemplate>
+          </ListBox.DataTemplates>
+        </ListBox>
+
+        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="4,8,4,0" Margin="0,4,0,0">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="mono dim" Text="Tab enter folder · Backspace go up · / or ~ jump" />
+            <TextBlock Grid.Column="1" Classes="mono dim" Text="Enter choose · Esc close" />
+          </Grid>
+        </Border>
+      </StackPanel>
+    </Border>
+  </Panel>
+</UserControl>

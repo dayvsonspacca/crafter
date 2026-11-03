@@ -1,0 +1,238 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:setup="using:Crafter.Desktop.Setup"
+             x:Class="Crafter.Desktop.Setup.SetupView"
+             x:DataType="setup:SetupScreen"
+             IsVisible="{Binding NeedsSetup}"
+             Background="{DynamicResource BackgroundBrush}">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.mono">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.name">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.detail">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="LineHeight" Value="19" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+
+    <Style Selector="Border.box">
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+      <Setter Property="Margin" Value="0,1,0,0" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Border.box.marked">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Border.box > Path">
+      <Setter Property="Data" Value="M3,8.5 L6.2,11.5 L13,4.5" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="Width" Value="10" />
+      <Setter Property="Height" Value="10" />
+      <Setter Property="Stroke" Value="{DynamicResource OnAccentBrush}" />
+      <Setter Property="StrokeThickness" Value="2" />
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Border.box.marked > Path">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector="ToggleButton.agent">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="18,16" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="ToggleButton.agent /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.agent:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.agent:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.agent:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.agent:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.agent:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+
+    <Style Selector="Border.card">
+      <Setter Property="Padding" Value="18,16" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.card.attention">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Ellipse.dot">
+      <Setter Property="Width" Value="6" />
+      <Setter Property="Height" Value="6" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Fill" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Ellipse.dot.ready">
+      <Setter Property="Fill" Value="{DynamicResource AccentSecondaryBrush}" />
+    </Style>
+    <Style Selector="Ellipse.dot.attention">
+      <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="TextBlock.state">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.state.ready">
+      <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
+    </Style>
+    <Style Selector="TextBlock.state.attention">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
+    <Style Selector="Button.primary, Button.ghost, Button.copy">
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Button.ghost, Button.copy">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.copy">
+      <Setter Property="Height" Value="28" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="CornerRadius" Value="5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.copy:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer>
+    <StackPanel MaxWidth="560" Margin="24,40" VerticalAlignment="Center" Spacing="14">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Ellipse Width="7" Height="7" VerticalAlignment="Center" Fill="{DynamicResource AccentBrush}" />
+        <TextBlock Classes="mono" LetterSpacing="1.1" Text="SETUP" />
+      </StackPanel>
+
+      <TextBlock FontSize="22" FontWeight="Medium" TextWrapping="Wrap" Text="{Binding Headline}" />
+      <TextBlock FontSize="13.5"
+                 LineHeight="21"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource ForegroundMutedBrush}"
+                 Text="{Binding Explanation}" />
+
+      <ItemsControl x:Name="Choices" Margin="0,10,0,0" ItemsSource="{Binding Cards}" IsVisible="{Binding IsPicking}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="setup:AgentCard">
+            <ToggleButton Classes="agent" IsChecked="{Binding IsMarked}" AutomationProperties.Name="{Binding AgentName}">
+              <Grid ColumnDefinitions="18,*" ColumnSpacing="14">
+                <Border Classes="box" Classes.marked="{Binding IsMarked}">
+                  <Path />
+                </Border>
+                <StackPanel Grid.Column="1" Spacing="4">
+                  <TextBlock Classes="name" Text="{Binding AgentName}" />
+                  <TextBlock Classes="detail" Text="{Binding Detail}" />
+                </StackPanel>
+              </Grid>
+            </ToggleButton>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding Cards}" IsVisible="{Binding !IsPicking}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="setup:AgentCard">
+            <Border Classes="card" Classes.attention="{Binding NeedsAttention}" IsVisible="{Binding IsMarked}">
+              <Grid ColumnDefinitions="18,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="14">
+                <Border Classes="box marked">
+                  <Path />
+                </Border>
+                <StackPanel Grid.Column="1" Spacing="4">
+                  <TextBlock Classes="name" Text="{Binding AgentName}" />
+                  <TextBlock Classes="detail" Text="{Binding Detail}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top" Margin="0,2,0,0">
+                  <Ellipse Classes="dot" Classes.ready="{Binding IsReady}" Classes.attention="{Binding NeedsAttention}" />
+                  <TextBlock Classes="state"
+                             Classes.ready="{Binding IsReady}"
+                             Classes.attention="{Binding NeedsAttention}"
+                             Text="{Binding State}" />
+                </StackPanel>
+                <Border Grid.Row="1"
+                        Grid.Column="1"
+                        Grid.ColumnSpan="2"
+                        Margin="0,12,0,0"
+                        Padding="14,10"
+                        CornerRadius="8"
+                        Background="{DynamicResource BackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        IsVisible="{Binding HasCommand}">
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <SelectableTextBlock VerticalAlignment="Center"
+                                         TextWrapping="Wrap"
+                                         FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                         FontSize="13"
+                                         Text="{Binding Command}" />
+                    <Button Grid.Column="1" Classes="copy" Content="Copy" Command="{Binding CopyCommandCommand}" />
+                  </Grid>
+                </Border>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <StackPanel Orientation="Horizontal" Spacing="14" IsVisible="{Binding IsPicking}">
+        <Button Classes="primary" Content="Continue" Command="{Binding ContinueCommand}" />
+        <TextBlock Classes="mono" VerticalAlignment="Center" Text="Space to mark · Enter to continue" />
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding !IsPicking}">
+        <Button Classes="primary" Content="Check again" Command="{Binding CheckCommand}" IsEnabled="{Binding !IsConfirming}" />
+        <Button Classes="ghost" Content="Change agents" Command="{Binding ChangeAgentsCommand}" IsEnabled="{Binding !IsConfirming}" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

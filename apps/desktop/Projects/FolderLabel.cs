@@ -12,5 +12,8 @@ public sealed record FolderLabel(string Folder)
         Home.Length > 0
         && (Folder == Home || Folder.StartsWith(Home + Path.DirectorySeparatorChar, StringComparison.Ordinal));
 
+    public static string Expand(string typed) =>
+        typed == "~" ? Home : typed.StartsWith("~/", StringComparison.Ordinal) ? Path.Combine(Home, typed[2..]) : typed;
+
     public override string ToString() => Text;
 }

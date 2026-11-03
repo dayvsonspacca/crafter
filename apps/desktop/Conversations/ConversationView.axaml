@@ -81,7 +81,7 @@
               <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="99" Padding="8,2">
                 <TextBlock Classes="label" LetterSpacing="0" Foreground="{DynamicResource ForegroundBrush}" Text="{Binding Model}" />
               </Border>
-              <TextBlock Classes="label" LetterSpacing="0" Text="Enter to craft · Shift+Enter for a new line" />
+              <TextBlock Classes="label" LetterSpacing="0" Text="Ctrl+T new chat · Ctrl+Tab next chat · Ctrl+W close" />
             </StackPanel>
             <Button Grid.Column="1" Classes="craft" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsCrafting}" />
             <Button Grid.Column="1" Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsCrafting}" />
@@ -91,7 +91,16 @@
     </Border>
 
     <Panel>
-      <ScrollViewer x:Name="Scroller" ScrollChanged="Follow">
+      <StackPanel IsVisible="{Binding !HasMessages}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+        <TextBlock HorizontalAlignment="Center" FontSize="15" Text="{Binding ProjectName, StringFormat='Start a chat in {0}.'}" />
+        <TextBlock HorizontalAlignment="Center"
+                   FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                   FontSize="11"
+                   Foreground="{DynamicResource ForegroundMutedBrush}"
+                   Text="{Binding AgentName, StringFormat='Each chat is its own {0} session, running in this folder.'}" />
+      </StackPanel>
+
+      <ScrollViewer x:Name="Scroller" IsVisible="{Binding HasMessages}" ScrollChanged="Follow">
         <ItemsControl ItemsSource="{Binding Messages}" MaxWidth="760" Margin="24,32">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>

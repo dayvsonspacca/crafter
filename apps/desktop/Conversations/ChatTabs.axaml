@@ -1,0 +1,131 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conversations="using:Crafter.Desktop.Conversations"
+             x:Class="Crafter.Desktop.Conversations.ChatTabs"
+             x:DataType="conversations:ProjectDesk"
+             Height="35">
+  <UserControl.Styles>
+    <Style Selector="Button.tab">
+      <Setter Property="Height" Value="35" />
+      <Setter Property="Padding" Value="12,0,6,0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="BorderThickness" Value="0,2,0,0" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.tab:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.tab:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.tab.selected /template/ ContentPresenter#PART_ContentPresenter, Button.tab.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.tab.selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+
+    <Style Selector="Button.x">
+      <Setter Property="Width" Value="20" />
+      <Setter Property="Height" Value="20" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.tab:pointerover Button.x, Button.tab.selected Button.x">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="Button.x:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Button.x Path, Button.new Path">
+      <Setter Property="Stroke" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+
+    <Style Selector="Button.new">
+      <Setter Property="Width" Value="35" />
+      <Setter Property="Height" Value="35" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.new:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    </Style>
+
+    <Style Selector="Ellipse.pulse">
+      <Style.Animations>
+        <Animation Duration="0:0:1.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="1" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Opacity" Value="0.35" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Background="{DynamicResource SurfaceBrush}"
+          BorderBrush="{DynamicResource BorderBrush}"
+          BorderThickness="0,0,0,1">
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+      <StackPanel Orientation="Horizontal">
+        <ItemsControl ItemsSource="{Binding Chats}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="conversations:ConversationScreen">
+              <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+                <Button Classes="tab"
+                        Classes.selected="{Binding IsInView}"
+                        Command="{Binding SelectCommand}"
+                        ToolTip.Tip="{Binding Title}"
+                        AutomationProperties.Name="{Binding Title}">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                    <Panel Width="7" Height="7" VerticalAlignment="Center">
+                      <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsCrafting}" />
+                      <Ellipse Fill="{DynamicResource AccentSecondaryBrush}" IsVisible="{Binding IsUnread}" />
+                      <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
+                    </Panel>
+                    <TextBlock Grid.Column="1"
+                               MaxWidth="200"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               Text="{Binding Title}" />
+                    <Button Grid.Column="2"
+                            Classes="x"
+                            Command="{Binding CloseCommand}"
+                            AutomationProperties.Name="Close chat">
+                      <Path Width="12" Height="12" StrokeThickness="1.3" Stretch="Uniform" Data="M4,4 L12,12 M12,4 L4,12" />
+                    </Button>
+                  </Grid>
+                </Button>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Classes="new"
+                Command="{Binding NewChatCommand}"
+                ToolTip.Tip="New chat · Ctrl+T"
+                AutomationProperties.Name="New chat">
+          <Path Width="16" Height="16" StrokeThickness="1.1" Data="M8,3 V13 M3,8 H13" />
+        </Button>
+      </StackPanel>
+    </ScrollViewer>
+  </Border>
+</UserControl>

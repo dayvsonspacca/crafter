@@ -3,6 +3,7 @@
   <Color x:Key="BackgroundColor">#141316</Color>
   <Color x:Key="SurfaceColor">#201E23</Color>
   <Color x:Key="BorderColor">#34313A</Color>
+  <Color x:Key="HoverColor">#2A282E</Color>
   <Color x:Key="ForegroundColor">#ECE6DE</Color>
   <Color x:Key="ForegroundMutedColor">#9B948E</Color>
   <Color x:Key="AccentColor">#D0343F</Color>
@@ -14,6 +15,7 @@
   <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
   <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
   <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
   <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
   <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource ForegroundMutedColor}" />
   <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
@@ -21,4 +23,12 @@
   <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" />
   <SolidColorBrush x:Key="AddedBrush" Color="{StaticResource AddedColor}" />
   <SolidColorBrush x:Key="RemovedBrush" Color="{StaticResource RemovedColor}" />
+
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource SurfaceColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutSeparatorBackground" Color="{StaticResource BorderColor}" />
 </ResourceDictionary>
