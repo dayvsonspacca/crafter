@@ -44,6 +44,7 @@ public sealed class ChatTest
         Assert.Equal(Claude, record.Agent);
         Assert.Equal(ChatTitle.Of("oi"), record.Title);
         Assert.Equal("s-1", record.SessionId);
+        Assert.Equal("s-1", chat.SessionId);
         Assert.Equal<Turn>([new Asked(new Prompt("oi")), new Answered("Olá", new Finished())], record.Turns);
         Assert.Equal(record.Turns, chat.Turns);
     }

@@ -12,6 +12,8 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
 
     public IReadOnlyList<Turn> Turns => conversation.Turns;
 
+    public string? SessionId => conversation.SessionId;
+
     public IAsyncEnumerable<Reply> Ask(Prompt prompt, CancellationToken stop = default)
     {
         if (conversation.Turns.Count == 0)
