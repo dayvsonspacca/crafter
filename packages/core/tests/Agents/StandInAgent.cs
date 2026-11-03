@@ -11,7 +11,13 @@ internal sealed class StandInAgent(string id) : IAgent
 
     public string Summary => $"Stands in for {id}.";
 
-    public Task<Readiness> Check(CancellationToken stop = default) => Task.FromResult<Readiness>(new Ready("1.0", null));
+    public IReadOnlyList<Setting> Settings => [];
+
+    public Configuration Configuration { get; private set; } = Configuration.Empty;
+
+    public void Configure(Configuration configuration) => Configuration = configuration;
+
+    public Task<Readiness> Check(CancellationToken stop = default) => Task.FromResult<Readiness>(new Ready("Ready", "1.0"));
 
     public IAgentSession Begin(Project project, string? resumeFrom = null) => throw new NotSupportedException();
 }

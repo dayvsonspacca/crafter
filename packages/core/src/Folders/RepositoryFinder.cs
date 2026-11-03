@@ -1,7 +1,9 @@
 namespace Crafter.Core.Folders;
 
-public sealed class RepositoryFinder(int depth)
+public sealed class RepositoryFinder(int depth = RepositoryFinder.UsualDepth)
 {
+    public const int UsualDepth = 4;
+
     private static readonly HashSet<string> Skipped = new(StringComparer.Ordinal) { "node_modules", "vendor", "bin", "obj" };
 
     public IEnumerable<string> Find(string root, CancellationToken stop = default)

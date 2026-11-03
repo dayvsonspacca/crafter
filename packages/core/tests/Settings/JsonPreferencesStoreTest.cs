@@ -20,7 +20,8 @@ public sealed class JsonPreferencesStoreTest : IDisposable
     [Fact]
     public void LoadsWhatItSaved()
     {
-        var chosen = new Preferences("/home/hero/Projetos", false, 6) { Agents = [new AgentId("claude-code")] };
+        var chosen = new Preferences("/home/hero/Projetos") { Agents = [new AgentId("claude-code")] }
+            .Configure(new AgentId("claude-code"), Configuration.Empty.With("model", "opus").With("tools", "edit"));
 
         new JsonPreferencesStore(File, Defaults).Save(chosen);
 
@@ -30,8 +31,10 @@ public sealed class JsonPreferencesStoreTest : IDisposable
     [Theory]
     [InlineData("not json")]
     [InlineData("null")]
-    [InlineData("""{"projectsRoot":"","findsRepositories":true,"searchDepth":4}""")]
-    [InlineData("""{"projectsRoot":"/home/hero","findsRepositories":true,"searchDepth":4,"agents":[" "]}""")]
+    [InlineData("""{"projectsRoot":""}""")]
+    [InlineData("""{"projectsRoot":"/home/hero","agents":[" "]}""")]
+    [InlineData("""{"projectsRoot":"/home/hero","configurations":{"claude-code":[]}}""")]
+    [InlineData("""{"projectsRoot":"/home/hero","configurations":{"claude-code":{"model":4}}}""")]
     public void StartsWithTheDefaultsWhenTheFileIsUnreadable(string content)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(File)!);
@@ -46,6 +49,15 @@ public sealed class JsonPreferencesStoreTest : IDisposable
         new JsonPreferencesStore(File, Defaults).Save(Defaults with { Agents = [new AgentId("claude-code")] });
 
         Assert.Contains("\"claude-code\"", System.IO.File.ReadAllText(File));
+    }
+
+    [Fact]
+    public void ReadsPreferencesWrittenBeforeRepositorySearchWasFixed()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(File)!);
+        System.IO.File.WriteAllText(File, """{"projectsRoot":"/home/hero/Projetos","findsRepositories":false,"searchDepth":6}""");
+
+        Assert.Equal(new Preferences("/home/hero/Projetos"), new JsonPreferencesStore(File, Defaults).Load());
     }
 
     [Fact]

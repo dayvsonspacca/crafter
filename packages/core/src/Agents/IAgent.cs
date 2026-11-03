@@ -10,6 +10,10 @@ public interface IAgent
 
     string Summary { get; }
 
+    IReadOnlyList<Setting> Settings { get; }
+
+    void Configure(Configuration configuration);
+
     Task<Readiness> Check(CancellationToken stop = default);
 
     IAgentSession Begin(Project project, string? resumeFrom = null);

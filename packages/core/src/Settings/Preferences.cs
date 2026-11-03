@@ -4,21 +4,15 @@ namespace Crafter.Core.Settings;
 
 public sealed record Preferences
 {
-    public const int ShallowestSearch = 1;
-
-    public const int DeepestSearch = 8;
-
     private readonly string projectsRoot = string.Empty;
-
-    private readonly int searchDepth;
 
     private readonly IReadOnlyList<AgentId> agents = [];
 
-    public Preferences(string projectsRoot, bool findsRepositories, int searchDepth)
+    private readonly IReadOnlyDictionary<AgentId, Configuration> configurations = new Dictionary<AgentId, Configuration>();
+
+    public Preferences(string projectsRoot)
     {
         ProjectsRoot = projectsRoot;
-        FindsRepositories = findsRepositories;
-        SearchDepth = searchDepth;
     }
 
     public string ProjectsRoot
@@ -31,28 +25,31 @@ public sealed record Preferences
         }
     }
 
-    public bool FindsRepositories { get; init; }
-
-    public int SearchDepth
-    {
-        get => searchDepth;
-        init => searchDepth = Math.Clamp(value, ShallowestSearch, DeepestSearch);
-    }
-
     public IReadOnlyList<AgentId> Agents
     {
         get => agents;
-        init => agents = [.. value.Distinct()];
+        init => agents = [.. (value ?? []).Distinct()];
     }
 
-    public static Preferences Default(string home) => new(home, findsRepositories: true, searchDepth: 4);
+    public IReadOnlyDictionary<AgentId, Configuration> Configurations
+    {
+        get => configurations;
+        init => configurations = (value ?? new Dictionary<AgentId, Configuration>()).Where(each => each.Value.Values.Count > 0).ToDictionary();
+    }
+
+    public static Preferences Default(string home) => new(home);
+
+    public Configuration ConfigurationOf(AgentId agent) => configurations.GetValueOrDefault(agent) ?? Configuration.Empty;
+
+    public Preferences Configure(AgentId agent, Configuration configuration) =>
+        this with { Configurations = new Dictionary<AgentId, Configuration>(configurations) { [agent] = configuration } };
 
     public bool Equals(Preferences? other) =>
         other is not null
         && ProjectsRoot == other.ProjectsRoot
-        && FindsRepositories == other.FindsRepositories
-        && SearchDepth == other.SearchDepth
-        && Agents.SequenceEqual(other.Agents);
+        && Agents.SequenceEqual(other.Agents)
+        && configurations.Count == other.configurations.Count
+        && configurations.All(each => other.ConfigurationOf(each.Key).Equals(each.Value));
 
-    public override int GetHashCode() => HashCode.Combine(ProjectsRoot, FindsRepositories, SearchDepth, Agents.Count);
+    public override int GetHashCode() => HashCode.Combine(ProjectsRoot, Agents.Count, configurations.Count);
 }

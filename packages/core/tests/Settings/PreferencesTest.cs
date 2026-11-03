@@ -6,31 +6,21 @@ namespace Crafter.Core.Tests.Settings;
 public sealed class PreferencesTest
 {
     [Fact]
-    public void StartsAtHomeFindingRepositoriesFourLevelsDeep()
+    public void StartsAtHome()
     {
-        Assert.Equal(new Preferences("/home/hero", true, 4), Preferences.Default("/home/hero"));
+        Assert.Equal(new Preferences("/home/hero"), Preferences.Default("/home/hero"));
     }
 
     [Fact]
     public void ForgetsTheTrailingSeparatorOfTheRoot()
     {
-        Assert.Equal("/home/hero/Projetos", new Preferences("/home/hero/Projetos/", true, 4).ProjectsRoot);
-    }
-
-    [Theory]
-    [InlineData(0, 1)]
-    [InlineData(5, 5)]
-    [InlineData(20, 8)]
-    public void KeepsTheDepthWithinBounds(int asked, int kept)
-    {
-        Assert.Equal(kept, new Preferences("/home/hero", true, asked).SearchDepth);
-        Assert.Equal(kept, (Preferences.Default("/home/hero") with { SearchDepth = asked }).SearchDepth);
+        Assert.Equal("/home/hero/Projetos", new Preferences("/home/hero/Projetos/").ProjectsRoot);
     }
 
     [Fact]
     public void RefusesABlankRoot()
     {
-        Assert.ThrowsAny<ArgumentException>(() => new Preferences(" ", true, 4));
+        Assert.ThrowsAny<ArgumentException>(() => new Preferences(" "));
     }
 
     [Fact]
@@ -57,5 +47,31 @@ public sealed class PreferencesTest
         Assert.Equal(one.GetHashCode(), other.GetHashCode());
         Assert.NotEqual(one, Preferences.Default("/home/hero"));
         Assert.False(one.Equals(null));
+    }
+
+    [Fact]
+    public void StartsWithAnEmptyConfigurationForEachAgent()
+    {
+        Assert.Same(Configuration.Empty, Preferences.Default("/home/hero").ConfigurationOf(new AgentId("claude-code")));
+    }
+
+    [Fact]
+    public void KeepsTheConfigurationOfEachAgent()
+    {
+        var claude = new AgentId("claude-code");
+        var configured = Preferences.Default("/home/hero").Configure(claude, Configuration.Empty.With("model", "opus"));
+
+        Assert.Equal("opus", configured.ConfigurationOf(claude)["model"]);
+        Assert.Equal(configured, Preferences.Default("/home/hero").Configure(claude, Configuration.Empty.With("model", "opus")));
+        Assert.NotEqual(configured, Preferences.Default("/home/hero").Configure(claude, Configuration.Empty.With("model", "sonnet")));
+        Assert.NotEqual(configured, Preferences.Default("/home/hero"));
+    }
+
+    [Fact]
+    public void ForgetsAnEmptyConfiguration()
+    {
+        var claude = new AgentId("claude-code");
+
+        Assert.Empty(Preferences.Default("/home/hero").Configure(claude, Configuration.Empty).Configurations);
     }
 }

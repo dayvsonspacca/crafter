@@ -1,3 +1,3 @@
 namespace Crafter.Core.Agents;
 
-public sealed record Ready(string Version, string? Account) : Readiness;
+public sealed record Ready(string State, string Detail) : Readiness(State, Detail);
