@@ -10,7 +10,7 @@ namespace Crafter.Desktop.Conversations;
 
 public sealed partial class ProjectOverview : ObservableObject
 {
-    private const int Latest = 20;
+    private const int Latest = 5;
 
     private readonly ProjectDesk desk;
 
@@ -45,6 +45,9 @@ public sealed partial class ProjectOverview : ObservableObject
     [ObservableProperty]
     public partial bool HasRecent { get; set; }
 
+    [ObservableProperty]
+    public partial string Count { get; set; } = string.Empty;
+
     public void Describe(Project project)
     {
         Name = project.Name.Text;
@@ -55,23 +58,29 @@ public sealed partial class ProjectOverview : ObservableObject
     public async Task Refresh()
     {
         List<(IAgent Agent, PastChat Past)> found = [];
+        var total = 0;
 
         foreach (var agent in crew.Hired)
         {
             if (agent is IKeepsHistory history)
             {
-                found.AddRange((await history.History(desk.Project)).Select(past => (agent, past)));
+                var recollection = await history.History(desk.Project, Latest);
+                found.AddRange(recollection.Latest.Select(past => (agent, past)));
+                total += recollection.Total;
             }
         }
 
         var now = DateTimeOffset.Now;
+        var latest = found.OrderByDescending(each => each.Past.LastActive).Take(Latest).ToList();
         Recent.Clear();
-        foreach (var (agent, past) in found.OrderByDescending(each => each.Past.LastActive).Take(Latest))
+        foreach (var (agent, past) in latest)
         {
-            Recent.Add(new RecentChat(agent, past, desk.Chats.FirstOrDefault(chat => chat.SessionId == past.SessionId), now));
+            var open = desk.Chats.FirstOrDefault(chat => chat.SessionId == past.SessionId);
+            Recent.Add(new RecentChat(agent, past, open, now) { IsLast = past == latest[^1].Past });
         }
 
         HasRecent = Recent.Count > 0;
+        Count = total > Recent.Count ? $"{Recent.Count} of {total}" : string.Empty;
     }
 
     [RelayCommand]

@@ -42,30 +42,41 @@
       <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
     </Style>
 
+    <Style Selector="Border.recents">
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
     <Style Selector="Button.recent">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-      <Setter Property="Padding" Value="12,10" />
-      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Padding" Value="16,12" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
-      <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style Selector="Button.recent.last">
+      <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="Button.recent:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.recent:pressed /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     </Style>
-    <Style Selector="Border.chip">
-      <Setter Property="Padding" Value="8,1" />
-      <Setter Property="CornerRadius" Value="99" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    <Style Selector="TextBlock.action">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11" />
       <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
-    <Style Selector="Border.chip.open">
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentSecondaryFaintBrush}" />
+    <Style Selector="Button.recent:pointerover TextBlock.action">
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     </Style>
-    <Style Selector="Border.chip.open TextBlock">
+    <Style Selector="TextBlock.action.open, Button.recent:pointerover TextBlock.action.open">
       <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
     </Style>
     <Style Selector="Ellipse.pulse">
@@ -117,32 +128,44 @@
         <Button Grid.Column="3" Classes="primary" Content="New chat" Command="{Binding NewChatCommand}" />
       </Grid>
 
-      <StackPanel Spacing="6">
-        <TextBlock Classes="kicker" Margin="12,0,12,6" Text="RECENT CHATS" />
-        <ItemsControl ItemsSource="{Binding Recent}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="conversations:RecentChat">
-              <Button Classes="recent"
-                      Command="{Binding $parent[UserControl].((conversations:ProjectOverview)DataContext).ResumeCommand}"
-                      CommandParameter="{Binding}"
-                      AutomationProperties.Name="{Binding Title}">
-                <Grid ColumnDefinitions="10,*,Auto,Auto" ColumnSpacing="12">
-                  <Panel Width="7" Height="7" VerticalAlignment="Center">
-                    <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsCrafting}" />
-                    <Ellipse Fill="{DynamicResource AccentSecondaryBrush}" IsVisible="{Binding IsUnread}" />
-                    <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
-                  </Panel>
-                  <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
-                  <Border Grid.Column="2" Classes="chip" Classes.open="{Binding IsOpen}">
-                    <TextBlock Classes="mono" FontSize="10.5" Text="{Binding Tag}" />
-                  </Border>
-                  <TextBlock Grid.Column="3" Classes="mono" MinWidth="64" TextAlignment="Right" Text="{Binding When}" />
-                </Grid>
-              </Button>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-        <TextBlock Margin="12,4"
+      <StackPanel Spacing="10">
+        <Grid ColumnDefinitions="*,Auto" Margin="4,0">
+          <TextBlock Classes="kicker" Text="RECENT CHATS" />
+          <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Count}" />
+        </Grid>
+        <Border Classes="recents" IsVisible="{Binding HasRecent}">
+          <ItemsControl ItemsSource="{Binding Recent}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="conversations:RecentChat">
+                <Button Classes="recent"
+                        Classes.last="{Binding IsLast}"
+                        Command="{Binding $parent[UserControl].((conversations:ProjectOverview)DataContext).ResumeCommand}"
+                        CommandParameter="{Binding}"
+                        AutomationProperties.Name="{Binding Title}">
+                  <Grid ColumnDefinitions="10,*,Auto" ColumnSpacing="14">
+                    <Panel Width="7" Height="7" VerticalAlignment="Center">
+                      <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsCrafting}" />
+                      <Ellipse Fill="{DynamicResource AccentSecondaryBrush}" IsVisible="{Binding IsUnread}" />
+                      <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
+                    </Panel>
+                    <StackPanel Grid.Column="1" Spacing="3">
+                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <TextBlock FontSize="14" FontWeight="Medium" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
+                        <TextBlock Grid.Column="1" Classes="mono" Text="{Binding When}" />
+                      </Grid>
+                      <TextBlock FontSize="12.5"
+                                 TextTrimming="CharacterEllipsis"
+                                 Foreground="{DynamicResource ForegroundMutedBrush}"
+                                 Text="{Binding Last}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="2" Classes="action" Classes.open="{Binding IsOpen}" Text="{Binding Action}" />
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Border>
+        <TextBlock Margin="4,0"
                    FontSize="13"
                    Foreground="{DynamicResource ForegroundMutedBrush}"
                    Text="No chats yet."

@@ -12,9 +12,13 @@ public sealed class RecentChat(IAgent agent, PastChat past, ConversationScreen? 
 
     public string When { get; } = Elapsed.Since(past.LastActive, now);
 
+    public string Last => Past.LastPrompt is { } prompt ? $"You: {prompt.Text.Split('\n')[0].Trim()}" : "Single prompt";
+
     public bool IsOpen => open is not null;
 
-    public string Tag => IsOpen ? "open" : Agent.Name;
+    public bool IsLast { get; init; }
+
+    public string Action => IsOpen ? "open" : "Resume →";
 
     public bool IsCrafting => open?.State == ChatState.Crafting;
 
