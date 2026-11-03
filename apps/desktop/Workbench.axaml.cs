@@ -1,16 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
-using Crafter.Core.Agents;
-using Crafter.Core.Conversations;
-using Crafter.Core.Projects;
-using Crafter.Core.Settings;
 using Crafter.Desktop.Conversations;
 using Crafter.Desktop.Keyboard;
 using Crafter.Desktop.Projects;
-using Crafter.Desktop.Themes;
 using Crafter.Desktop.WindowManagers;
 
 namespace Crafter.Desktop;
@@ -21,16 +15,10 @@ public sealed partial class Workbench : Window
 
     private bool leaving;
 
-    public Workbench(
-        WindowManager windowManager,
-        Bookshelf bookshelf,
-        PreferenceBook preferences,
-        IChatArchive archive,
-        Crew crew)
+    public Workbench(WindowManager windowManager, WorkbenchScreen screen)
     {
         InitializeComponent();
 
-        var screen = new WorkbenchScreen(bookshelf, preferences, archive, crew, Copy, Dress);
         DataContext = screen;
         Bar.ArrangeFor(windowManager);
         Listen(screen);
@@ -80,16 +68,6 @@ public sealed partial class Workbench : Window
             shortcuts.On(ProjectShortcuts.Slot(slot)!, () => screen.OpenSlot(slot));
         }
     }
-
-    private static void Dress(Theme theme)
-    {
-        if (Application.Current is { } application)
-        {
-            application.RequestedThemeVariant = theme.Variant;
-        }
-    }
-
-    private Task Copy(string text) => Clipboard?.SetTextAsync(text) ?? Task.CompletedTask;
 
     private void Press(object? sender, KeyEventArgs e)
     {

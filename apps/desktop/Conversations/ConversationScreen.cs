@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Desktop.Platform;
 
 namespace Crafter.Desktop.Conversations;
 
@@ -11,32 +11,39 @@ public sealed partial class ConversationScreen : ObservableObject
 {
     private const int Window = 20;
 
+    private static readonly TimeSpan Second = TimeSpan.FromSeconds(1);
+
     private readonly Chat chat;
 
     private readonly IAgent agent;
 
     private readonly IChatKeeper keeper;
 
-    private readonly Func<string, Task> copy;
+    private readonly IClipboard clipboard;
+
+    private readonly TimeProvider time;
+
+    private readonly SynchronizationContext? ui = SynchronizationContext.Current;
 
     private readonly List<Message> earlier = [];
 
-    private readonly DispatcherTimer clock = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly ITimer clock;
 
     private DateTimeOffset started;
 
-    public ConversationScreen(Chat chat, IAgent agent, string projectName, IChatKeeper keeper, Func<string, Task> copy, string? resumed = null)
+    public ConversationScreen(Chat chat, IAgent agent, string projectName, IChatKeeper keeper, IClipboard clipboard, TimeProvider time, string? resumed = null)
     {
         this.chat = chat;
         this.agent = agent;
         this.keeper = keeper;
-        this.copy = copy;
+        this.clipboard = clipboard;
+        this.time = time;
         AgentName = agent.Name;
         ProjectName = projectName;
         Draft = string.Empty;
         Elapsed = string.Empty;
         Choosers = Choose();
-        clock.Tick += (_, _) => Tick();
+        clock = time.CreateTimer(_ => OnUi(Tick), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         Restore(resumed);
     }
 
@@ -158,7 +165,7 @@ public sealed partial class ConversationScreen : ObservableObject
         }
 
         var prompt = new Prompt(Draft.Trim());
-        var answer = new CrafterMessage(copy, Retry, AgentName, chat.Decide);
+        var answer = new CrafterMessage(clipboard, Retry, AgentName, chat.Decide);
         answer.PropertyChanged += (_, changed) =>
         {
             if (changed.PropertyName == nameof(CrafterMessage.IsWaiting))
@@ -173,9 +180,9 @@ public sealed partial class ConversationScreen : ObservableObject
         Mark();
         HasMessages = true;
         State = ChatState.Crafting;
-        started = DateTimeOffset.Now;
+        started = time.GetUtcNow();
         Tick();
-        clock.Start();
+        clock.Change(Second, Second);
 
         var replies = chat.Ask(prompt, stop);
         OnPropertyChanged(nameof(Title));
@@ -190,7 +197,7 @@ public sealed partial class ConversationScreen : ObservableObject
             answer.Hear(reply);
         }
 
-        clock.Stop();
+        clock.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         IsWaiting = false;
         State = IsInView ? ChatState.Idle : ChatState.Unread;
         Concluded?.Invoke(this, EventArgs.Empty);
@@ -220,8 +227,20 @@ public sealed partial class ConversationScreen : ObservableObject
 
     private void Tick()
     {
-        var gone = DateTimeOffset.Now - started;
+        var gone = time.GetUtcNow() - started;
         Elapsed = gone.TotalMinutes < 1 ? $"crafting · {(int)gone.TotalSeconds}s" : $"crafting · {(int)gone.TotalMinutes}m {gone.Seconds}s";
+    }
+
+    private void OnUi(Action action)
+    {
+        if (ui is null)
+        {
+            action();
+        }
+        else
+        {
+            ui.Post(_ => action(), null);
+        }
     }
 
     private void Restore(string? resumed)
@@ -235,7 +254,7 @@ public sealed partial class ConversationScreen : ObservableObject
                     told.Add(new YourMessage(asked.Prompt.Text));
                     break;
                 case Answered answered:
-                    told.Add(new CrafterMessage(answered.Text, answered.Ending, copy, Retry));
+                    told.Add(new CrafterMessage(answered.Text, answered.Ending, clipboard, Retry));
                     break;
             }
         }

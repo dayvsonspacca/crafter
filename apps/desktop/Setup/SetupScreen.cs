@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Settings;
 using Crafter.Desktop.Agents;
+using Crafter.Desktop.Platform;
 
 namespace Crafter.Desktop.Setup;
 
@@ -13,12 +14,12 @@ public sealed partial class SetupScreen : ObservableObject
 
     private readonly PreferenceBook preferences;
 
-    public SetupScreen(Crew crew, PreferenceBook preferences, Func<string, Task> copy)
+    public SetupScreen(Crew crew, PreferenceBook preferences, IClipboard clipboard)
     {
         this.crew = crew;
         this.preferences = preferences;
         crew.Hire(preferences.Current.Agents);
-        Panels = [.. crew.Roster.Select(agent => new AgentPanel(agent, preferences, copy) { IsMarked = crew.IsHired(agent.Id) })];
+        Panels = [.. crew.Roster.Select(agent => new AgentPanel(agent, preferences, clipboard) { IsMarked = crew.IsHired(agent.Id) })];
         IsPicking = crew.IsHiring;
 
         foreach (var panel in Panels)

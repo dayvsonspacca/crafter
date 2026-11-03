@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
+using Crafter.Desktop.Platform;
 
 namespace Crafter.Desktop.Conversations;
 
@@ -14,14 +15,17 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 
     private readonly Crew crew;
 
-    private readonly Func<string, Task> copy;
+    private readonly IClipboard clipboard;
 
-    public ProjectDesk(Project project, IChatArchive archive, Crew crew, Func<Project, Task> edit, Func<string, Task> copy)
+    private readonly TimeProvider time;
+
+    public ProjectDesk(Project project, IChatArchive archive, Crew crew, Func<Project, Task> edit, IClipboard clipboard, TimeProvider time)
     {
         Project = project;
         this.archive = archive;
         this.crew = crew;
-        this.copy = copy;
+        this.clipboard = clipboard;
+        this.time = time;
 
         foreach (var record in archive.Load(project))
         {
@@ -31,7 +35,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
             Add(new Chat(record.Id, agent.Id, record.Title, new Conversation(session, record.Turns)), agent);
         }
 
-        Overview = new ProjectOverview(this, crew, edit);
+        Overview = new ProjectOverview(this, crew, edit, time);
     }
 
     public Project Project { get; private set; }
@@ -80,7 +84,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         }
 
         var turns = agent is IKeepsHistory history ? await history.Replay(Project, past.SessionId) : [];
-        var resumed = $"resumed from {agent.Name} · {Elapsed.Since(past.LastActive, DateTimeOffset.Now)}";
+        var resumed = $"resumed from {agent.Name} · {Elapsed.Since(past.LastActive, time.GetLocalNow())}";
         Selected = Add(new Chat(ChatId.New(), agent.Id, past.Title, new Conversation(agent.Begin(Project, past.SessionId), turns)), agent, resumed);
         Save();
     }
@@ -178,7 +182,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 
     private ConversationScreen Add(Chat chat, IAgent agent, string? resumed = null)
     {
-        var screen = new ConversationScreen(chat, agent, Project.Name.Text, this, copy, resumed);
+        var screen = new ConversationScreen(chat, agent, Project.Name.Text, this, clipboard, time, resumed);
         screen.PropertyChanged += Follow;
         screen.Concluded += Keep;
         Chats.Add(screen);

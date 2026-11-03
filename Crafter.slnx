@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/apps/">
+    <Project Path="apps/desktop-tests/Crafter.Desktop.Tests.csproj" />
     <Project Path="apps/desktop/Crafter.Desktop.csproj" />
   </Folder>
   <Folder Name="/packages/">

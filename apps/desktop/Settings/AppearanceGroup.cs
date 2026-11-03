@@ -7,17 +7,17 @@ public sealed class AppearanceGroup : PreferenceGroup
 {
     private readonly PreferenceBook preferences;
 
-    private readonly Action<Theme> apply;
+    private readonly IThemeSwitcher themes;
 
-    public AppearanceGroup(PreferenceBook preferences, Action<Theme> apply)
+    public AppearanceGroup(PreferenceBook preferences, IThemeSwitcher themes)
         : base("Appearance")
     {
         this.preferences = preferences;
-        this.apply = apply;
+        this.themes = themes;
 
         var current = Theme.Named(preferences.Current.Theme);
         Themes = [.. Theme.All.Select(theme => new ThemeChoice(theme, theme == current, Choose))];
-        apply(current);
+        themes.Apply(current);
     }
 
     public IReadOnlyList<ThemeChoice> Themes { get; }
@@ -29,7 +29,7 @@ public sealed class AppearanceGroup : PreferenceGroup
             choice.IsChosen = choice == chosen;
         }
 
-        apply(chosen.Theme);
+        themes.Apply(chosen.Theme);
         preferences.ChooseTheme(chosen.Theme.Id);
     }
 }

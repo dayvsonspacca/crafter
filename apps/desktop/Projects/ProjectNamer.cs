@@ -1,4 +1,3 @@
-using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Folders;
@@ -54,9 +53,9 @@ public sealed partial class ProjectNamer : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPreview))]
-    public partial Bitmap? Preview { get; set; }
+    public partial string? PreviewFile { get; set; }
 
-    public bool HasPreview => Preview is not null;
+    public bool HasPreview => PreviewFile is not null;
 
     public string Letter => Name.Trim() is { Length: > 0 } name ? name[..1].ToUpperInvariant() : string.Empty;
 
@@ -73,7 +72,7 @@ public sealed partial class ProjectNamer : ObservableObject
     public Task<Naming> Edit(Project project)
     {
         home = project.Folder;
-        Show(new SameIcon(), ProjectIcon.Of(project));
+        Show(new SameIcon(), ProjectIcon.FileOf(project));
 
         return Ask("Edit Project", adding: false, project.Name, "Save", "Cancel");
     }
@@ -93,19 +92,19 @@ public sealed partial class ProjectNamer : ObservableObject
     [RelayCommand]
     private async Task ChooseIcon()
     {
-        if (await images.PickImage("Choose an icon", home) is { } file && ProjectIcon.Load(file) is { } preview)
+        if (await images.PickImage("Choose an icon", home) is { } file)
         {
-            Show(new NewIcon(file), preview);
+            Show(new NewIcon(file), file);
         }
     }
 
     [RelayCommand]
     private void RemoveIcon() => Show(new NoIcon(), null);
 
-    private void Show(IconChange change, Bitmap? preview)
+    private void Show(IconChange change, string? preview)
     {
         icon = change;
-        Preview = preview;
+        PreviewFile = preview;
     }
 
     private Task<Naming> Ask(string title, bool adding, ProjectName suggested, string confirm, string retreat)

@@ -3,12 +3,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Desktop.Platform;
 
 namespace Crafter.Desktop.Conversations;
 
 public sealed partial class CrafterMessage : Message
 {
-    private readonly Func<string, Task> copy;
+    private readonly IClipboard clipboard;
 
     private readonly Action<CrafterMessage> retry;
 
@@ -16,9 +17,9 @@ public sealed partial class CrafterMessage : Message
 
     private readonly Action<string, Decision> decide;
 
-    public CrafterMessage(Func<string, Task> copy, Action<CrafterMessage> retry, string agent, Action<string, Decision> decide)
+    public CrafterMessage(IClipboard clipboard, Action<CrafterMessage> retry, string agent, Action<string, Decision> decide)
     {
-        this.copy = copy;
+        this.clipboard = clipboard;
         this.retry = retry;
         this.agent = agent;
         this.decide = decide;
@@ -26,8 +27,8 @@ public sealed partial class CrafterMessage : Message
         IsCrafting = true;
     }
 
-    public CrafterMessage(string text, Ending ending, Func<string, Task> copy, Action<CrafterMessage> retry)
-        : this(copy, retry, string.Empty, (_, _) => { })
+    public CrafterMessage(string text, Ending ending, IClipboard clipboard, Action<CrafterMessage> retry)
+        : this(clipboard, retry, string.Empty, (_, _) => { })
     {
         Hear(new Wrote(text));
         Hear(ending);
@@ -97,7 +98,7 @@ public sealed partial class CrafterMessage : Message
     }
 
     [RelayCommand]
-    private Task Copy() => copy(Text);
+    private Task Copy() => clipboard.Copy(Text);
 
     [RelayCommand]
     private void Retry() => retry(this);
@@ -109,7 +110,7 @@ public sealed partial class CrafterMessage : Message
             return segment;
         }
 
-        var started = new TextSegment(copy);
+        var started = new TextSegment(clipboard);
         Items.Add(started);
 
         return started;

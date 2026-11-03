@@ -9,9 +9,9 @@ namespace Crafter.Desktop.Settings;
 
 public sealed partial class PreferencesScreen : ObservableObject
 {
-    public PreferencesScreen(PreferenceBook preferences, IFolderPicker folders, SetupScreen setup, Action<Theme> apply)
+    public PreferencesScreen(PreferenceBook preferences, IFolderPicker folders, SetupScreen setup, IThemeSwitcher themes)
     {
-        AppGroups = [new AppearanceGroup(preferences, apply), new ProjectsGroup(preferences, folders)];
+        AppGroups = [new AppearanceGroup(preferences, themes), new ProjectsGroup(preferences, folders)];
         AgentGroups = [.. setup.Panels.Select(panel => new AgentGroup(panel))];
         Show(AppGroups[0]);
     }

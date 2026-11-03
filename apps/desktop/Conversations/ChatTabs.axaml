@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conversations="using:Crafter.Desktop.Conversations"
+             xmlns:projects="using:Crafter.Desktop.Projects"
              x:Class="Crafter.Desktop.Conversations.ChatTabs"
              x:DataType="conversations:ProjectDesk"
              Height="35">
@@ -99,7 +100,7 @@
                     BorderBrush="{DynamicResource BorderBrush}"
                     Background="{DynamicResource SurfaceBrush}">
               <Panel>
-                <Image Source="{Binding Overview.Icon}" Stretch="UniformToFill" IsVisible="{Binding Overview.HasIcon}" />
+                <Image Source="{Binding Overview.IconFile, Converter={x:Static projects:IconFileConverter.Instance}}" Stretch="UniformToFill" IsVisible="{Binding Overview.HasIcon}" />
                 <TextBlock HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"

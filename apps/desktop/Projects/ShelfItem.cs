@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Projects;
@@ -14,9 +13,9 @@ public sealed partial class ShelfItem(Project project, Shortcut? shortcut, IShel
 
     public string Name => Project.Name.Text;
 
-    public Bitmap? Icon { get; } = ProjectIcon.Of(project);
+    public string? IconFile { get; } = ProjectIcon.FileOf(project);
 
-    public bool HasIcon => Icon is not null;
+    public bool HasIcon => IconFile is not null;
 
     public string Letter => ProjectIcon.Letter(Project);
 

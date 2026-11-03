@@ -2,16 +2,14 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Crafter.Core.Agents;
-using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
 using Crafter.Core.Settings;
 using Crafter.Desktop.Conversations;
 using Crafter.Desktop.Folders;
+using Crafter.Desktop.Platform;
 using Crafter.Desktop.Projects;
 using Crafter.Desktop.Settings;
 using Crafter.Desktop.Setup;
-using Crafter.Desktop.Themes;
 
 namespace Crafter.Desktop;
 
@@ -21,31 +19,30 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
 
     private readonly PreferenceBook preferences;
 
-    private readonly IChatArchive archive;
+    private readonly DeskFactory deskFactory;
 
-    private readonly Crew crew;
-
-    private readonly Func<string, Task> copy;
+    private readonly IClipboard clipboard;
 
     private readonly Dictionary<Project, ProjectDesk> desks = [];
 
     public WorkbenchScreen(
         Bookshelf bookshelf,
         PreferenceBook preferences,
-        IChatArchive archive,
-        Crew crew,
-        Func<string, Task> copy,
-        Action<Theme> apply)
+        FolderPicker picker,
+        ProjectNamer namer,
+        SetupScreen setup,
+        PreferencesScreen preferencesScreen,
+        DeskFactory deskFactory,
+        IClipboard clipboard)
     {
         this.bookshelf = bookshelf;
         this.preferences = preferences;
-        this.archive = archive;
-        this.crew = crew;
-        this.copy = copy;
-        Picker = new FolderPicker(preferences, bookshelf);
-        Namer = new ProjectNamer(Picker);
-        Setup = new SetupScreen(crew, preferences, copy);
-        Preferences = new PreferencesScreen(preferences, Picker, Setup, apply);
+        this.deskFactory = deskFactory;
+        this.clipboard = clipboard;
+        Picker = picker;
+        Namer = namer;
+        Setup = setup;
+        Preferences = preferencesScreen;
         Preferences.PropertyChanged += Follow;
         Setup.PropertyChanged += Follow;
         if (!Setup.IsPicking)
@@ -137,7 +134,7 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         bookshelf.Open(project);
         if (!desks.TryGetValue(project, out var desk))
         {
-            desk = new ProjectDesk(project, archive, crew, Edit, copy);
+            desk = deskFactory.Make(project, Edit);
             desks[project] = desk;
         }
 
@@ -179,7 +176,7 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         Restock();
     }
 
-    public Task CopyPath(Project project) => copy(project.Folder);
+    public Task CopyPath(Project project) => clipboard.Copy(project.Folder);
 
     public async Task Edit(Project project)
     {

@@ -1,9 +1,10 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Crafter.Desktop.Platform;
 
 namespace Crafter.Desktop.Conversations;
 
-public sealed partial class TextSegment(Func<string, Task> copy) : ObservableObject
+public sealed partial class TextSegment(IClipboard clipboard) : ObservableObject
 {
     public ObservableCollection<AnswerPiece> Pieces { get; } = [];
 
@@ -23,7 +24,7 @@ public sealed partial class TextSegment(Func<string, Task> copy) : ObservableObj
                 continue;
             }
 
-            AnswerPiece piece = language is null ? new Prose() : new CodeBlock(language, copy);
+            AnswerPiece piece = language is null ? new Prose() : new CodeBlock(language, clipboard);
             piece.Text = text;
 
             if (at < Pieces.Count)

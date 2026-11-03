@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Settings;
+using Crafter.Desktop.Platform;
 
 namespace Crafter.Desktop.Agents;
 
@@ -11,15 +12,15 @@ public sealed partial class AgentPanel : ObservableObject
 
     private readonly PreferenceBook preferences;
 
-    private readonly Func<string, Task> copy;
+    private readonly IClipboard clipboard;
 
     private Configuration configuration;
 
-    public AgentPanel(IAgent agent, PreferenceBook preferences, Func<string, Task> copy)
+    public AgentPanel(IAgent agent, PreferenceBook preferences, IClipboard clipboard)
     {
         this.agent = agent;
         this.preferences = preferences;
-        this.copy = copy;
+        this.clipboard = clipboard;
         configuration = preferences.Current.ConfigurationOf(agent.Id);
         agent.Configure(configuration);
         Settings = [.. agent.Settings.Select(Present)];
@@ -86,7 +87,7 @@ public sealed partial class AgentPanel : ObservableObject
     }
 
     [RelayCommand]
-    private Task CopyRemedy() => Remedy is { } remedy ? copy(remedy) : Task.CompletedTask;
+    private Task CopyRemedy() => Remedy is { } remedy ? clipboard.Copy(remedy) : Task.CompletedTask;
 
     private object Present(Setting setting) => setting switch
     {

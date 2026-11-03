@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
@@ -18,11 +17,14 @@ public sealed partial class ProjectOverview : ObservableObject
 
     private readonly Func<Project, Task> edit;
 
-    public ProjectOverview(ProjectDesk desk, Crew crew, Func<Project, Task> edit)
+    private readonly TimeProvider time;
+
+    public ProjectOverview(ProjectDesk desk, Crew crew, Func<Project, Task> edit, TimeProvider time)
     {
         this.desk = desk;
         this.crew = crew;
         this.edit = edit;
+        this.time = time;
         Name = string.Empty;
         Letter = string.Empty;
         Describe(desk.Project);
@@ -38,9 +40,9 @@ public sealed partial class ProjectOverview : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasIcon))]
-    public partial Bitmap? Icon { get; set; }
+    public partial string? IconFile { get; set; }
 
-    public bool HasIcon => Icon is not null;
+    public bool HasIcon => IconFile is not null;
 
     [ObservableProperty]
     public partial bool HasRecent { get; set; }
@@ -52,7 +54,7 @@ public sealed partial class ProjectOverview : ObservableObject
     {
         Name = project.Name.Text;
         Letter = ProjectIcon.Letter(project);
-        Icon = ProjectIcon.Of(project);
+        IconFile = ProjectIcon.FileOf(project);
     }
 
     public async Task Refresh()
@@ -70,7 +72,7 @@ public sealed partial class ProjectOverview : ObservableObject
             }
         }
 
-        var now = DateTimeOffset.Now;
+        var now = time.GetLocalNow();
         var latest = found.OrderByDescending(each => each.Past.LastActive).Take(Latest).ToList();
         Recent.Clear();
         foreach (var (agent, past) in latest)

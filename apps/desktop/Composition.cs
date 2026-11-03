@@ -3,6 +3,13 @@ using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
 using Crafter.Core.Settings;
+using Crafter.Desktop.Conversations;
+using Crafter.Desktop.Folders;
+using Crafter.Desktop.Platform;
+using Crafter.Desktop.Projects;
+using Crafter.Desktop.Settings;
+using Crafter.Desktop.Setup;
+using Crafter.Desktop.Themes;
 using Crafter.Desktop.WindowManagers;
 
 namespace Crafter.Desktop;
@@ -17,13 +24,28 @@ public static class Composition
 
     private static string Data => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), App);
 
-    public static Workbench Workbench() =>
-        new(
-            WindowManager.Detect(),
-            new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), () => DateTimeOffset.Now),
-            new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), Preferences.Default(Home))),
-            new JsonChatArchive(Path.Combine(Data, "chats")),
-            Crew());
+    public static Workbench Workbench()
+    {
+        var time = TimeProvider.System;
+        var clipboard = new DesktopClipboard();
+        var crew = Crew();
+        var preferences = new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), Preferences.Default(Home)));
+        var bookshelf = new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), time.GetLocalNow);
+        var picker = new FolderPicker(preferences, bookshelf);
+        var setup = new SetupScreen(crew, preferences, clipboard);
+
+        var screen = new WorkbenchScreen(
+            bookshelf,
+            preferences,
+            picker,
+            new ProjectNamer(picker),
+            setup,
+            new PreferencesScreen(preferences, picker, setup, new ApplicationThemeSwitcher()),
+            new DeskFactory(new JsonChatArchive(Path.Combine(Data, "chats")), crew, clipboard, time),
+            clipboard);
+
+        return new Workbench(WindowManager.Detect(), screen);
+    }
 
     private static Crew Crew() => new([new ClaudeCode()]);
 }
