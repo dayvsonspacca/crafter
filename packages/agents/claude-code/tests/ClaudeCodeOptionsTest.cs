@@ -5,34 +5,43 @@ public sealed class ClaudeCodeOptionsTest
     private static readonly string[] Streams = ["-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages"];
 
     [Fact]
-    public void ChatsWithoutToolsByDefault()
+    public void EditsFilesByDefault()
     {
-        Assert.Equal([.. Streams, "--tools", ""], new ClaudeCodeOptions("claude").Arguments(null));
+        Assert.Equal([.. Streams, "--permission-mode", "acceptEdits"], new ClaudeCodeOptions("claude").Arguments(null));
     }
 
     [Fact]
-    public void PlansWithoutEditing()
+    public void ChatsWithoutTools()
     {
-        Assert.Equal([.. Streams, "--permission-mode", "plan"], new ClaudeCodeOptions("claude", Tools: ClaudeCodeOptions.Plans).Arguments(null));
+        Assert.Equal([.. Streams, "--tools", ""], new ClaudeCodeOptions("claude", Tools: ClaudeCodeOptions.Chats).Arguments(null));
+    }
+
+    [Theory]
+    [InlineData("plan")]
+    [InlineData("auto")]
+    [InlineData("review")]
+    public void PassesAnyOtherModeAlong(string mode)
+    {
+        Assert.Equal([.. Streams, "--permission-mode", mode], new ClaudeCodeOptions("claude", Tools: mode).Arguments(null));
     }
 
     [Fact]
-    public void AcceptsEditsWhenAllowedToEdit()
+    public void ReadsTheEditChoiceSavedBeforeModesCameFromTheHelp()
     {
-        Assert.Equal([.. Streams, "--permission-mode", "acceptEdits"], new ClaudeCodeOptions("claude", Tools: ClaudeCodeOptions.Edits).Arguments(null));
+        Assert.Equal([.. Streams, "--permission-mode", "acceptEdits"], new ClaudeCodeOptions("claude", Tools: "edit").Arguments(null));
     }
 
     [Fact]
     public void AsksForTheChosenModelAndEffort()
     {
         Assert.Equal(
-            [.. Streams, "--tools", "", "--model", "opus", "--effort", "high"],
+            [.. Streams, "--permission-mode", "acceptEdits", "--model", "opus", "--effort", "high"],
             new ClaudeCodeOptions("claude", Model: "opus", Effort: "high").Arguments(null));
     }
 
     [Fact]
     public void ResumesASession()
     {
-        Assert.Equal([.. Streams, "--tools", "", "--resume", "s-1"], new ClaudeCodeOptions("claude").Arguments("s-1"));
+        Assert.Equal([.. Streams, "--permission-mode", "acceptEdits", "--resume", "s-1"], new ClaudeCodeOptions("claude").Arguments("s-1"));
     }
 }

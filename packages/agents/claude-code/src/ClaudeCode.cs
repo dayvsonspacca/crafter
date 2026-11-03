@@ -13,33 +13,26 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
 
     private const string Broken = "Not working";
 
+    private const string Introduction = """{"type":"control_request","request_id":"crafter","request":{"subtype":"initialize"}}""";
+
     private static readonly TimeSpan Patience = TimeSpan.FromSeconds(20);
 
     private readonly Entry command = new("executable", "Executable", "The command that starts Claude Code.", executable);
 
     private readonly ClaudeCodeHistory history = new(home ?? ClaudeCodeHistory.Home);
 
-    private readonly Choice model = new(
-        "model",
-        "Model",
-        "The model that answers.",
-        [new(null, "Default"), new("fable", "Fable"), new("opus", "Opus"), new("sonnet", "Sonnet"), new("haiku", "Haiku")]);
+    private static readonly IReadOnlyDictionary<string, string> Names = new Dictionary<string, string>
+    {
+        [ClaudeCodeOptions.Edits] = "Edit files",
+        ["plan"] = "Plan",
+        ["auto"] = "Auto",
+        ["dontAsk"] = "Don't ask",
+        ["bypassPermissions"] = "Bypass permissions",
+        ["manual"] = "Manual",
+        ["xhigh"] = "Extra high",
+    };
 
-    private readonly Choice effort = new(
-        "effort",
-        "Effort",
-        "How much the model thinks before answering.",
-        [new(null, "Default"), new("low", "Low"), new("medium", "Medium"), new("high", "High"), new("max", "Max")]);
-
-    private readonly Choice tools = new(
-        "tools",
-        "Tools",
-        "What Claude Code can do in the project.",
-        [new(null, "Chat only"), new(ClaudeCodeOptions.Plans, "Plan"), new(ClaudeCodeOptions.Edits, "Edit files")]);
-
-    private ClaudeCodeOptions options = new(executable);
-
-    private Configuration configuration = Configuration.Empty;
+    private ClaudeCodeCapabilities capabilities = ClaudeCodeCapabilities.Unknown;
 
     public AgentId Id { get; } = new("claude-code");
 
@@ -47,19 +40,24 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
 
     public string Summary => "Anthropic's coding agent";
 
-    public IReadOnlyList<Setting> Settings => [model, effort, tools, command];
+    public Configuration Configuration { get; private set; } = Configuration.Empty;
 
-    public IReadOnlyList<string> Badges =>
-        [.. Made(model, label => label), .. Made(effort, label => $"{label} effort"), tools.Chosen(configuration).Label];
+    public IReadOnlyList<Setting> Settings =>
+    [
+        new Choice("model", "Model", "The model that answers.", [new(null, "Default"), .. Offered("model", capabilities.Models)]),
+        new Choice("effort", "Effort", "How much the model thinks before answering.", [new(null, "Default"), .. Offered("effort", capabilities.Efforts)]),
+        new Choice(
+            "tools",
+            "Tools",
+            "What Claude Code can do in the project.",
+            [new(null, Names[ClaudeCodeOptions.Edits]), new(ClaudeCodeOptions.Chats, "Chat only"), .. Offered("tools", capabilities.Modes, ClaudeCodeOptions.Edits, ClaudeCodeOptions.Chats, "edit")]),
+        command,
+    ];
 
-    public void Configure(Configuration configuration)
-    {
-        this.configuration = configuration;
-        options = new ClaudeCodeOptions(command.Value(configuration), configuration["model"], configuration["effort"], configuration["tools"]);
-    }
+    public void Configure(Configuration configuration) => Configuration = configuration;
 
     public IAgentSession Begin(Project project, string? resumeFrom = null) =>
-        new ClaudeCodeSession(project.Folder, () => options, resumeFrom);
+        new ClaudeCodeSession(project.Folder, adjustments => Options(adjustments.Over(Configuration)), resumeFrom);
 
     public Task<Recollection> History(Project project, int latest, CancellationToken stop = default) => history.List(project, latest, stop);
 
@@ -85,6 +83,11 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
             return new Blocked(Broken, "`claude --version` did not answer with a version.", null);
         }
 
+        if (await Ask(["--help"], stop) is { Code: 0 } help)
+        {
+            capabilities = ClaudeCodeCapabilities.Parse(help.Output).Introduced(await Introduce(stop));
+        }
+
         var status = await Ask(["auth", "status", "--json"], stop);
 
         if (status is null || status.Code != 0)
@@ -102,7 +105,7 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
 
     private async Task<Answer?> Ask(string[] arguments, CancellationToken stop)
     {
-        using var process = ClaudeCodeProcess.Start(options.Executable, Environment.CurrentDirectory, arguments);
+        using var process = ClaudeCodeProcess.Start(Options(Configuration).Executable, Environment.CurrentDirectory, arguments);
         if (process is null)
         {
             return null;
@@ -125,6 +128,45 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
             ClaudeCodeProcess.Kill(process);
 
             return new Answer(-1, string.Empty, $"`claude {string.Join(' ', arguments)}` did not answer in {Patience.TotalSeconds:0} seconds.");
+        }
+    }
+
+    private async Task<string?> Introduce(CancellationToken stop)
+    {
+        using var process = ClaudeCodeProcess.Start(
+            Options(Configuration).Executable,
+            Environment.CurrentDirectory,
+            ["-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose"]);
+        if (process is null)
+        {
+            return null;
+        }
+
+        using var patience = CancellationTokenSource.CreateLinkedTokenSource(stop);
+        patience.CancelAfter(Patience);
+
+        try
+        {
+            await process.StandardInput.WriteLineAsync(Introduction);
+            await process.StandardInput.FlushAsync(patience.Token);
+
+            while (await process.StandardOutput.ReadLineAsync(patience.Token) is { } line)
+            {
+                if (line.Contains("\"control_response\"", StringComparison.Ordinal))
+                {
+                    return line;
+                }
+            }
+
+            return null;
+        }
+        catch (Exception unanswered) when (unanswered is OperationCanceledException or IOException)
+        {
+            return null;
+        }
+        finally
+        {
+            ClaudeCodeProcess.Kill(process);
         }
     }
 
@@ -156,8 +198,42 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
     private static string Said(Answer answer, string otherwise) =>
         answer.Complaints.Trim() is { Length: > 0 } complaint ? complaint : otherwise;
 
-    private IEnumerable<string> Made(Choice choice, Func<string, string> badge) =>
-        choice.Chosen(configuration) is { Value: not null } option ? [badge(option.Label)] : [];
+    private static string Named(string value) =>
+        Names.TryGetValue(value, out var name) ? name : Humanize(value);
+
+    private static string Humanize(string value)
+    {
+        var words = string.Concat(value.Select((letter, at) => at > 0 && char.IsUpper(letter) ? " " + char.ToLowerInvariant(letter) : letter.ToString()))
+            .Replace('-', ' ')
+            .Replace('_', ' ');
+
+        return char.ToUpperInvariant(words[0]) + words[1..];
+    }
+
+    private ClaudeCodeOptions Options(Configuration chosen) =>
+        new(command.Value(chosen), chosen["model"], chosen["effort"], chosen["tools"]);
+
+    private IEnumerable<Option> Offered(string key, IEnumerable<ClaudeCodeModel> found)
+    {
+        List<ClaudeCodeModel> models = [.. found];
+        if (Configuration[key] is { } chosen && models.All(model => model.Value != chosen))
+        {
+            models.Add(new ClaudeCodeModel(chosen));
+        }
+
+        return models.Select(model => new Option(model.Value, model.Name ?? Named(model.Value)));
+    }
+
+    private IEnumerable<Option> Offered(string key, IEnumerable<string> found, params string[] already)
+    {
+        List<string> values = [.. found.Except(already)];
+        if (Configuration[key] is { } chosen && !values.Contains(chosen) && !already.Contains(chosen))
+        {
+            values.Add(chosen);
+        }
+
+        return values.Select(value => new Option(value, Named(value)));
+    }
 
     private sealed record Answer(int Code, string Output, string Complaints);
 }

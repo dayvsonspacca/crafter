@@ -110,15 +110,65 @@ public sealed class ClaudeCodeTest
     }
 
     [Fact]
-    public void ShowsTheToolsAndOnlyTheChoicesThatWereMade()
+    public async Task OffersWhatTheInstalledClaudeCodeKnows()
+    {
+        using var claude = new FakeClaude(
+            "if [[ \"$1\" == \"--help\" ]]; then cat \"$(dirname \"$0\")/help.txt\"; exit 0; fi\n"
+            + "if [[ \"$*\" == *--input-format* ]]; then read -r line; cat \"$(dirname \"$0\")/introduction.json\"; sleep 5; fi\n"
+            + Script("""echo '{"loggedIn":true}'"""));
+        File.WriteAllText(Path.Combine(claude.Folder, "help.txt"), ClaudeCodeCapabilitiesTest.Help);
+        File.WriteAllText(Path.Combine(claude.Folder, "introduction.json"), ClaudeCodeCapabilitiesTest.Introduction + "\n");
+        var agent = new ClaudeCode(claude.Executable);
+
+        await agent.Check(Stop);
+
+        Assert.Equal(["Default", "Opus 5.5", "Sonnet 4.6", "Claude next"], Labels(agent, "model"));
+        Assert.Equal(["Default", "Low", "Medium", "High", "Extra high", "Max"], Labels(agent, "effort"));
+        Assert.Equal(["Edit files", "Chat only", "Auto", "Bypass permissions", "Manual", "Don't ask", "Plan"], Labels(agent, "tools"));
+    }
+
+    [Fact]
+    public async Task FallsBackToTheAliasesWhenClaudeCodeDoesNotIntroduceItself()
+    {
+        using var claude = new FakeClaude(
+            "if [[ \"$1\" == \"--help\" ]]; then cat \"$(dirname \"$0\")/help.txt\"; exit 0; fi\n"
+            + "if [[ \"$*\" == *--input-format* ]]; then exit 1; fi\n"
+            + Script("""echo '{"loggedIn":true}'"""));
+        File.WriteAllText(Path.Combine(claude.Folder, "help.txt"), ClaudeCodeCapabilitiesTest.Help);
+        var agent = new ClaudeCode(claude.Executable);
+
+        await agent.Check(Stop);
+
+        Assert.Equal(["Default", "Fable", "Opus", "Sonnet"], Labels(agent, "model"));
+    }
+
+    [Fact]
+    public void KeepsOfferingAChoiceTheHelpNoLongerLists()
     {
         var agent = new ClaudeCode();
 
-        Assert.Equal(["Chat only"], agent.Badges);
+        agent.Configure(Configuration.Empty.With("effort", "turbo-mode").With("tools", "edit").With("model", "claude-opus-4-1"));
 
-        agent.Configure(Configuration.Empty.With("model", "opus").With("effort", "high").With("tools", ClaudeCodeOptions.Edits));
+        Assert.Equal(["Default", "Turbo mode"], Labels(agent, "effort"));
+        Assert.Equal(["Default", "Claude opus 4 1"], Labels(agent, "model"));
+        Assert.Equal(["Edit files", "Chat only"], Labels(agent, "tools"));
+    }
 
-        Assert.Equal(["Opus", "High effort", "Edit files"], agent.Badges);
+    [Fact]
+    public async Task AnswersWithTheAdjustmentsOfTheChatOverThePreferences()
+    {
+        using var claude = new FakeClaude($"cat > /dev/null\n{FakeClaude.Writes("$*")}\n{FakeClaude.Success}");
+        var agent = new ClaudeCode(claude.Executable);
+        agent.Configure(Configuration.Empty.With("model", "opus"));
+        var session = agent.Begin(new Project(claude.Folder));
+
+        session.Adjust(Configuration.Empty.With("tools", ClaudeCodeOptions.Chats));
+        var replies = await session.Answer(new Crafter.Core.Conversations.Prompt("oi"), Stop).ToListAsync(Stop);
+
+        var said = Assert.Single(replies.OfType<Crafter.Core.Conversations.Wrote>()).Fragment;
+        Assert.Contains("--model opus", said);
+        Assert.Contains("--tools", said);
+        Assert.Equal("chat", session.Adjustments["tools"]);
     }
 
     [Fact]
@@ -139,13 +189,16 @@ public sealed class ClaudeCodeTest
         var agent = new ClaudeCode(claude.Executable);
         var session = agent.Begin(new Project(claude.Folder));
 
-        agent.Configure(Configuration.Empty.With("model", "opus").With("tools", ClaudeCodeOptions.Edits));
+        agent.Configure(Configuration.Empty.With("model", "opus").With("tools", "plan"));
         var replies = await session.Answer(new Crafter.Core.Conversations.Prompt("oi"), Stop).ToListAsync(Stop);
 
         var said = Assert.Single(replies.OfType<Crafter.Core.Conversations.Wrote>()).Fragment;
         Assert.Contains("--model opus", said);
-        Assert.Contains("--permission-mode acceptEdits", said);
+        Assert.Contains("--permission-mode plan", said);
     }
+
+    private static IEnumerable<string> Labels(ClaudeCode agent, string key) =>
+        agent.Settings.OfType<Choice>().Single(choice => choice.Key == key).Options.Select(option => option.Label);
 
     private static string Script(string status) =>
         $"""

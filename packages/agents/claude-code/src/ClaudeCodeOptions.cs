@@ -2,9 +2,11 @@ namespace Crafter.Agents.ClaudeCode;
 
 public sealed record ClaudeCodeOptions(string Executable, string? Model = null, string? Effort = null, string? Tools = null)
 {
-    public const string Plans = "plan";
+    public const string Chats = "chat";
 
-    public const string Edits = "edit";
+    public const string Edits = "acceptEdits";
+
+    private const string Legacy = "edit";
 
     public IReadOnlyList<string> Arguments(string? resumeFrom)
     {
@@ -12,9 +14,9 @@ public sealed record ClaudeCodeOptions(string Executable, string? Model = null, 
 
         arguments.AddRange(Tools switch
         {
-            Plans => ["--permission-mode", "plan"],
-            Edits => ["--permission-mode", "acceptEdits"],
-            _ => ["--tools", string.Empty],
+            Chats => ["--tools", string.Empty],
+            null or Legacy => ["--permission-mode", Edits],
+            var mode => ["--permission-mode", mode],
         });
 
         if (Model is { } model)

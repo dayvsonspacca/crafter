@@ -5,20 +5,24 @@ using Crafter.Core.Conversations;
 
 namespace Crafter.Agents.ClaudeCode;
 
-public sealed class ClaudeCodeSession(string workingDirectory, Func<ClaudeCodeOptions> options, string? resumeFrom = null) : IAgentSession
+public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuration, ClaudeCodeOptions> options, string? resumeFrom = null) : IAgentSession
 {
     private string? sessionId = resumeFrom;
 
     public ClaudeCodeSession(string workingDirectory, string executable = "claude", string? resumeFrom = null)
-        : this(workingDirectory, () => new ClaudeCodeOptions(executable), resumeFrom)
+        : this(workingDirectory, _ => new ClaudeCodeOptions(executable), resumeFrom)
     {
     }
+
+    public Configuration Adjustments { get; private set; } = Configuration.Empty;
+
+    public void Adjust(Configuration adjustments) => Adjustments = adjustments;
 
     public string? SessionId => sessionId;
 
     public async IAsyncEnumerable<Reply> Answer(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
     {
-        var now = options();
+        var now = options(Adjustments);
         var process = ClaudeCodeProcess.Start(now.Executable, workingDirectory, now.Arguments(sessionId));
         if (process is null)
         {
