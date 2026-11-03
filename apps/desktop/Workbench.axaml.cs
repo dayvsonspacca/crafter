@@ -28,7 +28,7 @@ public sealed partial class Workbench : Window
     public Workbench(WindowManager windowManager, Crew crew)
         : this(
             windowManager,
-            new Bookshelf(JsonBookshelfStore.InUserConfig(), () => DateTimeOffset.Now),
+            new Bookshelf(JsonBookshelfStore.InUserConfig(), new JsonProjectSettingsStore(), () => DateTimeOffset.Now),
             JsonPreferencesStore.InUserConfig(),
             JsonChatArchive.InUserData(),
             crew)
@@ -78,9 +78,9 @@ public sealed partial class Workbench : Window
 
     private void Listen(WorkbenchScreen screen)
     {
-        shortcuts.On(ProjectShortcuts.Open, () => screen.SearchCommand.Execute(null));
         shortcuts.On(ProjectShortcuts.Add, () => screen.AddCommand.Execute(null));
         shortcuts.On(ProjectShortcuts.Close, () => screen.CloseCommand.Execute(null));
+        shortcuts.On(ProjectShortcuts.Rename, () => screen.RenameCurrentCommand.Execute(null));
         shortcuts.On(WorkbenchShortcuts.ToggleSidebar, () => screen.ToggleSidebarCommand.Execute(null));
         shortcuts.On(WorkbenchShortcuts.TogglePreferences, () => screen.TogglePreferencesCommand.Execute(null));
         shortcuts.On(ChatShortcuts.New, () => screen.NewChatCommand.Execute(null));

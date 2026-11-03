@@ -1,15 +1,22 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Crafter.Desktop"
              xmlns:settings="using:Crafter.Desktop.Settings"
-             xmlns:setup="using:Crafter.Desktop.Setup"
+             xmlns:agents="using:Crafter.Desktop.Agents"
              x:Class="Crafter.Desktop.Settings.PreferencesView"
              x:DataType="settings:PreferencesScreen"
+             Focusable="True"
              IsVisible="{Binding IsOpen}">
   <UserControl.Styles>
-    <Style Selector="TextBlock.mono">
+    <Style Selector="TextBlock.kicker">
       <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="LetterSpacing" Value="1.2" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.heading">
+      <Setter Property="FontSize" Value="22" />
+      <Setter Property="FontWeight" Value="Medium" />
     </Style>
     <Style Selector="TextBlock.title">
       <Setter Property="FontSize" Value="14" />
@@ -21,25 +28,17 @@
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
-    <Style Selector="Border.setting">
-      <Setter Property="Padding" Value="0,18" />
-      <Setter Property="BorderThickness" Value="0,0,0,1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-    </Style>
-    <Style Selector="TextBox.path, NumericUpDown">
+    <Style Selector="TextBlock.status">
       <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
-    <Style Selector="Button.ghost">
-      <Setter Property="Height" Value="34" />
-      <Setter Property="Padding" Value="14,0" />
-      <Setter Property="CornerRadius" Value="6" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Style Selector="TextBlock.status.ready">
+      <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
+    </Style>
+    <Style Selector="TextBlock.status.attention">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
     </Style>
     <Style Selector="Ellipse.dot">
       <Setter Property="Width" Value="6" />
@@ -53,100 +52,252 @@
     <Style Selector="Ellipse.dot.attention">
       <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
     </Style>
-    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Style Selector="Border.setting">
+      <Setter Property="Padding" Value="0,18" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="TextBox.path">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="Button.group">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="Button.group:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.group:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.group.shown /template/ ContentPresenter#PART_ContentPresenter, Button.group.shown:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Button.group.shown TextBlock">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.ghost, Button.copy">
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.copy">
+      <Setter Property="Height" Value="28" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="CornerRadius" Value="5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.copy:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+
+    <Style Selector="Border.segments">
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+    <Style Selector="Button.segment">
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="12,0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="BorderThickness" Value="0,0,1,0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.segment /template/ ContentPresenter#PART_ContentPresenter, Button.segment:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.segment:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Button.segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.segment.chosen /template/ ContentPresenter#PART_ContentPresenter, Button.segment.chosen:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.segment.chosen">
+      <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
   </UserControl.Styles>
 
-  <ScrollViewer>
-    <StackPanel MaxWidth="760" Margin="24,40">
-      <Grid ColumnDefinitions="*,Auto">
-        <TextBlock FontSize="26" FontWeight="Medium" Text="Preferences" />
-        <TextBlock Grid.Column="1"
-                   Classes="mono"
-                   VerticalAlignment="Bottom"
-                   Text="Esc to go back · saved in ~/.config/crafter/preferences.json" />
-      </Grid>
+  <local:Modal Title="Preferences" Dismissed="Leave">
+    <Grid ColumnDefinitions="220,*">
+      <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0" Padding="8,14">
+        <StackPanel Spacing="2">
+          <TextBlock Classes="kicker" Margin="10,4,10,6" Text="APP" />
+          <ItemsControl ItemsSource="{Binding AppGroups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="settings:PreferenceGroup">
+                <Button Classes="group"
+                        Classes.shown="{Binding IsShown}"
+                        Command="{Binding $parent[UserControl].((settings:PreferencesScreen)DataContext).ShowCommand}"
+                        CommandParameter="{Binding}">
+                  <TextBlock Text="{Binding Name}" />
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
 
-      <TextBlock Classes="mono" Margin="0,32,0,0" LetterSpacing="1.1" Text="PROJECTS" />
-
-      <Border Classes="setting">
-        <StackPanel Spacing="8">
-          <TextBlock Classes="title" Text="Projects root" />
-          <TextBlock Classes="about" Text="Where Add Project starts browsing and where crafter looks for Git repositories." />
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <TextBox x:Name="RootBox" Classes="path" Text="{Binding Root}" AutomationProperties.Name="Projects root" />
-            <Button Grid.Column="1" Classes="ghost" Content="Browse…" Command="{Binding BrowseCommand}" />
-          </Grid>
-          <TextBlock FontSize="12"
-                     Foreground="{DynamicResource RemovedBrush}"
-                     Text="This folder does not exist. The last root that existed is still in use."
-                     IsVisible="{Binding IsRootMissing}" />
+          <TextBlock Classes="kicker" Margin="10,18,10,6" Text="AGENTS" />
+          <ItemsControl ItemsSource="{Binding AgentGroups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="settings:AgentGroup">
+                <Button Classes="group"
+                        Classes.shown="{Binding IsShown}"
+                        Command="{Binding $parent[UserControl].((settings:PreferencesScreen)DataContext).ShowCommand}"
+                        CommandParameter="{Binding}">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding Name}" />
+                    <Ellipse Grid.Column="1"
+                             Classes="dot"
+                             Classes.ready="{Binding Agent.IsReady}"
+                             Classes.attention="{Binding Agent.NeedsAttention}" />
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
         </StackPanel>
       </Border>
 
-      <Border Classes="setting">
-        <CheckBox IsChecked="{Binding FindsRepositories}" VerticalContentAlignment="Top">
-          <StackPanel Spacing="6">
-            <TextBlock Classes="title" Text="Find repositories" />
-            <TextBlock Classes="about"
-                       Text="List the folders under the projects root that hold a Git repository, so you can add them without browsing." />
-          </StackPanel>
-        </CheckBox>
-      </Border>
-
-      <Border Classes="setting">
-        <StackPanel Spacing="8">
-          <TextBlock Classes="title" Text="Search depth" />
-          <TextBlock Classes="about"
-                     Text="How many folders deep crafter looks under the root. node_modules, vendor, bin and obj are skipped." />
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <NumericUpDown Width="130"
-                           Value="{Binding SearchDepth}"
-                           Minimum="{Binding ShallowestSearch}"
-                           Maximum="{Binding DeepestSearch}"
-                           Increment="1"
-                           FormatString="0"
-                           AutomationProperties.Name="Search depth" />
-            <TextBlock Classes="mono" VerticalAlignment="Center" Text="levels" />
-          </StackPanel>
-        </StackPanel>
-      </Border>
-
-      <TextBlock Classes="mono" Margin="0,32,0,0" LetterSpacing="1.1" Text="AGENTS" />
-
-      <ItemsControl ItemsSource="{Binding Agents}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="setup:AgentCard">
-            <Border Classes="setting">
-              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                <CheckBox IsChecked="{Binding IsMarked}"
-                          IsEnabled="{Binding !IsLocked}"
-                          VerticalAlignment="Top"
-                          MinWidth="0"
-                          Padding="0"
-                          AutomationProperties.Name="{Binding AgentName}" />
-                <StackPanel Grid.Column="1" Spacing="6" Margin="0,5,0,0">
-                  <TextBlock Classes="title" Text="{Binding AgentName}" />
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Ellipse Classes="dot" Classes.ready="{Binding IsReady}" Classes.attention="{Binding NeedsAttention}" />
-                    <TextBlock Classes="about" Text="{Binding Status}" />
+      <ScrollViewer Grid.Column="1">
+        <ContentControl Margin="32,26,32,20" Content="{Binding Shown}">
+          <ContentControl.DataTemplates>
+            <DataTemplate DataType="settings:ProjectsGroup">
+              <StackPanel>
+                <TextBlock Classes="heading" Text="Projects" />
+                <Border Classes="setting" BorderThickness="0">
+                  <StackPanel Spacing="8">
+                    <TextBlock Classes="title" Text="Projects root" />
+                    <TextBlock Classes="about" Text="The folder that holds your projects." />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                      <TextBox Classes="path" Text="{Binding Root}" AutomationProperties.Name="Projects root" />
+                      <Button Grid.Column="1" Classes="ghost" Content="Browse…" Command="{Binding BrowseCommand}" />
+                    </Grid>
+                    <TextBlock FontSize="12"
+                               Foreground="{DynamicResource RemovedBrush}"
+                               Text="This folder does not exist."
+                               IsVisible="{Binding IsRootMissing}" />
                   </StackPanel>
-                </StackPanel>
-                <Button Grid.Column="2"
-                        Classes="ghost"
-                        VerticalAlignment="Center"
-                        Content="Check again"
-                        Command="{Binding CheckCommand}" />
-              </Grid>
-            </Border>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+                </Border>
+              </StackPanel>
+            </DataTemplate>
 
-      <TextBlock Classes="mono"
-                 Margin="0,12,0,0"
-                 Text="New chats use the first marked agent. At least one agent stays marked." />
-    </StackPanel>
-  </ScrollViewer>
+            <DataTemplate DataType="settings:AgentGroup">
+              <StackPanel DataContext="{Binding Agent}" x:DataType="agents:AgentPanel">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                  <StackPanel Spacing="8">
+                    <TextBlock Classes="heading" Text="{Binding AgentName}" />
+                    <TextBlock Classes="about" Text="{Binding Summary}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Ellipse Classes="dot" Classes.ready="{Binding IsReady}" Classes.attention="{Binding NeedsAttention}" />
+                      <TextBlock Classes="status"
+                                 Classes.ready="{Binding IsReady}"
+                                 Classes.attention="{Binding NeedsAttention}"
+                                 TextWrapping="Wrap"
+                                 Text="{Binding Status}" />
+                    </StackPanel>
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="ghost" VerticalAlignment="Top" Content="Check again" Command="{Binding CheckCommand}" />
+                </Grid>
+
+                <Border Margin="0,14,0,0"
+                        Padding="14,10"
+                        CornerRadius="8"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        IsVisible="{Binding HasRemedy}">
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <SelectableTextBlock VerticalAlignment="Center"
+                                         TextWrapping="Wrap"
+                                         FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                         FontSize="13"
+                                         Text="{Binding Remedy}" />
+                    <Button Grid.Column="1" Classes="copy" Content="Copy" Command="{Binding CopyRemedyCommand}" />
+                  </Grid>
+                </Border>
+
+                <Border Classes="setting">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <CheckBox IsChecked="{Binding IsMarked}"
+                              IsEnabled="{Binding !IsLocked}"
+                              VerticalAlignment="Top"
+                              MinWidth="0"
+                              Padding="0"
+                              AutomationProperties.Name="{Binding AgentName, StringFormat='Use {0}'}" />
+                    <StackPanel Grid.Column="1" Spacing="6" Margin="0,5,0,0">
+                      <TextBlock Classes="title" Text="{Binding AgentName, StringFormat='Use {0}'}" />
+                      <TextBlock Classes="about" Text="Available for new chats." />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+
+                <ItemsControl ItemsSource="{Binding Settings}">
+                  <ItemsControl.DataTemplates>
+                    <DataTemplate DataType="agents:ChoiceSetting">
+                      <Border Classes="setting">
+                        <StackPanel Spacing="8">
+                          <TextBlock Classes="title" Text="{Binding Title}" />
+                          <TextBlock Classes="about" Text="{Binding About}" />
+                          <Border Classes="segments">
+                            <ItemsControl ItemsSource="{Binding Options}">
+                              <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                  <WrapPanel />
+                                </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="agents:ChoiceOption">
+                                  <Button Classes="segment"
+                                          Classes.chosen="{Binding IsChosen}"
+                                          Content="{Binding Label}"
+                                          Command="{Binding ChooseCommand}" />
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </Border>
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                    <DataTemplate DataType="agents:EntrySetting">
+                      <Border Classes="setting">
+                        <StackPanel Spacing="8">
+                          <TextBlock Classes="title" Text="{Binding Title}" />
+                          <TextBlock Classes="about" Text="{Binding About}" />
+                          <TextBox Classes="path"
+                                   MaxWidth="360"
+                                   HorizontalAlignment="Left"
+                                   MinWidth="360"
+                                   Text="{Binding Text}"
+                                   PlaceholderText="{Binding Fallback}"
+                                   AutomationProperties.Name="{Binding Title}" />
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.DataTemplates>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ContentControl.DataTemplates>
+        </ContentControl>
+      </ScrollViewer>
+    </Grid>
+  </local:Modal>
 </UserControl>

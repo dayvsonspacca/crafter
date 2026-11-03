@@ -36,7 +36,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         }
     }
 
-    public Project Project { get; }
+    public Project Project { get; private set; }
 
     public ObservableCollection<ConversationScreen> Chats { get; } = [];
 
@@ -61,6 +61,15 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
     }
 
     public void Select(ConversationScreen chat) => Selected = chat;
+
+    public void Rename(Project renamed)
+    {
+        Project = renamed;
+        foreach (var chat in Chats)
+        {
+            chat.ProjectName = renamed.Name.Text;
+        }
+    }
 
     public void Close(ConversationScreen chat)
     {
@@ -144,7 +153,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 
     private ConversationScreen Add(Chat chat, IAgent agent)
     {
-        var screen = new ConversationScreen(chat, agent, Project.Name, this);
+        var screen = new ConversationScreen(chat, agent, Project.Name.Text, this);
         screen.PropertyChanged += Follow;
         screen.Concluded += Keep;
         Chats.Add(screen);

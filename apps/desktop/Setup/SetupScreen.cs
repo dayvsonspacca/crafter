@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Settings;
+using Crafter.Desktop.Agents;
 
 namespace Crafter.Desktop.Setup;
 
@@ -17,18 +18,18 @@ public sealed partial class SetupScreen : ObservableObject
         this.crew = crew;
         this.store = store;
         crew.Hire(store.Load().Agents);
-        Cards = [.. crew.Roster.Select(agent => new AgentCard(agent, copy) { IsMarked = crew.IsHired(agent.Id) })];
+        Panels = [.. crew.Roster.Select(agent => new AgentPanel(agent, store, copy) { IsMarked = crew.IsHired(agent.Id) })];
         IsPicking = crew.IsHiring;
 
-        foreach (var card in Cards)
+        foreach (var panel in Panels)
         {
-            card.PropertyChanged += Follow;
+            panel.PropertyChanged += Follow;
         }
 
         Lock();
     }
 
-    public IReadOnlyList<AgentCard> Cards { get; }
+    public IReadOnlyList<AgentPanel> Panels { get; }
 
     public bool NeedsSetup => IsPicking || IsConfirming || Waiting > 0;
 
@@ -42,13 +43,13 @@ public sealed partial class SetupScreen : ObservableObject
 
     public string Explanation => this switch
     {
-        { IsPicking: true } =>
-            "crafter runs every chat through an agent installed on this machine. Mark the ones you use and crafter checks only those. You can change this later in Preferences.",
+        { IsPicking: true } => "crafter checks only the agents you mark.",
         { IsConfirming: true } => "crafter is checking the agents you marked.",
-        _ => "crafter checked the agents you marked. Fix the ones below, then check again.",
+        { Waiting: 1 } => "Fix it, then check again.",
+        _ => "Fix them, then check again.",
     };
 
-    private int Waiting => Cards.Count(card => card.IsMarked && card.NeedsAttention);
+    private int Waiting => Panels.Count(panel => panel.IsMarked && panel.NeedsAttention);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(NeedsSetup), nameof(Headline), nameof(Explanation))]
@@ -59,7 +60,7 @@ public sealed partial class SetupScreen : ObservableObject
     public partial bool IsConfirming { get; set; }
 
     [RelayCommand]
-    public Task Check() => Task.WhenAll(Cards.Where(card => card.IsMarked).Select(card => card.CheckCommand.ExecuteAsync(null)));
+    public Task Check() => Task.WhenAll(Panels.Where(panel => panel.IsMarked).Select(panel => panel.CheckCommand.ExecuteAsync(null)));
 
     [RelayCommand(CanExecute = nameof(CanContinue))]
     private async Task Continue()
@@ -71,7 +72,7 @@ public sealed partial class SetupScreen : ObservableObject
         IsConfirming = false;
     }
 
-    private bool CanContinue() => Cards.Any(card => card.IsMarked);
+    private bool CanContinue() => Panels.Any(panel => panel.IsMarked);
 
     [RelayCommand]
     private void ChangeAgents() => IsPicking = true;
@@ -80,7 +81,7 @@ public sealed partial class SetupScreen : ObservableObject
 
     private void Follow(object? sender, PropertyChangedEventArgs changed)
     {
-        if (changed.PropertyName == nameof(AgentCard.IsMarked) && sender is AgentCard card)
+        if (changed.PropertyName == nameof(AgentPanel.IsMarked) && sender is AgentPanel panel)
         {
             ContinueCommand.NotifyCanExecuteChanged();
             Lock();
@@ -88,14 +89,14 @@ public sealed partial class SetupScreen : ObservableObject
             if (!IsPicking)
             {
                 Hire();
-                if (card.IsMarked)
+                if (panel.IsMarked)
                 {
-                    _ = card.CheckCommand.ExecuteAsync(null);
+                    _ = panel.CheckCommand.ExecuteAsync(null);
                 }
             }
         }
 
-        if (changed.PropertyName is nameof(AgentCard.IsMarked) or nameof(AgentCard.Readiness))
+        if (changed.PropertyName is nameof(AgentPanel.IsMarked) or nameof(AgentPanel.Readiness))
         {
             OnPropertyChanged(nameof(NeedsSetup));
             OnPropertyChanged(nameof(Headline));
@@ -105,17 +106,17 @@ public sealed partial class SetupScreen : ObservableObject
 
     private void Lock()
     {
-        var marked = Cards.Count(card => card.IsMarked);
+        var marked = Panels.Count(panel => panel.IsMarked);
 
-        foreach (var card in Cards)
+        foreach (var panel in Panels)
         {
-            card.IsLocked = !IsPicking && card.IsMarked && marked == 1;
+            panel.IsLocked = !IsPicking && panel.IsMarked && marked == 1;
         }
     }
 
     private void Hire()
     {
-        List<AgentId> marked = [.. Cards.Where(card => card.IsMarked).Select(card => card.Id)];
+        List<AgentId> marked = [.. Panels.Where(panel => panel.IsMarked).Select(panel => panel.Id)];
 
         crew.Hire(marked);
         store.Save(store.Load() with { Agents = marked });

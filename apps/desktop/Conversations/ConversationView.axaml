@@ -76,29 +76,20 @@
                    Text="{Binding Draft}"
                    PlaceholderText="Describe the recipe…"
                    AutomationProperties.Name="Message" />
-          <Grid ColumnDefinitions="*,Auto">
-            <StackPanel Orientation="Horizontal" Spacing="14">
-              <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="99" Padding="8,2">
-                <TextBlock Classes="label" LetterSpacing="0" Foreground="{DynamicResource ForegroundBrush}" Text="{Binding Model}" />
-              </Border>
-              <TextBlock Classes="label" LetterSpacing="0" Text="Ctrl+T new chat · Ctrl+Tab next chat · Ctrl+W close" />
-            </StackPanel>
-            <Button Grid.Column="1" Classes="craft" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsCrafting}" />
-            <Button Grid.Column="1" Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsCrafting}" />
-          </Grid>
+          <Panel HorizontalAlignment="Right">
+            <Button Classes="craft" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsCrafting}" />
+            <Button Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsCrafting}" />
+          </Panel>
         </StackPanel>
       </Border>
     </Border>
 
     <Panel>
-      <StackPanel IsVisible="{Binding !HasMessages}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-        <TextBlock HorizontalAlignment="Center" FontSize="15" Text="{Binding ProjectName, StringFormat='Start a chat in {0}.'}" />
-        <TextBlock HorizontalAlignment="Center"
-                   FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                   FontSize="11"
-                   Foreground="{DynamicResource ForegroundMutedBrush}"
-                   Text="{Binding AgentName, StringFormat='Each chat is its own {0} session, running in this folder.'}" />
-      </StackPanel>
+      <TextBlock IsVisible="{Binding !HasMessages}"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 FontSize="15"
+                 Text="{Binding ProjectName, StringFormat='Start a chat in {0}.'}" />
 
       <ScrollViewer x:Name="Scroller" IsVisible="{Binding HasMessages}" ScrollChanged="Follow">
         <ItemsControl ItemsSource="{Binding Messages}" MaxWidth="760" Margin="24,32">

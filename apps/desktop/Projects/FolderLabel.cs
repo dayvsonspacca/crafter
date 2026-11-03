@@ -6,8 +6,6 @@ public sealed record FolderLabel(string Folder)
 
     public string Text => AtHome ? "~" + Folder[Home.Length..] : Folder;
 
-    public int Shift => AtHome ? Home.Length - 1 : 0;
-
     private bool AtHome =>
         Home.Length > 0
         && (Folder == Home || Folder.StartsWith(Home + Path.DirectorySeparatorChar, StringComparison.Ordinal));

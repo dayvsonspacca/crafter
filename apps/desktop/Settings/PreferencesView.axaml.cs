@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 
 namespace Crafter.Desktop.Settings;
@@ -15,7 +16,7 @@ public sealed partial class PreferencesView : UserControl
 
         if (change.Property == IsVisibleProperty && IsVisible)
         {
-            Dispatcher.UIThread.Post(() => RootBox.Focus());
+            Dispatcher.UIThread.Post(() => Focus());
         }
     }
 
@@ -23,7 +24,15 @@ public sealed partial class PreferencesView : UserControl
     {
         base.OnKeyDown(e);
 
-        if (e.Key == Key.Escape && DataContext is PreferencesScreen preferences)
+        if (e.Key == Key.Escape)
+        {
+            Leave(this, e);
+        }
+    }
+
+    private void Leave(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is PreferencesScreen preferences)
         {
             preferences.LeaveCommand.Execute(null);
             e.Handled = true;

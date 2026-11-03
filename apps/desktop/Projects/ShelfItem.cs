@@ -11,7 +11,7 @@ public sealed partial class ShelfItem(Project project, Shortcut? shortcut, IShel
 {
     public Project Project { get; } = project;
 
-    public string Name => Project.Name;
+    public string Name => Project.Name.Text;
 
     public string Keys { get; } = shortcut?.ToString() ?? string.Empty;
 
@@ -46,6 +46,9 @@ public sealed partial class ShelfItem(Project project, Shortcut? shortcut, IShel
 
     [RelayCommand]
     private void Open() => keeper.Open(Project);
+
+    [RelayCommand]
+    private Task Rename() => keeper.Rename(Project);
 
     [RelayCommand]
     private void Close() => keeper.Close();

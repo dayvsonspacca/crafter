@@ -63,5 +63,5 @@ public sealed partial class FolderPickerView : UserControl
 
     private void Chosen(object? sender, TappedEventArgs e) => Picker?.Choose();
 
-    private void Dismiss(object? sender, PointerPressedEventArgs e) => Picker?.Cancel();
+    private void Dismiss(object? sender, RoutedEventArgs e) => Picker?.Cancel();
 }

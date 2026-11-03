@@ -58,7 +58,6 @@
                   VerticalAlignment="Center"
                   IsHitTestVisible="False">
         <TextBlock FontSize="12.5" FontWeight="SemiBold" Text="{Binding Heading}" />
-        <TextBlock Classes="path" VerticalAlignment="Center" Text="{Binding CurrentFolder}" />
       </StackPanel>
 
       <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">

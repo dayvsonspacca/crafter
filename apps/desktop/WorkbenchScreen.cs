@@ -37,7 +37,6 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         this.archive = archive;
         this.crew = crew;
         this.copy = copy;
-        Palette = new ProjectPalette(bookshelf, Open);
         Picker = new FolderPicker(preferences, bookshelf);
         Setup = new SetupScreen(crew, preferences, copy);
         Preferences = new PreferencesScreen(preferences, Picker, Setup);
@@ -57,9 +56,9 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         }
     }
 
-    public ProjectPalette Palette { get; }
-
     public FolderPicker Picker { get; }
+
+    public ProjectNamer Namer { get; } = new();
 
     public PreferencesScreen Preferences { get; }
 
@@ -69,27 +68,35 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
 
     public bool IsShowingPreferences => Preferences.IsOpen;
 
-    public bool ShowsConversation => Desk is not null && !IsShowingPreferences;
+    public bool ShowsConversation => Desk is not null;
 
-    public bool ShowsHint => Desk is null && !IsShowingPreferences;
+    public bool ShowsHint => Desk is null;
+
+    public string Hint => HasProjects ? "Pick a project to start crafting." : "Add a project to start crafting.";
 
     public bool ShowsSetup => Setup.NeedsSetup;
 
     public bool IsCrafting => desks.Values.Any(desk => desk.IsCrafting);
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Hint))]
     public partial bool HasProjects { get; set; }
 
     [ObservableProperty]
     public partial bool IsSidebarVisible { get; set; }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Heading), nameof(CurrentFolder))]
-    public partial Project? Current { get; set; }
+    public Project? Current
+    {
+        get;
+        private set
+        {
+            field = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(Heading));
+        }
+    }
 
-    public string? Heading => ShowsSetup ? "Setup" : Current?.Name;
-
-    public string? CurrentFolder => ShowsSetup || Current is null ? null : new FolderLabel(Current.Folder).Text;
+    public string? Heading => ShowsSetup ? "Setup" : Current?.Name.Text;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsConversation), nameof(ShowsHint))]
@@ -165,17 +172,57 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
 
     public Task CopyPath(Project project) => copy(project.Folder);
 
+    public async Task Rename(Project project)
+    {
+        if (await Namer.Rename(project) is not Named named)
+        {
+            return;
+        }
+
+        var renamed = bookshelf.Rename(project, named.Name);
+        if (desks.TryGetValue(renamed, out var desk))
+        {
+            desk.Rename(renamed);
+        }
+
+        if (renamed == Current)
+        {
+            Current = renamed;
+        }
+
+        Restock();
+    }
+
     [RelayCommand]
     private async Task Add()
     {
-        if (await Picker.Pick("Add Project", Preferences.Current.ProjectsRoot) is { } folder)
+        var start = Preferences.Current.ProjectsRoot;
+
+        while (await Picker.Pick("Add Project", start) is { } folder)
         {
-            Open(new Project(folder));
+            if (bookshelf.Projects.FirstOrDefault(project => project == new Project(folder)) is { } added)
+            {
+                Open(added);
+
+                return;
+            }
+
+            switch (await Namer.Add(folder, bookshelf.NameOf(folder)))
+            {
+                case Named named:
+                    Open(bookshelf.Add(folder, named.Name));
+                    return;
+                case WentBack:
+                    start = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(folder)) ?? folder;
+                    break;
+                default:
+                    return;
+            }
         }
     }
 
     [RelayCommand]
-    private void Search() => Palette.Show();
+    private Task RenameCurrent() => Current is { } project ? Rename(project) : Task.CompletedTask;
 
     [RelayCommand]
     private void ToggleSidebar() => IsSidebarVisible = !IsSidebarVisible;
@@ -204,7 +251,6 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
             OnPropertyChanged(nameof(ShowsHint));
             OnPropertyChanged(nameof(ShowsSetup));
             OnPropertyChanged(nameof(Heading));
-            OnPropertyChanged(nameof(CurrentFolder));
         }
     }
 

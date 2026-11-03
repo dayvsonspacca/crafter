@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:setup="using:Crafter.Desktop.Setup"
+             xmlns:agents="using:Crafter.Desktop.Agents"
              x:Class="Crafter.Desktop.Setup.SetupView"
              x:DataType="setup:SetupScreen"
              IsVisible="{Binding NeedsSetup}"
@@ -162,9 +163,9 @@
                  Foreground="{DynamicResource ForegroundMutedBrush}"
                  Text="{Binding Explanation}" />
 
-      <ItemsControl x:Name="Choices" Margin="0,10,0,0" ItemsSource="{Binding Cards}" IsVisible="{Binding IsPicking}">
+      <ItemsControl x:Name="Choices" Margin="0,10,0,0" ItemsSource="{Binding Panels}" IsVisible="{Binding IsPicking}">
         <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="setup:AgentCard">
+          <DataTemplate x:DataType="agents:AgentPanel">
             <ToggleButton Classes="agent" IsChecked="{Binding IsMarked}" AutomationProperties.Name="{Binding AgentName}">
               <Grid ColumnDefinitions="18,*" ColumnSpacing="14">
                 <Border Classes="box" Classes.marked="{Binding IsMarked}">
@@ -172,7 +173,7 @@
                 </Border>
                 <StackPanel Grid.Column="1" Spacing="4">
                   <TextBlock Classes="name" Text="{Binding AgentName}" />
-                  <TextBlock Classes="detail" Text="{Binding Detail}" />
+                  <TextBlock Classes="detail" Text="{Binding Summary}" />
                 </StackPanel>
               </Grid>
             </ToggleButton>
@@ -180,9 +181,9 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding Cards}" IsVisible="{Binding !IsPicking}">
+      <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding Panels}" IsVisible="{Binding !IsPicking}">
         <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="setup:AgentCard">
+          <DataTemplate x:DataType="agents:AgentPanel">
             <Border Classes="card" Classes.attention="{Binding NeedsAttention}" IsVisible="{Binding IsMarked}">
               <Grid ColumnDefinitions="18,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="14">
                 <Border Classes="box marked">
@@ -208,14 +209,14 @@
                         Background="{DynamicResource BackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
-                        IsVisible="{Binding HasCommand}">
+                        IsVisible="{Binding HasRemedy}">
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <SelectableTextBlock VerticalAlignment="Center"
                                          TextWrapping="Wrap"
                                          FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
                                          FontSize="13"
-                                         Text="{Binding Command}" />
-                    <Button Grid.Column="1" Classes="copy" Content="Copy" Command="{Binding CopyCommandCommand}" />
+                                         Text="{Binding Remedy}" />
+                    <Button Grid.Column="1" Classes="copy" Content="Copy" Command="{Binding CopyRemedyCommand}" />
                   </Grid>
                 </Border>
               </Grid>
@@ -226,7 +227,6 @@
 
       <StackPanel Orientation="Horizontal" Spacing="14" IsVisible="{Binding IsPicking}">
         <Button Classes="primary" Content="Continue" Command="{Binding ContinueCommand}" />
-        <TextBlock Classes="mono" VerticalAlignment="Center" Text="Space to mark · Enter to continue" />
       </StackPanel>
 
       <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding !IsPicking}">

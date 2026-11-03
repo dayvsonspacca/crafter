@@ -25,24 +25,17 @@
             <conversations:ConversationView DataContext="{Binding Desk.Selected}" />
           </DockPanel>
 
-          <StackPanel IsVisible="{Binding ShowsHint}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      Spacing="8">
-            <TextBlock HorizontalAlignment="Center" FontSize="15" Text="Open a project to start crafting." />
-            <TextBlock HorizontalAlignment="Center"
-                       FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                       FontSize="11"
-                       Foreground="{DynamicResource ForegroundMutedBrush}"
-                       Text="Ctrl+O to open · Ctrl+K Ctrl+O to add a folder · Ctrl+B to hide the sidebar" />
-          </StackPanel>
-
-          <settings:PreferencesView DataContext="{Binding Preferences}" />
-          <projects:ProjectPaletteView DataContext="{Binding Palette}" />
-          <folders:FolderPickerView DataContext="{Binding Picker}" />
+          <TextBlock IsVisible="{Binding ShowsHint}"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     FontSize="15"
+                     Text="{Binding Hint}" />
         </Panel>
       </DockPanel>
 
+      <settings:PreferencesView DataContext="{Binding Preferences}" />
+      <projects:ProjectNamerView DataContext="{Binding Namer}" />
+      <folders:FolderPickerView DataContext="{Binding Picker}" />
       <setup:SetupView DataContext="{Binding Setup}" />
     </Panel>
   </DockPanel>

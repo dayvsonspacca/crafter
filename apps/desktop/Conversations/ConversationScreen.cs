@@ -27,7 +27,8 @@ public sealed partial class ConversationScreen : ObservableObject
 
     public ObservableCollection<Message> Messages { get; } = [];
 
-    public string ProjectName { get; }
+    [ObservableProperty]
+    public partial string ProjectName { get; set; }
 
     public string AgentName { get; }
 

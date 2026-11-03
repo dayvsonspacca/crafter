@@ -44,8 +44,6 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
 
     public string LocationLabel => Slashed(new FolderLabel(Location).Text);
 
-    public string RootLabel => new FolderLabel(preferences.ProjectsRoot).Text;
-
     [ObservableProperty]
     public partial string Filter { get; set; }
 
@@ -60,7 +58,6 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
         choosing?.TrySetResult(null);
         choosing = new TaskCompletionSource<string?>();
         preferences = store.Load();
-        OnPropertyChanged(nameof(RootLabel));
 
         Title = title;
         Go(Directory.Exists(start) ? start : preferences.ProjectsRoot);
@@ -151,13 +148,8 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
         finding?.Cancel();
         found = [];
 
-        if (!preferences.FindsRepositories)
-        {
-            return;
-        }
-
         var mine = finding = new CancellationTokenSource();
-        var finder = new RepositoryFinder(preferences.SearchDepth);
+        var finder = new RepositoryFinder();
         var root = preferences.ProjectsRoot;
 
         try
@@ -185,13 +177,13 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
             .Select(each => new FolderChoice(
                 each.Folder,
                 Piece.Split(Path.GetFileName(each.Folder), each.Hits!),
-                [],
                 FolderListing.IsRepository(each.Folder),
+                isFound: false,
                 shelved.Contains(each.Folder)))];
 
         if (here.Count > 0)
         {
-            Entries.Add(new PickerHeading($"Folders in {LocationLabel}"));
+            Entries.Add(new PickerHeading("FOLDERS"));
             here.ForEach(Entries.Add);
         }
 
@@ -202,7 +194,7 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
 
         if (repositories.Count > 0)
         {
-            Entries.Add(new PickerHeading($"Repositories under {RootLabel}"));
+            Entries.Add(new PickerHeading("REPOSITORIES"));
             repositories.ForEach(Entries.Add);
         }
 
@@ -212,21 +204,15 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
     private static FolderChoice? Found(string folder, string wanted, HashSet<string> shelved)
     {
         var name = Path.GetFileName(folder);
-        var label = new FolderLabel(folder);
 
         if (FuzzyMatch.Hits(name, wanted) is { } inName)
         {
-            return new FolderChoice(folder, Piece.Split(name, inName), Piece.Split(label.Text, []), true, shelved.Contains(folder));
+            return new FolderChoice(folder, Piece.Split(name, inName), isRepository: true, isFound: true, shelved.Contains(folder));
         }
 
-        if (FuzzyMatch.Hits(folder, wanted) is { } inPath)
-        {
-            var hits = inPath.Select(at => at - label.Shift).Where(at => at >= 0);
-
-            return new FolderChoice(folder, Piece.Split(name, []), Piece.Split(label.Text, hits), true, shelved.Contains(folder));
-        }
-
-        return null;
+        return FuzzyMatch.Hits(folder, wanted) is not null
+            ? new FolderChoice(folder, Piece.Split(name, []), isRepository: true, isFound: true, shelved.Contains(folder))
+            : null;
     }
 
     private static string Slashed(string text) => text.EndsWith('/') ? text : text + "/";

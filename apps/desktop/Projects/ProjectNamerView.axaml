@@ -1,0 +1,94 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Crafter.Desktop"
+             xmlns:projects="using:Crafter.Desktop.Projects"
+             x:Class="Crafter.Desktop.Projects.ProjectNamerView"
+             x:DataType="projects:ProjectNamer"
+             IsVisible="{Binding IsOpen}">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.kicker">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.about">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Button.primary, Button.ghost">
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Button.ghost">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <local:Modal Title="{Binding Title}" IsCompact="{Binding !IsAdding}" Dismissed="Dismiss">
+    <DockPanel Margin="20,22,20,20">
+      <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,24,0,0">
+        <Button Classes="ghost" Content="{Binding Retreat}" Command="{Binding BackCommand}" />
+        <Button Classes="primary" Content="{Binding Confirm}" Command="{Binding FinishCommand}" />
+      </StackPanel>
+
+      <StackPanel Spacing="18">
+        <StackPanel Spacing="8" IsVisible="{Binding IsAdding}">
+          <TextBlock Classes="kicker" Text="FOLDER" />
+          <Border Padding="12,10"
+                  CornerRadius="6"
+                  BorderThickness="1"
+                  BorderBrush="{DynamicResource BorderBrush}"
+                  Background="{DynamicResource SurfaceBrush}">
+            <Grid ColumnDefinitions="16,*,Auto" ColumnSpacing="10">
+              <Path Width="16"
+                    Height="16"
+                    StrokeThickness="1"
+                    VerticalAlignment="Center"
+                    Stroke="{DynamicResource ForegroundMutedBrush}"
+                    Data="M1.5,4.5 H5.5 L7,6 H14.5 V13 H1.5 Z" />
+              <TextBlock Grid.Column="1" FontSize="13.5" VerticalAlignment="Center" Text="{Binding Folder}" />
+              <Border Grid.Column="2"
+                      Padding="7,1"
+                      CornerRadius="99"
+                      BorderThickness="1"
+                      BorderBrush="{DynamicResource BorderBrush}"
+                      IsVisible="{Binding IsRepository}">
+                <TextBlock FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                           FontSize="10.5"
+                           Foreground="{DynamicResource AccentSecondaryBrush}"
+                           Text="git" />
+              </Border>
+            </Grid>
+          </Border>
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+          <TextBlock FontSize="14" FontWeight="SemiBold" Text="Name" />
+          <TextBlock Classes="about" Text="How crafter shows this project." />
+          <TextBox x:Name="NameBox" FontSize="14" Text="{Binding Name}" AutomationProperties.Name="Name" />
+        </StackPanel>
+      </StackPanel>
+    </DockPanel>
+  </local:Modal>
+</UserControl>
