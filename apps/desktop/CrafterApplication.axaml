@@ -1,48 +1,24 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:themes="using:Crafter.Desktop.Themes"
              x:Class="Crafter.Desktop.CrafterApplication"
-             RequestedThemeVariant="Dark">
+             RequestedThemeVariant="{x:Static themes:Theme.RedstoneVariant}">
   <Application.Resources>
     <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceInclude x:Key="{x:Static themes:Theme.RedstoneVariant}" Source="/Themes/Redstone.axaml" />
+        <ResourceInclude x:Key="{x:Static themes:Theme.DeepslateVariant}" Source="/Themes/Deepslate.axaml" />
+        <ResourceInclude x:Key="{x:Static themes:Theme.NetherVariant}" Source="/Themes/Nether.axaml" />
+        <ResourceInclude x:Key="{x:Static themes:Theme.WarpedVariant}" Source="/Themes/Warped.axaml" />
+        <ResourceInclude x:Key="{x:Static themes:Theme.CopperVariant}" Source="/Themes/Copper.axaml" />
+      </ResourceDictionary.ThemeDictionaries>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceInclude Source="/Themes/Redstone.axaml" />
         <ResourceInclude Source="/Themes/Modal.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
-    <FluentTheme>
-      <FluentTheme.Palettes>
-        <ColorPaletteResources x:Key="Dark"
-                               Accent="#D0343F"
-                               AltHigh="#141316"
-                               AltLow="#141316"
-                               AltMedium="#141316"
-                               AltMediumHigh="#141316"
-                               AltMediumLow="#141316"
-                               BaseHigh="#ECE6DE"
-                               BaseLow="#34313A"
-                               BaseMedium="#9B948E"
-                               BaseMediumHigh="#C4BDB5"
-                               BaseMediumLow="#6A6560"
-                               ChromeAltLow="#C4BDB5"
-                               ChromeBlackHigh="#000000"
-                               ChromeBlackLow="#C4BDB5"
-                               ChromeBlackMedium="#141316"
-                               ChromeBlackMediumLow="#141316"
-                               ChromeDisabledHigh="#34313A"
-                               ChromeDisabledLow="#9B948E"
-                               ChromeGray="#6A6560"
-                               ChromeHigh="#6A6560"
-                               ChromeLow="#201E23"
-                               ChromeMedium="#2A282E"
-                               ChromeMediumLow="#201E23"
-                               ChromeWhite="#ECE6DE"
-                               ListLow="#201E23"
-                               ListMedium="#34313A"
-                               RegionColor="#141316" />
-      </FluentTheme.Palettes>
-    </FluentTheme>
+    <FluentTheme />
   </Application.Styles>
 </Application>

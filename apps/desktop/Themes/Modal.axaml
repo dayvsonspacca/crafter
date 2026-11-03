@@ -5,7 +5,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <Border Name="PART_Backdrop" Background="#9E0A090C" />
+          <Border Name="PART_Backdrop" Background="{DynamicResource ScrimBrush}" />
           <Border Name="PART_Dialog"
                   Margin="24,32"
                   MaxWidth="880"

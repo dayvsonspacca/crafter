@@ -1,0 +1,68 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ResourceDictionary.MergedDictionaries>
+    <ColorPaletteResources Accent="#6CC4E8"
+                           AltHigh="#0F1318"
+                           AltLow="#0F1318"
+                           AltMedium="#0F1318"
+                           AltMediumHigh="#0F1318"
+                           AltMediumLow="#0F1318"
+                           BaseHigh="#E3E9F0"
+                           BaseLow="#2A3441"
+                           BaseMedium="#8794A5"
+                           BaseMediumHigh="#B5BECA"
+                           BaseMediumLow="#5D6774"
+                           ChromeAltLow="#B5BECA"
+                           ChromeBlackHigh="#000000"
+                           ChromeBlackLow="#B5BECA"
+                           ChromeBlackMedium="#0F1318"
+                           ChromeBlackMediumLow="#0F1318"
+                           ChromeDisabledHigh="#2A3441"
+                           ChromeDisabledLow="#8794A5"
+                           ChromeGray="#5D6774"
+                           ChromeHigh="#5D6774"
+                           ChromeLow="#19202A"
+                           ChromeMedium="#222A36"
+                           ChromeMediumLow="#19202A"
+                           ChromeWhite="#E3E9F0"
+                           ListLow="#19202A"
+                           ListMedium="#2A3441"
+                           RegionColor="#0F1318" />
+  </ResourceDictionary.MergedDictionaries>
+
+  <Color x:Key="BackgroundColor">#0F1318</Color>
+  <Color x:Key="SurfaceColor">#19202A</Color>
+  <Color x:Key="BorderColor">#2A3441</Color>
+  <Color x:Key="HoverColor">#222A36</Color>
+  <Color x:Key="ForegroundColor">#E3E9F0</Color>
+  <Color x:Key="ForegroundMutedColor">#8794A5</Color>
+  <Color x:Key="AccentColor">#6CC4E8</Color>
+  <Color x:Key="AccentSecondaryColor">#57C48F</Color>
+  <Color x:Key="AccentSecondaryFaintColor">#6657C48F</Color>
+  <Color x:Key="OnAccentColor">#07131B</Color>
+  <Color x:Key="AddedColor">#57C48F</Color>
+  <Color x:Key="RemovedColor">#E5737A</Color>
+  <Color x:Key="ScrimColor">#9E080A0C</Color>
+
+  <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+  <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+  <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
+  <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource ForegroundMutedColor}" />
+  <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+  <SolidColorBrush x:Key="AccentSecondaryBrush" Color="{StaticResource AccentSecondaryColor}" />
+  <SolidColorBrush x:Key="AccentSecondaryFaintBrush" Color="{StaticResource AccentSecondaryFaintColor}" />
+  <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" />
+  <SolidColorBrush x:Key="AddedBrush" Color="{StaticResource AddedColor}" />
+  <SolidColorBrush x:Key="RemovedBrush" Color="{StaticResource RemovedColor}" />
+  <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource ScrimColor}" />
+
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource SurfaceColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutSeparatorBackground" Color="{StaticResource BorderColor}" />
+</ResourceDictionary>

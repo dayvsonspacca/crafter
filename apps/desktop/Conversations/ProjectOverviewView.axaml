@@ -63,7 +63,7 @@
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="Border.chip.open">
-      <Setter Property="BorderBrush" Value="#66C99A5B" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSecondaryFaintBrush}" />
     </Style>
     <Style Selector="Border.chip.open TextBlock">
       <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
