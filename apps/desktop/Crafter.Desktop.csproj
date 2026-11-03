@@ -26,5 +26,7 @@
     <ProjectReference Include="../../packages/core/src/Crafter.Core.csproj" />
     <ProjectReference Include="../../packages/agents/claude-code/src/Crafter.Agents.ClaudeCode.csproj" />
     <ProjectReference Include="../../packages/highlight/src/Crafter.Highlight.csproj" />
+    <ProjectReference Include="../../packages/storage/src/Crafter.Storage.csproj" />
+    <ProjectReference Include="../../packages/presentation/src/Crafter.Presentation.csproj" />
   </ItemGroup>
 </Project>

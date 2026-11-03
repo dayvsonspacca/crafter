@@ -2,10 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Crafter.Desktop.Conversations;
 using Crafter.Desktop.Keyboard;
-using Crafter.Desktop.Projects;
 using Crafter.Desktop.WindowManagers;
+using Crafter.Presentation;
+using Crafter.Presentation.Conversations;
+using Crafter.Presentation.Projects;
 
 namespace Crafter.Desktop;
 

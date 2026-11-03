@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:conversations="using:Crafter.Desktop.Conversations"
+             xmlns:conversations="using:Crafter.Presentation.Conversations"
              xmlns:projects="using:Crafter.Desktop.Projects"
              x:Class="Crafter.Desktop.Conversations.ProjectOverviewView"
              x:DataType="conversations:ProjectOverview">

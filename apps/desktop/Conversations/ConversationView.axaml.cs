@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Crafter.Presentation.Conversations;
 
 namespace Crafter.Desktop.Conversations;
 

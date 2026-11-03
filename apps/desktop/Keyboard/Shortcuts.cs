@@ -1,14 +1,15 @@
 using Avalonia.Input;
+using Crafter.Presentation.Keyboard;
 
 namespace Crafter.Desktop.Keyboard;
 
 public sealed class Shortcuts
 {
-    private readonly List<(Shortcut Shortcut, Action Act)> bindings = [];
+    private readonly List<(Gestures Shortcut, Action Act)> bindings = [];
 
-    private Shortcut[] waiting = [];
+    private Gestures[] waiting = [];
 
-    public void On(Shortcut shortcut, Action act) => bindings.Add((shortcut, act));
+    public void On(Shortcut shortcut, Action act) => bindings.Add((Gestures.Of(shortcut), act));
 
     public bool Handle(KeyEventArgs pressed)
     {
@@ -27,7 +28,7 @@ public sealed class Shortcuts
             return true;
         }
 
-        Shortcut[] starting = [.. bindings
+        Gestures[] starting = [.. bindings
             .Where(binding => binding.Shortcut.Then is not null && binding.Shortcut.First.Matches(pressed))
             .Select(binding => binding.Shortcut)];
 
@@ -41,7 +42,7 @@ public sealed class Shortcuts
         return Act(bindings.Where(binding => binding.Shortcut.Then is null && binding.Shortcut.First.Matches(pressed)));
     }
 
-    private static bool Act(IEnumerable<(Shortcut Shortcut, Action Act)> matching)
+    private static bool Act(IEnumerable<(Gestures Shortcut, Action Act)> matching)
     {
         foreach (var (_, act) in matching.Take(1))
         {
@@ -56,4 +57,28 @@ public sealed class Shortcuts
     private static bool IsModifier(Key key) =>
         key is Key.LeftCtrl or Key.RightCtrl or Key.LeftShift or Key.RightShift
             or Key.LeftAlt or Key.RightAlt or Key.LWin or Key.RWin;
+
+    private sealed record Gestures(KeyGesture First, KeyGesture? Then)
+    {
+        public static Gestures Of(Shortcut shortcut)
+        {
+            var keys = shortcut.Keys.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            return new Gestures(Gesture(keys[0]), keys.Length > 1 ? Gesture(keys[1]) : null);
+        }
+
+        private static KeyGesture Gesture(string keys)
+        {
+            var plus = keys.LastIndexOf('+');
+            var key = keys[(plus + 1)..];
+            var named = key switch
+            {
+                "," => "OemComma",
+                [var digit] when char.IsAsciiDigit(digit) => $"D{digit}",
+                _ => key,
+            };
+
+            return KeyGesture.Parse(keys[..(plus + 1)] + named);
+        }
+    }
 }

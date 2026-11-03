@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Crafter.Presentation</RootNamespace>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../core/src/Crafter.Core.csproj" />
+    <ProjectReference Include="../../storage/src/Crafter.Storage.csproj" />
+    <ProjectReference Include="../../highlight/src/Crafter.Highlight.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,16 +1,17 @@
 using Crafter.Agents.ClaudeCode;
 using Crafter.Core.Agents;
-using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
 using Crafter.Core.Settings;
-using Crafter.Desktop.Conversations;
-using Crafter.Desktop.Folders;
 using Crafter.Desktop.Platform;
-using Crafter.Desktop.Projects;
-using Crafter.Desktop.Settings;
-using Crafter.Desktop.Setup;
 using Crafter.Desktop.Themes;
 using Crafter.Desktop.WindowManagers;
+using Crafter.Presentation;
+using Crafter.Presentation.Conversations;
+using Crafter.Presentation.Folders;
+using Crafter.Presentation.Projects;
+using Crafter.Presentation.Settings;
+using Crafter.Presentation.Setup;
+using Crafter.Storage;
 
 namespace Crafter.Desktop;
 

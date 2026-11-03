@@ -4,6 +4,7 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Crafter.Presentation.Setup;
 
 namespace Crafter.Desktop.Setup;
 

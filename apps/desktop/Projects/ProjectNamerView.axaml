@@ -1,7 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Crafter.Desktop"
-             xmlns:projects="using:Crafter.Desktop.Projects"
+             xmlns:projects="using:Crafter.Presentation.Projects"
+             xmlns:projectsViews="using:Crafter.Desktop.Projects"
              x:Class="Crafter.Desktop.Projects.ProjectNamerView"
              x:DataType="projects:ProjectNamer"
              IsVisible="{Binding IsOpen}">
@@ -101,7 +102,7 @@
                     BorderBrush="{DynamicResource BorderBrush}"
                     Background="{DynamicResource SurfaceBrush}">
               <Panel>
-                <Image Source="{Binding PreviewFile, Converter={x:Static projects:IconFileConverter.Instance}}" Stretch="UniformToFill" IsVisible="{Binding HasPreview}" />
+                <Image Source="{Binding PreviewFile, Converter={x:Static projectsViews:IconFileConverter.Instance}}" Stretch="UniformToFill" IsVisible="{Binding HasPreview}" />
                 <TextBlock HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"

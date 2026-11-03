@@ -1,8 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Crafter.Desktop"
-             xmlns:folders="using:Crafter.Desktop.Folders"
-             xmlns:projects="using:Crafter.Desktop.Projects"
+             xmlns:folders="using:Crafter.Presentation.Folders"
+             xmlns:folderViews="using:Crafter.Desktop.Folders"
+             xmlns:projects="using:Crafter.Presentation.Projects"
              x:Class="Crafter.Desktop.Folders.FolderPickerView"
              x:DataType="folders:FolderPicker"
              IsVisible="{Binding IsOpen}">
@@ -138,7 +139,7 @@
                       BorderThickness="1"
                       BorderBrush="{DynamicResource BorderBrush}"
                       Background="{DynamicResource SurfaceBrush}">
-                <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+                <Image Source="{Binding File, Converter={x:Static folderViews:ThumbnailConverter.Instance}}" Stretch="UniformToFill" />
               </Border>
               <ItemsControl Grid.Column="1" VerticalAlignment="Center" ItemsSource="{Binding Name}">
                 <ItemsControl.ItemsPanel>

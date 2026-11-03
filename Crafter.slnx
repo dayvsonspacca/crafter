@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/apps/">
-    <Project Path="apps/desktop-tests/Crafter.Desktop.Tests.csproj" />
     <Project Path="apps/desktop/Crafter.Desktop.csproj" />
   </Folder>
   <Folder Name="/packages/">
@@ -10,5 +9,9 @@
     <Project Path="packages/agents/claude-code/tests/Crafter.Agents.ClaudeCode.Tests.csproj" />
     <Project Path="packages/highlight/src/Crafter.Highlight.csproj" />
     <Project Path="packages/highlight/tests/Crafter.Highlight.Tests.csproj" />
+    <Project Path="packages/presentation/src/Crafter.Presentation.csproj" />
+    <Project Path="packages/presentation/tests/Crafter.Presentation.Tests.csproj" />
+    <Project Path="packages/storage/src/Crafter.Storage.csproj" />
+    <Project Path="packages/storage/tests/Crafter.Storage.Tests.csproj" />
   </Folder>
 </Solution>

@@ -1,13 +1,14 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="using:Crafter.Desktop"
+        xmlns:presentation="using:Crafter.Presentation"
+        xmlns:desktop="using:Crafter.Desktop"
         xmlns:conversations="using:Crafter.Desktop.Conversations"
         xmlns:projects="using:Crafter.Desktop.Projects"
         xmlns:folders="using:Crafter.Desktop.Folders"
         xmlns:settings="using:Crafter.Desktop.Settings"
         xmlns:setup="using:Crafter.Desktop.Setup"
         x:Class="Crafter.Desktop.Workbench"
-        x:DataType="local:WorkbenchScreen"
+        x:DataType="presentation:WorkbenchScreen"
         Title="crafter"
         Icon="/Assets/crafter.png"
         Width="900" Height="640"
@@ -15,7 +16,7 @@
         Background="{DynamicResource BackgroundBrush}"
         Foreground="{DynamicResource ForegroundBrush}">
   <DockPanel>
-    <local:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
+    <desktop:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
     <Panel>
       <DockPanel IsVisible="{Binding !ShowsSetup}">
         <projects:ProjectsSidebar DockPanel.Dock="Left" IsVisible="{Binding IsSidebarVisible}" />

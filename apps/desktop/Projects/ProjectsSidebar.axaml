@@ -1,9 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:Crafter.Desktop"
-             xmlns:projects="using:Crafter.Desktop.Projects"
+             xmlns:presentation="using:Crafter.Presentation"
+             xmlns:projects="using:Crafter.Presentation.Projects"
+             xmlns:projectsViews="using:Crafter.Desktop.Projects"
              x:Class="Crafter.Desktop.Projects.ProjectsSidebar"
-             x:DataType="local:WorkbenchScreen"
+             x:DataType="presentation:WorkbenchScreen"
              Width="264">
   <UserControl.Styles>
     <Style Selector="TextBlock.label">
@@ -197,7 +198,7 @@
                             BorderBrush="{DynamicResource BorderBrush}"
                             Background="{DynamicResource SurfaceBrush}">
                       <Panel>
-                        <Image Source="{Binding IconFile, Converter={x:Static projects:IconFileConverter.Instance}}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}" />
+                        <Image Source="{Binding IconFile, Converter={x:Static projectsViews:IconFileConverter.Instance}}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}" />
                         <TextBlock HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"

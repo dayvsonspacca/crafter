@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:Crafter.Desktop"
+             xmlns:presentation="using:Crafter.Presentation"
              x:Class="Crafter.Desktop.TitleBar"
-             x:DataType="local:WorkbenchScreen"
+             x:DataType="presentation:WorkbenchScreen"
              Height="35">
   <UserControl.Styles>
     <Style Selector="Button.control">

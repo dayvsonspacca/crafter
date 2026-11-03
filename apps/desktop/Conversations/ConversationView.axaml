@@ -3,7 +3,8 @@
              xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
              xmlns:ctxt="clr-namespace:ColorTextBlock.Avalonia;assembly=ColorTextBlock.Avalonia"
              xmlns:mdc="clr-namespace:Markdown.Avalonia.StyleCollections;assembly=Markdown.Avalonia"
-             xmlns:conversations="using:Crafter.Desktop.Conversations"
+             xmlns:conversations="using:Crafter.Presentation.Conversations"
+             xmlns:conversationsViews="using:Crafter.Desktop.Conversations"
              x:Class="Crafter.Desktop.Conversations.ConversationView"
              x:DataType="conversations:ConversationScreen">
   <UserControl.Styles>
@@ -612,7 +613,7 @@
                                       </Grid>
                                     </Border>
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                      <conversations:HighlightedCode Margin="14,12"
+                                      <conversationsViews:HighlightedCode Margin="14,12"
                                                                      FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
                                                                      FontSize="12.5"
                                                                      LineHeight="20"

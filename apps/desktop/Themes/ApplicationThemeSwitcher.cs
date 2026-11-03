@@ -1,4 +1,5 @@
 using Avalonia;
+using Crafter.Presentation.Themes;
 
 namespace Crafter.Desktop.Themes;
 
@@ -8,7 +9,7 @@ public sealed class ApplicationThemeSwitcher : IThemeSwitcher
     {
         if (Application.Current is { } application)
         {
-            application.RequestedThemeVariant = theme.Variant;
+            application.RequestedThemeVariant = ThemeVariants.For(theme);
         }
     }
 }
