@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Presentation.Conversations;
 

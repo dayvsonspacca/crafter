@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Projects;
 using static Crafter.Agents.ClaudeCode.JsonFields;
 

@@ -1,4 +1,5 @@
 using Crafter.Core.Agents;
+using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Projects;
 
 namespace Crafter.Agents.ClaudeCode.Tests;
@@ -99,7 +100,7 @@ public sealed class ClaudeCodeTest
 
         var replies = await session.Answer(new Crafter.Core.Conversations.Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
 
-        Assert.Contains(new Crafter.Core.Conversations.Wrote(claude.Folder), replies);
+        Assert.Contains(new Wrote(claude.Folder), replies);
         Assert.Equal("s-1", session.SessionId);
     }
 
@@ -179,7 +180,7 @@ public sealed class ClaudeCodeTest
             Configuration.Empty.With("model", "opus").With("tools", ClaudeCodeOptions.Chats),
             Stop).ToListAsync(Stop);
 
-        var said = Assert.Single(replies.OfType<Crafter.Core.Conversations.Wrote>()).Fragment;
+        var said = Assert.Single(replies.OfType<Wrote>()).Fragment;
         Assert.Contains("--model opus", said);
         Assert.Contains("--tools", said);
     }
@@ -205,7 +206,7 @@ public sealed class ClaudeCodeTest
             Configuration.Empty.With("model", "opus").With("tools", "plan"),
             Stop).ToListAsync(Stop);
 
-        var said = Assert.Single(replies.OfType<Crafter.Core.Conversations.Wrote>()).Fragment;
+        var said = Assert.Single(replies.OfType<Wrote>()).Fragment;
         Assert.Contains("--model opus", said);
         Assert.Contains("--permission-mode plan", said);
     }

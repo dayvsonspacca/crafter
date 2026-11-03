@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Crafter.Core.Conversations;
+using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Projects;
 
 namespace Crafter.Agents.ClaudeCode.Tests;

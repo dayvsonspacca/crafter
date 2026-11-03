@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using Crafter.Core.Agents;
+using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Core.Conversations;
 

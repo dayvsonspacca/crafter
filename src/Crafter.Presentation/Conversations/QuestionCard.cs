@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using Crafter.Core.Conversations;
+using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Presentation.Conversations;
 

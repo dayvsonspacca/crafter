@@ -1,5 +1,6 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Projects;
 
 namespace Crafter.Presentation.Tests;

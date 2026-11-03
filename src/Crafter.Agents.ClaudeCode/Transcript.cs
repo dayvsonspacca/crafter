@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Crafter.Core.Conversations;
+using Crafter.Core.Conversations.Replies;
 using static Crafter.Agents.ClaudeCode.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode;
