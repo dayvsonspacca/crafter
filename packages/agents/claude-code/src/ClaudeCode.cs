@@ -1,10 +1,11 @@
 using System.Text.Json;
 using Crafter.Core.Agents;
+using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
 
 namespace Crafter.Agents.ClaudeCode;
 
-public sealed class ClaudeCode(string executable = "claude") : IAgent
+public sealed class ClaudeCode(string executable = "claude", string? home = null) : IAgent, IKeepsHistory
 {
     public const string Install = "curl -fsSL https://claude.ai/install.sh | bash";
 
@@ -15,6 +16,8 @@ public sealed class ClaudeCode(string executable = "claude") : IAgent
     private static readonly TimeSpan Patience = TimeSpan.FromSeconds(20);
 
     private readonly Entry command = new("executable", "Executable", "The command that starts Claude Code.", executable);
+
+    private readonly ClaudeCodeHistory history = new(home ?? ClaudeCodeHistory.Home);
 
     private ClaudeCodeOptions options = new(executable);
 
@@ -49,6 +52,11 @@ public sealed class ClaudeCode(string executable = "claude") : IAgent
 
     public IAgentSession Begin(Project project, string? resumeFrom = null) =>
         new ClaudeCodeSession(project.Folder, () => options, resumeFrom);
+
+    public Task<IReadOnlyList<PastChat>> History(Project project, CancellationToken stop = default) => history.List(project, stop);
+
+    public Task<IReadOnlyList<Turn>> Replay(Project project, string sessionId, CancellationToken stop = default) =>
+        history.Replay(project, sessionId, stop);
 
     public async Task<Readiness> Check(CancellationToken stop = default)
     {
