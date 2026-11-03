@@ -10,7 +10,7 @@ public sealed class ConversationTest
     public async Task ForwardsEveryReplyOfTheAgent()
     {
         Reply[] replies = [new Began("claude-opus-5-5"), new Wrote("Olá"), new Finished()];
-        var conversation = new Conversation(new ScriptedAgent(replies));
+        var conversation = new Conversation(new ScriptedSession(replies));
 
         var heard = await conversation.Ask(new Prompt("oi"), Stop).ToListAsync(Stop);
 
@@ -20,7 +20,7 @@ public sealed class ConversationTest
     [Fact]
     public async Task HandsThePromptToTheAgent()
     {
-        var agent = new ScriptedAgent(new Finished());
+        var agent = new ScriptedSession(new Finished());
         var conversation = new Conversation(agent);
 
         await conversation.Ask(new Prompt("oi"), Stop).ToListAsync(Stop);
@@ -31,7 +31,7 @@ public sealed class ConversationTest
     [Fact]
     public async Task RemembersTheQuestionAndTheAnswer()
     {
-        var conversation = new Conversation(new ScriptedAgent(new Wrote("Olá, "), new Wrote("mundo"), new Finished()));
+        var conversation = new Conversation(new ScriptedSession(new Wrote("Olá, "), new Wrote("mundo"), new Finished()));
 
         await conversation.Ask(new Prompt("oi"), Stop).ToListAsync(Stop);
 
@@ -41,7 +41,7 @@ public sealed class ConversationTest
     [Fact]
     public async Task KeepsWhatWasWrittenWhenStopped()
     {
-        var conversation = new Conversation(new ScriptedAgent(new Wrote("pela metade"), new Stopped()));
+        var conversation = new Conversation(new ScriptedSession(new Wrote("pela metade"), new Stopped()));
 
         await conversation.Ask(new Prompt("oi"), Stop).ToListAsync(Stop);
 
@@ -51,7 +51,7 @@ public sealed class ConversationTest
     [Fact]
     public async Task KeepsTheRefusalAsTheEnding()
     {
-        var conversation = new Conversation(new ScriptedAgent(new Refused("cyber")));
+        var conversation = new Conversation(new ScriptedSession(new Refused("cyber")));
 
         await conversation.Ask(new Prompt("oi"), Stop).ToListAsync(Stop);
 
@@ -59,9 +59,30 @@ public sealed class ConversationTest
     }
 
     [Fact]
+    public async Task ContinuesFromItsHistory()
+    {
+        Turn[] history = [new Asked(new Prompt("oi")), new Answered("Olá", new Finished())];
+        var conversation = new Conversation(new ScriptedSession(new Wrote("De novo"), new Finished()), history);
+
+        await conversation.Ask(new Prompt("de novo?"), Stop).ToListAsync(Stop);
+
+        Assert.Equal(
+            [.. history, new Asked(new Prompt("de novo?")), new Answered("De novo", new Finished())],
+            conversation.Turns);
+    }
+
+    [Fact]
+    public void KnowsTheSessionOfItsAgent()
+    {
+        var conversation = new Conversation(new ScriptedSession { SessionId = "s-1" });
+
+        Assert.Equal("s-1", conversation.SessionId);
+    }
+
+    [Fact]
     public async Task EndsWithAFailureWhenTheAgentGoesSilent()
     {
-        var conversation = new Conversation(new ScriptedAgent(new Wrote("sem fim")));
+        var conversation = new Conversation(new ScriptedSession(new Wrote("sem fim")));
 
         var heard = await conversation.Ask(new Prompt("oi"), Stop).ToListAsync(Stop);
 

@@ -1,13 +1,21 @@
 using System.Runtime.CompilerServices;
 using System.Text;
+using Crafter.Core.Agents;
 
 namespace Crafter.Core.Conversations;
 
-public sealed class Conversation(IAgent agent)
+public sealed class Conversation(IAgentSession agent, IEnumerable<Turn> history)
 {
-    private readonly List<Turn> turns = [];
+    private readonly List<Turn> turns = [.. history];
+
+    public Conversation(IAgentSession agent)
+        : this(agent, [])
+    {
+    }
 
     public IReadOnlyList<Turn> Turns => turns;
+
+    public string? SessionId => agent.SessionId;
 
     public async IAsyncEnumerable<Reply> Ask(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
     {
