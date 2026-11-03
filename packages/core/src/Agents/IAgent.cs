@@ -12,6 +12,8 @@ public interface IAgent
 
     IReadOnlyList<Setting> Settings { get; }
 
+    IReadOnlyList<string> Badges { get; }
+
     void Configure(Configuration configuration);
 
     Task<Readiness> Check(CancellationToken stop = default);
