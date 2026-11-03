@@ -24,7 +24,7 @@ public sealed partial class Workbench : Window
     public Workbench(
         WindowManager windowManager,
         Bookshelf bookshelf,
-        IPreferencesStore preferences,
+        PreferenceBook preferences,
         IChatArchive archive,
         Crew crew)
     {

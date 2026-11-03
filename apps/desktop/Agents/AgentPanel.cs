@@ -9,18 +9,18 @@ public sealed partial class AgentPanel : ObservableObject
 {
     private readonly IAgent agent;
 
-    private readonly IPreferencesStore store;
+    private readonly PreferenceBook preferences;
 
     private readonly Func<string, Task> copy;
 
     private Configuration configuration;
 
-    public AgentPanel(IAgent agent, IPreferencesStore store, Func<string, Task> copy)
+    public AgentPanel(IAgent agent, PreferenceBook preferences, Func<string, Task> copy)
     {
         this.agent = agent;
-        this.store = store;
+        this.preferences = preferences;
         this.copy = copy;
-        configuration = store.Load().ConfigurationOf(agent.Id);
+        configuration = preferences.Current.ConfigurationOf(agent.Id);
         agent.Configure(configuration);
         Settings = [.. agent.Settings.Select(Present)];
     }
@@ -99,6 +99,6 @@ public sealed partial class AgentPanel : ObservableObject
     {
         configuration = configuration.With(key, value);
         agent.Configure(configuration);
-        store.Save(store.Load().Configure(agent.Id, configuration));
+        preferences.Configure(agent.Id, configuration);
     }
 }

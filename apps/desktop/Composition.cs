@@ -21,7 +21,7 @@ public static class Composition
         new(
             WindowManager.Detect(),
             new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), () => DateTimeOffset.Now),
-            new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), Preferences.Default(Home)),
+            new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), Preferences.Default(Home))),
             new JsonChatArchive(Path.Combine(Data, "chats")),
             Crew());
 

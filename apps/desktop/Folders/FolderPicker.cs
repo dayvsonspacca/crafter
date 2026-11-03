@@ -11,11 +11,9 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
 {
     private const int MostRepositories = 50;
 
-    private readonly IPreferencesStore store;
+    private readonly PreferenceBook preferences;
 
     private readonly Bookshelf bookshelf;
-
-    private Preferences preferences;
 
     private TaskCompletionSource<string?>? choosing;
 
@@ -25,13 +23,12 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
 
     private bool images;
 
-    public FolderPicker(IPreferencesStore store, Bookshelf bookshelf)
+    public FolderPicker(PreferenceBook preferences, Bookshelf bookshelf)
     {
-        this.store = store;
+        this.preferences = preferences;
         this.bookshelf = bookshelf;
-        preferences = store.Load();
         Title = string.Empty;
-        Location = preferences.ProjectsRoot;
+        Location = preferences.Current.ProjectsRoot;
         Filter = string.Empty;
     }
 
@@ -139,12 +136,11 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
     {
         choosing?.TrySetResult(null);
         choosing = new TaskCompletionSource<string?>();
-        preferences = store.Load();
         images = forImages;
         found = [];
 
         Title = title;
-        Go(Directory.Exists(start) ? start : preferences.ProjectsRoot);
+        Go(Directory.Exists(start) ? start : preferences.Current.ProjectsRoot);
         IsOpen = true;
         if (!images)
         {
@@ -178,7 +174,7 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
 
         var mine = finding = new CancellationTokenSource();
         var finder = new RepositoryFinder();
-        var root = preferences.ProjectsRoot;
+        var root = preferences.Current.ProjectsRoot;
 
         try
         {

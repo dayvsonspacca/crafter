@@ -11,14 +11,14 @@ public sealed partial class SetupScreen : ObservableObject
 {
     private readonly Crew crew;
 
-    private readonly IPreferencesStore store;
+    private readonly PreferenceBook preferences;
 
-    public SetupScreen(Crew crew, IPreferencesStore store, Func<string, Task> copy)
+    public SetupScreen(Crew crew, PreferenceBook preferences, Func<string, Task> copy)
     {
         this.crew = crew;
-        this.store = store;
-        crew.Hire(store.Load().Agents);
-        Panels = [.. crew.Roster.Select(agent => new AgentPanel(agent, store, copy) { IsMarked = crew.IsHired(agent.Id) })];
+        this.preferences = preferences;
+        crew.Hire(preferences.Current.Agents);
+        Panels = [.. crew.Roster.Select(agent => new AgentPanel(agent, preferences, copy) { IsMarked = crew.IsHired(agent.Id) })];
         IsPicking = crew.IsHiring;
 
         foreach (var panel in Panels)
@@ -119,6 +119,6 @@ public sealed partial class SetupScreen : ObservableObject
         List<AgentId> marked = [.. Panels.Where(panel => panel.IsMarked).Select(panel => panel.Id)];
 
         crew.Hire(marked);
-        store.Save(store.Load() with { Agents = marked });
+        preferences.Hire(marked);
     }
 }

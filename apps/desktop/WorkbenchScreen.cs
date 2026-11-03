@@ -19,6 +19,8 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
 {
     private readonly Bookshelf bookshelf;
 
+    private readonly PreferenceBook preferences;
+
     private readonly IChatArchive archive;
 
     private readonly Crew crew;
@@ -29,13 +31,14 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
 
     public WorkbenchScreen(
         Bookshelf bookshelf,
-        IPreferencesStore preferences,
+        PreferenceBook preferences,
         IChatArchive archive,
         Crew crew,
         Func<string, Task> copy,
         Action<Theme> apply)
     {
         this.bookshelf = bookshelf;
+        this.preferences = preferences;
         this.archive = archive;
         this.crew = crew;
         this.copy = copy;
@@ -202,7 +205,7 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
     [RelayCommand]
     private async Task Add()
     {
-        var start = Preferences.Current.ProjectsRoot;
+        var start = preferences.Current.ProjectsRoot;
 
         while (await Picker.Pick("Add Project", start) is { } folder)
         {

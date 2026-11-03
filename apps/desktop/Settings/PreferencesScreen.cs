@@ -9,17 +9,12 @@ namespace Crafter.Desktop.Settings;
 
 public sealed partial class PreferencesScreen : ObservableObject
 {
-    private readonly IPreferencesStore store;
-
-    public PreferencesScreen(IPreferencesStore store, IFolderPicker folders, SetupScreen setup, Action<Theme> apply)
+    public PreferencesScreen(PreferenceBook preferences, IFolderPicker folders, SetupScreen setup, Action<Theme> apply)
     {
-        this.store = store;
-        AppGroups = [new AppearanceGroup(store, apply), new ProjectsGroup(store, folders)];
+        AppGroups = [new AppearanceGroup(preferences, apply), new ProjectsGroup(preferences, folders)];
         AgentGroups = [.. setup.Panels.Select(panel => new AgentGroup(panel))];
         Show(AppGroups[0]);
     }
-
-    public Preferences Current => store.Load();
 
     public IReadOnlyList<PreferenceGroup> AppGroups { get; }
 

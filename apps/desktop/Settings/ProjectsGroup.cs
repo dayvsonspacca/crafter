@@ -8,18 +8,18 @@ namespace Crafter.Desktop.Settings;
 
 public sealed partial class ProjectsGroup : PreferenceGroup
 {
-    private readonly IPreferencesStore store;
+    private readonly PreferenceBook preferences;
 
     private readonly IFolderPicker folders;
 
     private readonly bool ready;
 
-    public ProjectsGroup(IPreferencesStore store, IFolderPicker folders)
+    public ProjectsGroup(PreferenceBook preferences, IFolderPicker folders)
         : base("Projects")
     {
-        this.store = store;
+        this.preferences = preferences;
         this.folders = folders;
-        Root = new FolderLabel(store.Load().ProjectsRoot).Text;
+        Root = new FolderLabel(preferences.Current.ProjectsRoot).Text;
         ready = true;
     }
 
@@ -32,7 +32,7 @@ public sealed partial class ProjectsGroup : PreferenceGroup
     [RelayCommand]
     private async Task Browse()
     {
-        if (await folders.Pick("Choose the projects root", store.Load().ProjectsRoot) is { } folder)
+        if (await folders.Pick("Choose the projects root", preferences.Current.ProjectsRoot) is { } folder)
         {
             Root = new FolderLabel(folder).Text;
         }
@@ -45,12 +45,7 @@ public sealed partial class ProjectsGroup : PreferenceGroup
         IsRootMissing = folder.Length == 0 || !Directory.Exists(folder);
         if (ready && !IsRootMissing)
         {
-            var current = store.Load();
-            var changed = current with { ProjectsRoot = folder };
-            if (changed != current)
-            {
-                store.Save(changed);
-            }
+            preferences.MoveProjectsRoot(folder);
         }
     }
 }

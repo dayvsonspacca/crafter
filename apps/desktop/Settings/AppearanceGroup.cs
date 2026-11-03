@@ -5,17 +5,17 @@ namespace Crafter.Desktop.Settings;
 
 public sealed class AppearanceGroup : PreferenceGroup
 {
-    private readonly IPreferencesStore store;
+    private readonly PreferenceBook preferences;
 
     private readonly Action<Theme> apply;
 
-    public AppearanceGroup(IPreferencesStore store, Action<Theme> apply)
+    public AppearanceGroup(PreferenceBook preferences, Action<Theme> apply)
         : base("Appearance")
     {
-        this.store = store;
+        this.preferences = preferences;
         this.apply = apply;
 
-        var current = Theme.Named(store.Load().Theme);
+        var current = Theme.Named(preferences.Current.Theme);
         Themes = [.. Theme.All.Select(theme => new ThemeChoice(theme, theme == current, Choose))];
         apply(current);
     }
@@ -30,6 +30,6 @@ public sealed class AppearanceGroup : PreferenceGroup
         }
 
         apply(chosen.Theme);
-        store.Save(store.Load() with { Theme = chosen.Theme.Id });
+        preferences.ChooseTheme(chosen.Theme.Id);
     }
 }
