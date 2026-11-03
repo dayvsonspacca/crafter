@@ -12,7 +12,7 @@ public interface IAgent
 
     IReadOnlyList<Setting> Settings { get; }
 
-    IReadOnlyList<string> Badges { get; }
+    Configuration Configuration { get; }
 
     void Configure(Configuration configuration);
 

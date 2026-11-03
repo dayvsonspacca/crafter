@@ -45,7 +45,19 @@ public sealed class ChatTest
         Assert.Equal(ChatTitle.Of("oi"), record.Title);
         Assert.Equal("s-1", record.SessionId);
         Assert.Equal("s-1", chat.SessionId);
+        Assert.Same(Configuration.Empty, record.Adjustments);
         Assert.Equal<Turn>([new Asked(new Prompt("oi")), new Answered("Olá", new Finished())], record.Turns);
         Assert.Equal(record.Turns, chat.Turns);
+    }
+
+    [Fact]
+    public void KeepsItsAdjustmentsInTheRecord()
+    {
+        var chat = new Chat(ChatId.New(), Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession()));
+
+        chat.Adjust(Configuration.Empty.With("tools", "plan"));
+
+        Assert.Equal("plan", chat.Adjustments["tools"]);
+        Assert.Equal("plan", chat.Record().Adjustments["tools"]);
     }
 }

@@ -10,6 +10,10 @@ internal sealed class ScriptedSession(params Reply[] replies) : IAgentSession
 
     public string? SessionId { get; set; }
 
+    public Configuration Adjustments { get; private set; } = Configuration.Empty;
+
+    public void Adjust(Configuration adjustments) => Adjustments = adjustments;
+
     public async IAsyncEnumerable<Reply> Answer(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
     {
         Heard.Add(prompt);

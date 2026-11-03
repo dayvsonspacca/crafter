@@ -2,6 +2,8 @@ namespace Crafter.Core.Agents;
 
 public sealed class Configuration : IEquatable<Configuration>
 {
+    public const string Cleared = "(cleared)";
+
     public static readonly Configuration Empty = new(new Dictionary<string, string>());
 
     private readonly Dictionary<string, string> values;
@@ -29,6 +31,13 @@ public sealed class Configuration : IEquatable<Configuration>
 
         return new Configuration(changed);
     }
+
+    public Configuration Over(Configuration under) =>
+        new(new Dictionary<string, string>(under.values
+            .Concat(values)
+            .GroupBy(value => value.Key)
+            .Select(group => group.Last())
+            .Where(value => value.Value != Cleared)));
 
     public bool Equals(Configuration? other) =>
         other is not null && values.Count == other.values.Count && values.All(value => other[value.Key] == value.Value);

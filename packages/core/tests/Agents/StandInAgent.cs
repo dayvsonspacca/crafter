@@ -13,8 +13,6 @@ internal sealed class StandInAgent(string id) : IAgent
 
     public IReadOnlyList<Setting> Settings => [];
 
-    public IReadOnlyList<string> Badges => [];
-
     public Configuration Configuration { get; private set; } = Configuration.Empty;
 
     public void Configure(Configuration configuration) => Configuration = configuration;

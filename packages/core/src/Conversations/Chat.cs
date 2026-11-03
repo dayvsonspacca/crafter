@@ -14,6 +14,10 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
 
     public string? SessionId => conversation.SessionId;
 
+    public Configuration Adjustments => conversation.Adjustments;
+
+    public void Adjust(Configuration adjustments) => conversation.Adjust(adjustments);
+
     public IAsyncEnumerable<Reply> Ask(Prompt prompt, CancellationToken stop = default)
     {
         if (conversation.Turns.Count == 0)
@@ -24,5 +28,5 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
         return conversation.Ask(prompt, stop);
     }
 
-    public ChatRecord Record() => new(Id, Agent, Title, conversation.SessionId, [.. conversation.Turns]);
+    public ChatRecord Record() => new(Id, Agent, Title, conversation.SessionId, [.. conversation.Turns]) { Adjustments = conversation.Adjustments };
 }

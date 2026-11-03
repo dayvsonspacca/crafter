@@ -38,7 +38,7 @@ public sealed class JsonChatArchiveTest : IDisposable
                 new Asked(new Prompt("Broken")),
                 new Answered(string.Empty, new Failed("Not logged in")),
             ]),
-            new(ChatId.New(), Codex, ChatTitle.Untitled, null, []),
+            new(ChatId.New(), Codex, ChatTitle.Untitled, null, []) { Adjustments = Configuration.Empty.With("tools", "plan") },
         ];
 
         new JsonChatArchive(folder).Save(Crafter, chats);
@@ -52,6 +52,7 @@ public sealed class JsonChatArchiveTest : IDisposable
             Assert.Equal(chats[at].Title, loaded[at].Title);
             Assert.Equal(chats[at].SessionId, loaded[at].SessionId);
             Assert.Equal(chats[at].Turns, loaded[at].Turns);
+            Assert.Equal(chats[at].Adjustments, loaded[at].Adjustments);
         }
     }
 

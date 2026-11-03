@@ -53,10 +53,16 @@ public sealed class JsonChatArchive(string folder) : IChatArchive
             new AgentId(entry.Agent),
             ChatTitle.Of(entry.Title),
             entry.SessionId,
-            [.. entry.Turns.Select(Turn)]);
+            [.. entry.Turns.Select(Turn)])
+        {
+            Adjustments = new Configuration(entry.Adjustments ?? []),
+        };
 
     private static ChatEntry Entry(ChatRecord record) =>
-        new(record.Id.Value, record.Agent.Value, record.Title.Text, record.SessionId, [.. record.Turns.Select(Entry)]);
+        new(record.Id.Value, record.Agent.Value, record.Title.Text, record.SessionId, [.. record.Turns.Select(Entry)])
+        {
+            Adjustments = record.Adjustments.Values.Count > 0 ? new Dictionary<string, string>(record.Adjustments.Values) : null,
+        };
 
     private static Turn Turn(TurnEntry entry) => entry.Kind switch
     {
@@ -97,7 +103,11 @@ public sealed class JsonChatArchive(string folder) : IChatArchive
     };
 }
 
-internal sealed record ChatEntry(Guid Id, string Agent, string Title, string? SessionId, List<TurnEntry> Turns);
+internal sealed record ChatEntry(Guid Id, string Agent, string Title, string? SessionId, List<TurnEntry> Turns)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Adjustments { get; init; }
+}
 
 internal sealed record TurnEntry(string Kind, string Text, string? Ending, string? Detail);
 
