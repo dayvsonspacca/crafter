@@ -1,0 +1,39 @@
+using System.Text.Json;
+
+namespace Crafter.Agents.ClaudeCode.Tests;
+
+public sealed class ClaudeCodeToolsTest
+{
+    [Theory]
+    [InlineData("Bash", """{"command":"dotnet test\ndotnet build"}""", "dotnet test", null)]
+    [InlineData("Read", """{"file_path":"/home/hero/crafter/apps/Program.cs"}""", "apps/Program.cs", null)]
+    [InlineData("Read", """{"file_path":"/etc/hosts"}""", "/etc/hosts", null)]
+    [InlineData("Edit", """{"file_path":"/home/hero/crafter/a.cs","old_string":"x","new_string":"y\nz\n"}""", "a.cs", "+2 −1")]
+    [InlineData("MultiEdit", """{"file_path":"/home/hero/crafter/a.cs","edits":[{"old_string":"a","new_string":"b\nc"},{"old_string":"d\ne","new_string":""},7]}""", "a.cs", "+2 −3")]
+    [InlineData("MultiEdit", """{"file_path":"/home/hero/crafter/a.cs"}""", "a.cs", "+0 −0")]
+    [InlineData("Write", """{"file_path":"/home/hero/crafter/b.md","content":"one\ntwo\nthree"}""", "b.md", "+3")]
+    [InlineData("NotebookEdit", """{"notebook_path":"/home/hero/crafter/n.ipynb"}""", "n.ipynb", null)]
+    [InlineData("Grep", """{"pattern":"TODO"}""", "TODO", null)]
+    [InlineData("Glob", """{}""", "", null)]
+    [InlineData("WebFetch", """{"url":"https://example.com"}""", "https://example.com", null)]
+    [InlineData("WebSearch", """{"query":"avalonia"}""", "avalonia", null)]
+    [InlineData("Task", """{"description":"Look around"}""", "Look around", null)]
+    [InlineData("Agent", """{}""", "", null)]
+    [InlineData("TodoWrite", """{"todos":[]}""", "TodoWrite", null)]
+    [InlineData("Custom", """{"command":"go"}""", "go", null)]
+    [InlineData("Custom", """[]""", "Custom", null)]
+    public void DescribesWhatEachToolIsAbout(string tool, string input, string summary, string? stat)
+    {
+        using var document = JsonDocument.Parse(input);
+
+        Assert.Equal((summary, stat), ClaudeCodeTools.Describe(tool, document.RootElement, "/home/hero/crafter"));
+    }
+
+    [Fact]
+    public void KeepsFullPathsWithoutAFolder()
+    {
+        using var document = JsonDocument.Parse("""{"file_path":"/home/hero/crafter/a.cs"}""");
+
+        Assert.Equal("/home/hero/crafter/a.cs", ClaudeCodeTools.Describe("Read", document.RootElement, null).Summary);
+    }
+}

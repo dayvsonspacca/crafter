@@ -121,4 +121,66 @@ public sealed class TranscriptTest
     {
         Assert.Empty(new Transcript().Hear(line));
     }
+
+    [Fact]
+    public void HearsTheToolsItUses()
+    {
+        var transcript = new Transcript("/home/hero/crafter");
+
+        var replies = transcript.Hear("""{"type":"assistant","message":{"content":[{"type":"text","text":"ok"},{"type":"tool_use","id":"t-1","name":"Edit","input":{"file_path":"/home/hero/crafter/a.cs","old_string":"x","new_string":"y"}},{"type":"tool_use","name":"NoId"},"junk"]}}""");
+
+        Assert.Equal([new Acting("t-1", "Edit", "a.cs", "+1 −1")], replies);
+    }
+
+    [Fact]
+    public void HearsWhatTheToolsAnswered()
+    {
+        var replies = new Transcript().Hear("""{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t-1","content":"done"},{"type":"tool_result","tool_use_id":"t-2","is_error":true,"content":[{"type":"text","text":"no"},{"type":"image"},"x"]},{"type":"tool_result","tool_use_id":"t-3"},{"type":"tool_result","tool_use_id":"t-4","content":42},{"type":"tool_result"}]}}""");
+
+        Assert.Equal(
+            [new Acted("t-1", false, "done"), new Acted("t-2", true, "no"), new Acted("t-3", false, string.Empty), new Acted("t-4", false, string.Empty)],
+            replies);
+    }
+
+    [Theory]
+    [InlineData("""{"type":"user","message":{"content":"plain prompt"}}""")]
+    [InlineData("""{"type":"assistant","message":"odd"}""")]
+    [InlineData("""{"type":"assistant"}""")]
+    public void HearsNothingFromMessagesWithoutTools(string line)
+    {
+        Assert.Empty(new Transcript().Hear(line));
+    }
+
+    [Fact]
+    public void HearsARequestForApprovalAndKeepsItsInput()
+    {
+        var transcript = new Transcript("/home/hero/crafter");
+
+        var replies = transcript.Hear("""{"type":"control_request","request_id":"r-1","request":{"subtype":"can_use_tool","tool_name":"Bash","display_name":"Bash","input":{"command":"dotnet test"},"description":"Run the tests"}}""");
+
+        Assert.Equal([new NeedsApproval("r-1", "Bash", "dotnet test", "Run the tests")], replies);
+        Assert.Equal("""{"command":"dotnet test"}""", transcript.InputOf("r-1"));
+        Assert.Equal("{}", transcript.InputOf("r-9"));
+    }
+
+    [Fact]
+    public void KeepsAnEmptyInputWhenTheRequestHasNone()
+    {
+        var transcript = new Transcript();
+
+        var replies = transcript.Hear("""{"type":"control_request","request_id":"r-2","request":{"subtype":"can_use_tool","tool_name":"Mystery"}}""");
+
+        Assert.Equal([new NeedsApproval("r-2", "Mystery", "Mystery", null)], replies);
+        Assert.Equal("{}", transcript.InputOf("r-2"));
+    }
+
+    [Theory]
+    [InlineData("""{"type":"control_request","request":{"subtype":"can_use_tool","tool_name":"Bash"}}""")]
+    [InlineData("""{"type":"control_request","request_id":"r-1"}""")]
+    [InlineData("""{"type":"control_request","request_id":"r-1","request":{"subtype":"interrupt"}}""")]
+    [InlineData("""{"type":"control_request","request_id":"r-1","request":{"subtype":"can_use_tool"}}""")]
+    public void IgnoresOtherControlRequests(string line)
+    {
+        Assert.Empty(new Transcript().Hear(line));
+    }
 }

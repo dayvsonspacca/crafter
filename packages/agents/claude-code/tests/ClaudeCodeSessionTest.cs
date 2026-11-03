@@ -9,7 +9,7 @@ public sealed class ClaudeCodeSessionTest
     [Fact]
     public async Task AnswersWithWhatClaudeCodeStreams()
     {
-        using var claude = new FakeClaude($"cat > /dev/null\n{FakeClaude.Init}\n{FakeClaude.Writes("Olá")}\n{FakeClaude.Success}");
+        using var claude = new FakeClaude($"read -r line\n{FakeClaude.Init}\n{FakeClaude.Writes("Olá")}\n{FakeClaude.Success}");
 
         var replies = await claude.Session().Answer(new Prompt("oi"), Stop).ToListAsync(Stop);
 
@@ -19,11 +19,12 @@ public sealed class ClaudeCodeSessionTest
     [Fact]
     public async Task SendsThePromptThroughStandardInput()
     {
-        using var claude = new FakeClaude($"prompt=$(cat)\n{FakeClaude.Writes("$prompt")}\n{FakeClaude.Success}");
+        using var claude = new FakeClaude(
+            $"read -r line\nif [[ \"$line\" == *'\"type\":\"user\"'*'\"content\":\"--help\"'* ]]; then text=heard; else text=missed; fi\n{FakeClaude.Writes("$text")}\n{FakeClaude.Success}");
 
         var replies = await claude.Session().Answer(new Prompt("--help"), Stop).ToListAsync(Stop);
 
-        Assert.Contains(new Wrote("--help"), replies);
+        Assert.Contains(new Wrote("heard"), replies);
     }
 
     [Fact]
@@ -31,7 +32,7 @@ public sealed class ClaudeCodeSessionTest
     {
         using var claude = new FakeClaude(
             $"""
-            cat > /dev/null
+            read -r line
             if [[ " $* " == *" --resume s-1 "* ]]; then text=resumed; else text=fresh; fi
             {FakeClaude.Init}
             {FakeClaude.Writes("$text")}
@@ -51,7 +52,7 @@ public sealed class ClaudeCodeSessionTest
     {
         using var claude = new FakeClaude(
             $"""
-            cat > /dev/null
+            read -r line
             if [[ " $* " == *" --resume s-0 "* ]]; then text=resumed; else text=fresh; fi
             {FakeClaude.Writes("$text")}
             {FakeClaude.Success}
@@ -66,7 +67,7 @@ public sealed class ClaudeCodeSessionTest
     [Fact]
     public async Task KnowsItsSessionOnceClaudeCodeTellsIt()
     {
-        using var claude = new FakeClaude($"cat > /dev/null\n{FakeClaude.Init}\nsleep 30");
+        using var claude = new FakeClaude($"read -r line\n{FakeClaude.Init}\nsleep 30");
         using var asked = CancellationTokenSource.CreateLinkedTokenSource(Stop);
         var session = claude.Session();
 
@@ -87,7 +88,7 @@ public sealed class ClaudeCodeSessionTest
     public async Task LeavesTheParentClaudeCodeSessionBehind()
     {
         Environment.SetEnvironmentVariable("CLAUDECODE", "1");
-        using var claude = new FakeClaude($"cat > /dev/null\n{FakeClaude.Writes("${CLAUDECODE:-clean}")}\n{FakeClaude.Success}");
+        using var claude = new FakeClaude($"read -r line\n{FakeClaude.Writes("${CLAUDECODE:-clean}")}\n{FakeClaude.Success}");
 
         var replies = await claude.Session().Answer(new Prompt("oi"), Stop).ToListAsync(Stop);
 
@@ -97,7 +98,7 @@ public sealed class ClaudeCodeSessionTest
     [Fact]
     public async Task StopsWhenAsked()
     {
-        using var claude = new FakeClaude($"cat > /dev/null\n{FakeClaude.Init}\nsleep 30");
+        using var claude = new FakeClaude($"read -r line\n{FakeClaude.Init}\nsleep 30");
         using var asked = CancellationTokenSource.CreateLinkedTokenSource(Stop);
         var replies = new List<Reply>();
 
@@ -126,7 +127,7 @@ public sealed class ClaudeCodeSessionTest
     [Fact]
     public async Task FailsWithWhatClaudeCodeComplained()
     {
-        using var claude = new FakeClaude("cat > /dev/null\necho 'Not logged in' >&2\nexit 1");
+        using var claude = new FakeClaude("read -r line\necho 'Not logged in' >&2\nexit 1");
 
         var replies = await claude.Session().Answer(new Prompt("oi"), Stop).ToListAsync(Stop);
 
@@ -136,7 +137,7 @@ public sealed class ClaudeCodeSessionTest
     [Fact]
     public async Task FailsWithTheExitCodeWhenClaudeCodeSaysNothing()
     {
-        using var claude = new FakeClaude("cat > /dev/null\nexit 3");
+        using var claude = new FakeClaude("read -r line\nexit 3");
 
         var replies = await claude.Session().Answer(new Prompt("oi"), Stop).ToListAsync(Stop);
 
@@ -152,4 +153,82 @@ public sealed class ClaudeCodeSessionTest
 
         Assert.IsType<Failed>(Assert.Single(replies));
     }
+
+    [Theory]
+    [InlineData(typeof(Crafter.Core.Agents.Allow), "allowed")]
+    [InlineData(typeof(Crafter.Core.Agents.Deny), "denied")]
+    public async Task AsksBeforeRunningWhatNeedsApproval(Type decision, string answer)
+    {
+        using var claude = new FakeClaude("read -r line\n" + Asks("r-1", "first") + "\n" + FakeClaude.Writes("$first") + "\n" + FakeClaude.Success);
+        var session = claude.Session();
+        List<Reply> replies = [];
+
+        await foreach (var reply in session.Answer(new Prompt("toca"), Stop))
+        {
+            replies.Add(reply);
+            if (reply is NeedsApproval approval)
+            {
+                session.Decide(approval.Id, (Crafter.Core.Agents.Decision)Activator.CreateInstance(decision)!);
+            }
+        }
+
+        Assert.Equal(new NeedsApproval("r-1", "Bash", "touch x", "Create x"), replies[0]);
+        Assert.Contains(new Wrote(answer), replies);
+    }
+
+    [Fact]
+    public async Task TrustsAToolForTheRestOfTheChat()
+    {
+        using var claude = new FakeClaude(
+            "read -r line\n" + Asks("r-1", "first") + "\n" + Asks("r-2", "second") + "\n" + FakeClaude.Writes("$first-$second") + "\n" + FakeClaude.Success);
+        var session = claude.Session();
+        List<Reply> replies = [];
+
+        await foreach (var reply in session.Answer(new Prompt("toca"), Stop))
+        {
+            replies.Add(reply);
+            if (reply is NeedsApproval approval)
+            {
+                session.Decide(approval.Id, new Crafter.Core.Agents.AllowTool());
+            }
+        }
+
+        Assert.Single(replies.OfType<NeedsApproval>());
+        Assert.Contains(new Wrote("allowed-allowed"), replies);
+    }
+
+    [Fact]
+    public async Task StopsWhileWaitingForADecision()
+    {
+        using var claude = new FakeClaude("read -r line\n" + Asks("r-1", "first") + "\nsleep 30");
+        using var stopping = CancellationTokenSource.CreateLinkedTokenSource(Stop);
+        List<Reply> replies = [];
+
+        await foreach (var reply in claude.Session().Answer(new Prompt("toca"), stopping.Token))
+        {
+            replies.Add(reply);
+            if (reply is NeedsApproval)
+            {
+                await stopping.CancelAsync();
+            }
+        }
+
+        Assert.IsType<Stopped>(replies[^1]);
+    }
+
+    [Fact]
+    public void IgnoresADecisionNobodyAskedFor()
+    {
+        var session = new ClaudeCodeSession(Path.GetTempPath());
+
+        session.Decide("r-404", new Crafter.Core.Agents.Allow());
+
+        Assert.Null(session.SessionId);
+    }
+
+    private static string Asks(string request, string verdict) =>
+        "echo '{\"type\":\"control_request\",\"request_id\":\"" + request
+        + "\",\"request\":{\"subtype\":\"can_use_tool\",\"tool_name\":\"Bash\",\"input\":{\"command\":\"touch x\"},\"description\":\"Create x\"}}'\n"
+        + "read -r answer\n"
+        + "if [[ \"$answer\" == *'\"behavior\":\"allow\"'*'\"updatedInput\":{\"command\":\"touch x\"}'* ]]; then " + verdict + "=allowed; else " + verdict + "=denied; fi";
 }

@@ -10,7 +10,15 @@ public sealed record ClaudeCodeOptions(string Executable, string? Model = null, 
 
     public IReadOnlyList<string> Arguments(string? resumeFrom)
     {
-        List<string> arguments = ["-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages"];
+        List<string> arguments =
+        [
+            "-p",
+            "--input-format", "stream-json",
+            "--output-format", "stream-json",
+            "--verbose",
+            "--include-partial-messages",
+            "--permission-prompt-tool", "stdio",
+        ];
 
         arguments.AddRange(Tools switch
         {

@@ -2,7 +2,11 @@ namespace Crafter.Agents.ClaudeCode.Tests;
 
 public sealed class ClaudeCodeOptionsTest
 {
-    private static readonly string[] Streams = ["-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages"];
+    private static readonly string[] Streams =
+    [
+        "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose", "--include-partial-messages",
+        "--permission-prompt-tool", "stdio",
+    ];
 
     [Fact]
     public void EditsFilesByDefault()

@@ -94,7 +94,7 @@ public sealed class ClaudeCodeTest
     [Fact]
     public async Task BeginsASessionInTheProjectFolder()
     {
-        using var claude = new FakeClaude($"cat > /dev/null\n{FakeClaude.Writes("$(pwd)")}\n{FakeClaude.Success}");
+        using var claude = new FakeClaude($"read -r line\n{FakeClaude.Writes("$(pwd)")}\n{FakeClaude.Success}");
         var session = new ClaudeCode(claude.Executable).Begin(new Project(claude.Folder), resumeFrom: "s-0");
 
         var replies = await session.Answer(new Crafter.Core.Conversations.Prompt("oi"), Stop).ToListAsync(Stop);
@@ -143,6 +143,21 @@ public sealed class ClaudeCodeTest
     }
 
     [Fact]
+    public async Task FallsBackToTheAliasesWhenClaudeCodeNeverAnswersTheIntroduction()
+    {
+        using var claude = new FakeClaude(
+            "if [[ \"$1\" == \"--help\" ]]; then cat \"$(dirname \"$0\")/help.txt\"; exit 0; fi\n"
+            + "if [[ \"$*\" == *--input-format* ]]; then read -r line; echo '{\"type\":\"system\"}'; exit 0; fi\n"
+            + Script("""echo '{"loggedIn":true}'"""));
+        File.WriteAllText(Path.Combine(claude.Folder, "help.txt"), ClaudeCodeCapabilitiesTest.Help);
+        var agent = new ClaudeCode(claude.Executable);
+
+        await agent.Check(Stop);
+
+        Assert.Equal(["Default", "Fable", "Opus", "Sonnet"], Labels(agent, "model"));
+    }
+
+    [Fact]
     public void KeepsOfferingAChoiceTheHelpNoLongerLists()
     {
         var agent = new ClaudeCode();
@@ -157,7 +172,7 @@ public sealed class ClaudeCodeTest
     [Fact]
     public async Task AnswersWithTheAdjustmentsOfTheChatOverThePreferences()
     {
-        using var claude = new FakeClaude($"cat > /dev/null\n{FakeClaude.Writes("$*")}\n{FakeClaude.Success}");
+        using var claude = new FakeClaude($"read -r line\n{FakeClaude.Writes("$*")}\n{FakeClaude.Success}");
         var agent = new ClaudeCode(claude.Executable);
         agent.Configure(Configuration.Empty.With("model", "opus"));
         var session = agent.Begin(new Project(claude.Folder));
@@ -185,7 +200,7 @@ public sealed class ClaudeCodeTest
     [Fact]
     public async Task AnswersWithTheConfigurationOfTheMomentItIsAsked()
     {
-        using var claude = new FakeClaude($"cat > /dev/null\n{FakeClaude.Writes("$*")}\n{FakeClaude.Success}");
+        using var claude = new FakeClaude($"read -r line\n{FakeClaude.Writes("$*")}\n{FakeClaude.Success}");
         var agent = new ClaudeCode(claude.Executable);
         var session = agent.Begin(new Project(claude.Folder));
 
