@@ -1,0 +1,147 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+             xmlns:conversations="using:Crafter.Desktop.Conversations"
+             x:Class="Crafter.Desktop.Conversations.ConversationView"
+             x:DataType="conversations:ConversationScreen">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="LetterSpacing" Value="1.1" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.label.failure">
+      <Setter Property="Foreground" Value="{DynamicResource RemovedBrush}" />
+    </Style>
+
+    <Style Selector="TextBox.prompt">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="44" />
+      <Setter Property="MaxHeight" Value="220" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="AcceptsReturn" Value="True" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="TextBox.prompt /template/ Border#PART_BorderElement, TextBox.prompt:pointerover /template/ Border#PART_BorderElement, TextBox.prompt:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="Button.craft, Button.stop">
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.craft /template/ ContentPresenter#PART_ContentPresenter, Button.craft:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.craft:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
+    <Style Selector="Button.stop /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.stop:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.stop:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+    <Border DockPanel.Dock="Bottom"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="0,1,0,0"
+            Padding="24,16,24,20">
+      <Border MaxWidth="760"
+              Background="{DynamicResource SurfaceBrush}"
+              BorderBrush="{DynamicResource BorderBrush}"
+              BorderThickness="1"
+              CornerRadius="10"
+              Padding="14,12">
+        <StackPanel Spacing="10">
+          <TextBox x:Name="PromptBox"
+                   Classes="prompt"
+                   Text="{Binding Draft}"
+                   PlaceholderText="Describe the recipe…"
+                   AutomationProperties.Name="Message" />
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Orientation="Horizontal" Spacing="14">
+              <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="99" Padding="8,2">
+                <TextBlock Classes="label" LetterSpacing="0" Foreground="{DynamicResource ForegroundBrush}" Text="{Binding Model}" />
+              </Border>
+              <TextBlock Classes="label" LetterSpacing="0" Text="Enter to craft · Shift+Enter for a new line" />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="craft" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsCrafting}" />
+            <Button Grid.Column="1" Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsCrafting}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Border>
+
+    <Panel>
+      <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+        <Image Source="/Assets/crafter.png" Width="96" Height="96" />
+        <TextBlock Text="crafter" FontSize="28" HorizontalAlignment="Center" />
+        <TextBlock Text="Your agents craft the code. You bring the recipe."
+                   Foreground="{DynamicResource ForegroundMutedBrush}"
+                   HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <ScrollViewer x:Name="Scroller" IsVisible="{Binding !IsEmpty}" ScrollChanged="Follow">
+        <ItemsControl ItemsSource="{Binding Messages}" MaxWidth="760" Margin="24,32">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="28" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.DataTemplates>
+            <DataTemplate DataType="conversations:YourMessage">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="label" Text="YOU" />
+                <Border Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="14,12">
+                  <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14" />
+                </Border>
+              </StackPanel>
+            </DataTemplate>
+            <DataTemplate DataType="conversations:CrafterMessage">
+              <StackPanel Spacing="10">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Image Source="/Assets/crafter.png" Width="12" Height="12" />
+                  <TextBlock Classes="label" Text="CRAFTER" />
+                  <TextBlock Classes="label"
+                             LetterSpacing="0"
+                             Foreground="{DynamicResource AccentBrush}"
+                             Text="· crafting"
+                             IsVisible="{Binding IsCrafting}" />
+                </StackPanel>
+                <md:MarkdownScrollViewer Markdown="{Binding Text}" />
+                <TextBlock Classes="label"
+                           Classes.failure="{Binding HasFailed}"
+                           LetterSpacing="0"
+                           TextWrapping="Wrap"
+                           Text="{Binding Note}"
+                           IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.DataTemplates>
+        </ItemsControl>
+      </ScrollViewer>
+    </Panel>
+  </DockPanel>
+</UserControl>

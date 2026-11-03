@@ -5,13 +5,11 @@
     <RootNamespace>Crafter.Desktop</RootNamespace>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <PublishAot Condition="'$(RuntimeIdentifier)' != ''">true</PublishAot>
-    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
     <NoWarn>$(NoWarn);IL2104</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
-    <AvaloniaResource Include="../../README.md" Link="Assets/README.md" />
     <TrimmerRootAssembly Include="Markdown.Avalonia" />
   </ItemGroup>
 
@@ -19,6 +17,12 @@
     <PackageReference Include="Avalonia" Version="12.1.5" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.5" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.5" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Markdown.Avalonia.Tight" Version="12.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../packages/core/src/Crafter.Core.csproj" />
+    <ProjectReference Include="../../packages/claude-code/src/Crafter.ClaudeCode.csproj" />
   </ItemGroup>
 </Project>
