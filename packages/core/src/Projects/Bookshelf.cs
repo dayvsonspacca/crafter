@@ -15,7 +15,7 @@ public sealed class Bookshelf
         this.store = store;
         this.settings = settings;
         this.clock = clock;
-        shelf = [.. store.Load().Select(shelved => shelved with { Project = new Project(shelved.Project.Folder, NameOf(shelved.Project.Folder)) })];
+        shelf = [.. store.Load().Select(shelved => shelved with { Project = Described(shelved.Project.Folder) })];
     }
 
     public IReadOnlyList<Project> Projects => [.. shelf.Select(shelved => shelved.Project)];
@@ -26,9 +26,10 @@ public sealed class Bookshelf
 
     public Project Add(string folder, ProjectName name)
     {
-        var project = new Project(folder, name);
+        var icon = settings.Load(folder)?.Icon;
+        var project = new Project(folder, name, icon);
 
-        settings.Save(project.Folder, new ProjectSettings(name));
+        settings.Save(project.Folder, new ProjectSettings(name, project.Icon));
         Open(project);
 
         return project;
@@ -51,18 +52,24 @@ public sealed class Bookshelf
         store.Save(shelf);
     }
 
-    public Project Rename(Project project, ProjectName name)
+    public Project Edit(Project project, ProjectName name, IconChange change)
     {
-        var renamed = new Project(project.Folder, name);
+        var icon = change switch
+        {
+            NewIcon chosen => settings.AdoptIcon(project.Folder, chosen.File),
+            NoIcon => Dropped(project.Folder),
+            _ => project.Icon,
+        };
+        var edited = new Project(project.Folder, name, icon);
         var place = shelf.FindIndex(shelved => shelved.Project == project);
 
-        settings.Save(renamed.Folder, new ProjectSettings(name));
+        settings.Save(edited.Folder, new ProjectSettings(name, edited.Icon));
         if (place >= 0)
         {
-            shelf[place] = shelf[place] with { Project = renamed };
+            shelf[place] = shelf[place] with { Project = edited };
         }
 
-        return renamed;
+        return edited;
     }
 
     public void Remove(Project project)
@@ -72,4 +79,14 @@ public sealed class Bookshelf
             store.Save(shelf);
         }
     }
+
+    private string? Dropped(string folder)
+    {
+        settings.DropIcon(folder);
+
+        return null;
+    }
+
+    private Project Described(string folder) =>
+        settings.Load(folder) is { } saved ? new Project(folder, saved.Name, saved.Icon) : new Project(folder);
 }

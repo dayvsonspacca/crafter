@@ -1,3 +1,3 @@
 namespace Crafter.Core.Projects;
 
-public sealed record ProjectSettings(ProjectName Name);
+public sealed record ProjectSettings(ProjectName Name, string? Icon = null);

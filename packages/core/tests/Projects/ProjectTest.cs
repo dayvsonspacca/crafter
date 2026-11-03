@@ -35,6 +35,26 @@ public sealed class ProjectTest
     }
 
     [Fact]
+    public void FindsItsIconInsideTheFolder()
+    {
+        var project = new Project("/home/hero/crafter", new ProjectName("Crafter"), " assets/logo.png ");
+
+        Assert.Equal("assets/logo.png", project.Icon);
+        Assert.Equal("/home/hero/crafter/assets/logo.png", project.IconFile);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("  ")]
+    public void HasNoIconWhenNoneIsGiven(string? icon)
+    {
+        var project = new Project("/home/hero/crafter", null, icon);
+
+        Assert.Null(project.Icon);
+        Assert.Null(project.IconFile);
+    }
+
+    [Fact]
     public void IsTheSameProjectWhateverItIsCalled()
     {
         var named = new Project("/home/hero/crafter", new ProjectName("Crafter"));

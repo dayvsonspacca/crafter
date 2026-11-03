@@ -118,24 +118,74 @@ public sealed class BookshelfTest
     }
 
     [Fact]
-    public void RenamesAProjectInPlace()
+    public void EditsAProjectInPlace()
     {
         var settings = new SettingsInMemory();
         var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning)), settings, () => Morning);
 
-        var renamed = bookshelf.Rename(Crafter, new ProjectName("Crafter"));
+        var edited = bookshelf.Edit(Crafter, new ProjectName("Crafter"), new NewIcon("/home/hero/Imagens/crafter.png"));
 
-        Assert.Equal("Crafter", renamed.Name.Text);
+        Assert.Equal("Crafter", edited.Name.Text);
+        Assert.Equal(".crafter/icon.png", edited.Icon);
+        Assert.Equal(["/home/hero/Imagens/crafter.png"], settings.Adopted);
         Assert.Equal(["Crafter", "beacon"], bookshelf.Projects.Select(project => project.Name.Text));
-        Assert.Equal(new ProjectName("Crafter"), bookshelf.NameOf(Crafter.Folder));
+        Assert.Equal(new ProjectSettings(new ProjectName("Crafter"), ".crafter/icon.png"), settings.Load(Crafter.Folder));
     }
 
     [Fact]
-    public void RenamesAProjectOffTheShelfWithoutShelvingIt()
+    public void KeepsTheIconWhenItStaysTheSame()
+    {
+        var settings = new SettingsInMemory();
+        var iconic = new Project(Crafter.Folder, new ProjectName("crafter"), ".crafter/icon.png");
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(iconic, Morning)), settings, () => Morning);
+
+        var edited = bookshelf.Edit(iconic, new ProjectName("Crafter"), new SameIcon());
+
+        Assert.Equal(".crafter/icon.png", edited.Icon);
+        Assert.Empty(settings.Adopted);
+        Assert.Empty(settings.Dropped);
+    }
+
+    [Fact]
+    public void DropsTheIcon()
+    {
+        var settings = new SettingsInMemory();
+        var iconic = new Project(Crafter.Folder, new ProjectName("crafter"), ".crafter/icon.png");
+
+        var edited = new Bookshelf(new ShelfInMemory(), settings, () => Morning).Edit(iconic, iconic.Name, new NoIcon());
+
+        Assert.Null(edited.Icon);
+        Assert.Equal([Crafter.Folder], settings.Dropped);
+    }
+
+    [Fact]
+    public void KeepsTheIconWhenAddingAFolderThatHasOne()
+    {
+        var settings = new SettingsInMemory();
+        settings.Save(Beacon.Folder, new ProjectSettings(new ProjectName("beacon"), "logo.png"));
+
+        var added = new Bookshelf(new ShelfInMemory(), settings, () => Morning).Add(Beacon.Folder, new ProjectName("Beacon"));
+
+        Assert.Equal("logo.png", added.Icon);
+    }
+
+    [Fact]
+    public void ReadsTheIconOfStoredProjects()
+    {
+        var settings = new SettingsInMemory();
+        settings.Save(Crafter.Folder, new ProjectSettings(new ProjectName("Crafter"), "logo.png"));
+
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning)), settings, () => Morning);
+
+        Assert.Equal("logo.png", Assert.Single(bookshelf.Projects).Icon);
+    }
+
+    [Fact]
+    public void EditsAProjectOffTheShelfWithoutShelvingIt()
     {
         var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), () => Morning);
 
-        bookshelf.Rename(Reborn, new ProjectName("Reborn"));
+        bookshelf.Edit(Reborn, new ProjectName("Reborn"), new SameIcon());
 
         Assert.Empty(bookshelf.Projects);
         Assert.Equal(new ProjectName("Reborn"), bookshelf.NameOf(Reborn.Folder));
