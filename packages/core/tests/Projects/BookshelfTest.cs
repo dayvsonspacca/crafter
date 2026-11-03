@@ -15,7 +15,7 @@ public sealed class BookshelfTest
     [Fact]
     public void StartsWithWhatWasStored()
     {
-        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning)), () => Morning);
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning)), new SettingsInMemory(), () => Morning);
 
         Assert.Equal([Crafter, Beacon], bookshelf.Projects);
     }
@@ -24,7 +24,7 @@ public sealed class BookshelfTest
     public void ShelvesANewProjectAtTheEnd()
     {
         var store = new ShelfInMemory(new Shelved(Crafter, Morning));
-        var bookshelf = new Bookshelf(store, () => Morning.AddHours(1));
+        var bookshelf = new Bookshelf(store, new SettingsInMemory(), () => Morning.AddHours(1));
 
         bookshelf.Open(Beacon);
 
@@ -36,7 +36,7 @@ public sealed class BookshelfTest
     public void KeepsTheProjectInPlaceWhenReopened()
     {
         var store = new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning));
-        var bookshelf = new Bookshelf(store, () => Morning.AddHours(2));
+        var bookshelf = new Bookshelf(store, new SettingsInMemory(), () => Morning.AddHours(2));
 
         bookshelf.Open(Crafter);
 
@@ -49,6 +49,7 @@ public sealed class BookshelfTest
     {
         var bookshelf = new Bookshelf(
             new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning.AddHours(3)), new Shelved(Reborn, Morning.AddHours(1))),
+            new SettingsInMemory(),
             () => Morning);
 
         Assert.Equal(Beacon, bookshelf.LastOpened);
@@ -57,14 +58,14 @@ public sealed class BookshelfTest
     [Fact]
     public void KnowsNoLastProjectWhenEmpty()
     {
-        Assert.Null(new Bookshelf(new ShelfInMemory(), () => Morning).LastOpened);
+        Assert.Null(new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), () => Morning).LastOpened);
     }
 
     [Fact]
     public void RemovesAProject()
     {
         var store = new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning));
-        var bookshelf = new Bookshelf(store, () => Morning);
+        var bookshelf = new Bookshelf(store, new SettingsInMemory(), () => Morning);
 
         bookshelf.Remove(Crafter);
 
@@ -77,72 +78,66 @@ public sealed class BookshelfTest
     {
         var store = new ShelfInMemory(new Shelved(Crafter, Morning));
 
-        new Bookshelf(store, () => Morning).Remove(Beacon);
+        new Bookshelf(store, new SettingsInMemory(), () => Morning).Remove(Beacon);
 
         Assert.Equal(0, store.Saves);
     }
 
     [Fact]
-    public void FindsEverythingByRecencyWithoutAQuery()
+    public void NamesStoredProjectsFromTheirSettings()
     {
-        var bookshelf = new Bookshelf(
-            new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning.AddHours(1))),
-            () => Morning);
+        var settings = new SettingsInMemory();
+        settings.Save(Crafter.Folder, new ProjectSettings(new ProjectName("Crafter · desktop")));
 
-        var found = bookshelf.Search("  ");
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning)), settings, () => Morning);
 
-        Assert.Equal([Beacon, Crafter], found.Select(each => each.Project));
-        Assert.All(found, each => Assert.Empty(each.NameHits));
+        Assert.Equal(["Crafter · desktop", "beacon"], bookshelf.Projects.Select(project => project.Name.Text));
     }
 
     [Fact]
-    public void FindsTheLettersOfTheQueryInTheName()
+    public void SuggestsTheFolderNameWithoutSettings()
     {
-        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning)), () => Morning);
+        var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), () => Morning);
 
-        var found = Assert.Single(bookshelf.Search("CRE"));
-
-        Assert.Equal([0, 1, 5], found.NameHits);
-        Assert.Empty(found.FolderHits);
+        Assert.Equal(new ProjectName("reborn"), bookshelf.NameOf(Reborn.Folder));
     }
 
     [Fact]
-    public void FindsTheLettersInTheFolderWhenTheNameMisses()
+    public void AddsANamedProjectAndKeepsTheNameInItsSettings()
     {
-        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Beacon, Morning)), () => Morning);
+        var store = new ShelfInMemory();
+        var settings = new SettingsInMemory();
+        var bookshelf = new Bookshelf(store, settings, () => Morning);
 
-        var found = Assert.Single(bookshelf.Search("me/b"));
+        var added = bookshelf.Add(Beacon.Folder, new ProjectName("Beacon"));
 
-        Assert.Empty(found.NameHits);
-        Assert.Equal("me/b", string.Concat(found.FolderHits.Select(at => Beacon.Folder[at])));
+        Assert.Equal("Beacon", added.Name.Text);
+        Assert.Equal([added], bookshelf.Projects);
+        Assert.Equal(new ProjectName("Beacon"), settings.Load(Beacon.Folder)?.Name);
+        Assert.Equal(1, store.Saves);
     }
 
     [Fact]
-    public void BreaksTiesByRecency()
+    public void RenamesAProjectInPlace()
     {
-        var bookshelf = new Bookshelf(
-            new ShelfInMemory(new Shelved(Reborn, Morning), new Shelved(Crafter, Morning.AddHours(1))),
-            () => Morning);
+        var settings = new SettingsInMemory();
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning)), settings, () => Morning);
 
-        Assert.Equal([Crafter, Reborn], bookshelf.Search("re").Select(each => each.Project));
+        var renamed = bookshelf.Rename(Crafter, new ProjectName("Crafter"));
+
+        Assert.Equal("Crafter", renamed.Name.Text);
+        Assert.Equal(["Crafter", "beacon"], bookshelf.Projects.Select(project => project.Name.Text));
+        Assert.Equal(new ProjectName("Crafter"), bookshelf.NameOf(Crafter.Folder));
     }
 
     [Fact]
-    public void PrefersAHitInTheNameOverAFresherHitInTheFolder()
+    public void RenamesAProjectOffTheShelfWithoutShelvingIt()
     {
-        var notes = new Project("/home/hero/books/notes");
-        var bookshelf = new Bookshelf(
-            new ShelfInMemory(new Shelved(Beacon, Morning), new Shelved(notes, Morning.AddHours(1))),
-            () => Morning);
+        var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), () => Morning);
 
-        Assert.Equal([Beacon, notes], bookshelf.Search("bo").Select(each => each.Project));
-    }
+        bookshelf.Rename(Reborn, new ProjectName("Reborn"));
 
-    [Fact]
-    public void FindsNothingWhenNoLetterMatches()
-    {
-        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning)), () => Morning);
-
-        Assert.Empty(bookshelf.Search("zz"));
+        Assert.Empty(bookshelf.Projects);
+        Assert.Equal(new ProjectName("Reborn"), bookshelf.NameOf(Reborn.Folder));
     }
 }

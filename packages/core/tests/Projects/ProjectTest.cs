@@ -7,7 +7,7 @@ public sealed class ProjectTest
     [Fact]
     public void IsNamedAfterItsFolder()
     {
-        Assert.Equal("crafter", new Project("/home/hero/Projetos/me/desktop/crafter").Name);
+        Assert.Equal(new ProjectName("crafter"), new Project("/home/hero/Projetos/me/desktop/crafter").Name);
     }
 
     [Fact]
@@ -25,7 +25,24 @@ public sealed class ProjectTest
     [Fact]
     public void IsNamedAfterTheRootWhenItIsTheRoot()
     {
-        Assert.Equal("/", new Project("/").Name);
+        Assert.Equal(new ProjectName("/"), new Project("/").Name);
+    }
+
+    [Fact]
+    public void KeepsTheNameItWasGiven()
+    {
+        Assert.Equal("Crafter", new Project("/home/hero/crafter", new ProjectName("Crafter")).Name.Text);
+    }
+
+    [Fact]
+    public void IsTheSameProjectWhateverItIsCalled()
+    {
+        var named = new Project("/home/hero/crafter", new ProjectName("Crafter"));
+
+        Assert.Equal(new Project("/home/hero/crafter"), named);
+        Assert.Equal(new Project("/home/hero/crafter").GetHashCode(), named.GetHashCode());
+        Assert.NotEqual(new Project("/home/hero/beacon"), named);
+        Assert.False(named.Equals(null));
     }
 
     [Theory]

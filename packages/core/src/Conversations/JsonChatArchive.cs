@@ -44,7 +44,7 @@ public sealed class JsonChatArchive(string folder) : IChatArchive
     {
         var hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(project.Folder)))[..12];
 
-        return Path.Combine(folder, $"{project.Name}-{hash}.json");
+        return Path.Combine(folder, $"{Path.GetFileName(project.Folder)}-{hash}.json");
     }
 
     private static ChatRecord Record(ChatEntry entry) =>
