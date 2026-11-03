@@ -89,4 +89,20 @@ public sealed class ConversationTest
         var failed = Assert.IsType<Failed>(heard[^1]);
         Assert.Equal(new Answered("sem fim", failed), conversation.Turns[^1]);
     }
+
+    [Fact]
+    public async Task PassesWhatTheAgentDoesAlongWithoutWritingIt()
+    {
+        var conversation = new Conversation(new ScriptedSession(
+            new Acting("t-1", "Bash", "dotnet test"),
+            new NeedsApproval("r-1", "Bash", "dotnet test", "Run the tests"),
+            new Acted("t-1", false, "ok"),
+            new Wrote("Pronto."),
+            new Finished()));
+
+        var replies = await conversation.Ask(new Prompt("testa"), TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(5, replies.Count);
+        Assert.Equal(new Answered("Pronto.", new Finished()), conversation.Turns[^1]);
+    }
 }

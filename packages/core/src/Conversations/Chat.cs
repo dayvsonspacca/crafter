@@ -18,6 +18,8 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
 
     public void Adjust(Configuration adjustments) => conversation.Adjust(adjustments);
 
+    public void Decide(string request, Decision decision) => conversation.Decide(request, decision);
+
     public IAsyncEnumerable<Reply> Ask(Prompt prompt, CancellationToken stop = default)
     {
         if (conversation.Turns.Count == 0)

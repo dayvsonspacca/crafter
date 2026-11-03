@@ -14,6 +14,10 @@ internal sealed class ScriptedSession(params Reply[] replies) : IAgentSession
 
     public void Adjust(Configuration adjustments) => Adjustments = adjustments;
 
+    public List<(string Request, Decision Decision)> Decisions { get; } = [];
+
+    public void Decide(string request, Decision decision) => Decisions.Add((request, decision));
+
     public async IAsyncEnumerable<Reply> Answer(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
     {
         Heard.Add(prompt);

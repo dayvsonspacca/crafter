@@ -21,6 +21,8 @@ public sealed class Conversation(IAgentSession agent, IEnumerable<Turn> history)
 
     public void Adjust(Configuration adjustments) => agent.Adjust(adjustments);
 
+    public void Decide(string request, Decision decision) => agent.Decide(request, decision);
+
     public async IAsyncEnumerable<Reply> Ask(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
     {
         turns.Add(new Asked(prompt));

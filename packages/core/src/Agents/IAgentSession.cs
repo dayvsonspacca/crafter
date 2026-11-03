@@ -10,5 +10,7 @@ public interface IAgentSession
 
     void Adjust(Configuration adjustments);
 
+    void Decide(string request, Decision decision);
+
     IAsyncEnumerable<Reply> Answer(Prompt prompt, CancellationToken stop = default);
 }

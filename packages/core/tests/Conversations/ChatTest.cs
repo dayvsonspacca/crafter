@@ -60,4 +60,15 @@ public sealed class ChatTest
         Assert.Equal("plan", chat.Adjustments["tools"]);
         Assert.Equal("plan", chat.Record().Adjustments["tools"]);
     }
+
+    [Fact]
+    public void PassesDecisionsToItsSession()
+    {
+        var session = new ScriptedSession();
+        var chat = new Chat(ChatId.New(), Claude, ChatTitle.Untitled, new Conversation(session));
+
+        chat.Decide("r-1", new AllowTool());
+
+        Assert.Equal([("r-1", (Decision)new AllowTool())], session.Decisions);
+    }
 }
