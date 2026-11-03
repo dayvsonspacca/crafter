@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/apps/">
+    <Project Path="apps/desktop/Crafter.Desktop.csproj" />
+  </Folder>
+</Solution>

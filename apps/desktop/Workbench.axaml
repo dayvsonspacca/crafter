@@ -1,0 +1,11 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+        x:Class="Crafter.Desktop.Workbench"
+        Title="crafter"
+        Icon="/Assets/crafter.png"
+        Width="900" Height="640"
+        Background="{DynamicResource BackgroundBrush}"
+        Foreground="{DynamicResource ForegroundBrush}">
+  <md:MarkdownScrollViewer Source="avares://crafter/Assets/README.md" Margin="24" />
+</Window>
