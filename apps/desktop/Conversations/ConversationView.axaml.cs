@@ -6,6 +6,10 @@ namespace Crafter.Desktop.Conversations;
 
 public sealed partial class ConversationView : UserControl
 {
+    private const double Near = 48;
+
+    private bool following = true;
+
     public ConversationView()
     {
         InitializeComponent();
@@ -23,15 +27,30 @@ public sealed partial class ConversationView : UserControl
 
         if (DataContext is ConversationScreen screen && screen.CraftCommand.CanExecute(null))
         {
+            following = true;
             screen.CraftCommand.Execute(null);
         }
     }
 
     private void Follow(object? sender, ScrollChangedEventArgs e)
     {
-        if (e.ExtentDelta.Y > 0)
+        var bottom = Scroller.Extent.Height - Scroller.Viewport.Height;
+
+        if (e.ExtentDelta.Y > 0 && following)
         {
             Scroller.ScrollToEnd();
         }
+        else if (e.OffsetDelta.Y != 0)
+        {
+            following = Scroller.Offset.Y >= bottom - Near;
+        }
+
+        Jump.IsVisible = !following && bottom > Near;
+    }
+
+    private void ToLatest(object? sender, RoutedEventArgs e)
+    {
+        following = true;
+        Scroller.ScrollToEnd();
     }
 }

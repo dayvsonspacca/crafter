@@ -134,7 +134,7 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         bookshelf.Open(project);
         if (!desks.TryGetValue(project, out var desk))
         {
-            desk = new ProjectDesk(project, archive, crew, Edit);
+            desk = new ProjectDesk(project, archive, crew, Edit, copy);
             desks[project] = desk;
         }
 

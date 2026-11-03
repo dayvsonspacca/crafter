@@ -1,28 +1,273 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+             xmlns:ctxt="clr-namespace:ColorTextBlock.Avalonia;assembly=ColorTextBlock.Avalonia"
+             xmlns:mdc="clr-namespace:Markdown.Avalonia.StyleCollections;assembly=Markdown.Avalonia"
              xmlns:conversations="using:Crafter.Desktop.Conversations"
              x:Class="Crafter.Desktop.Conversations.ConversationView"
              x:DataType="conversations:ConversationScreen">
   <UserControl.Styles>
-    <Style Selector="TextBlock.label">
+    <Style Selector="TextBlock.mono">
       <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
       <Setter Property="FontSize" Value="11" />
-      <Setter Property="LetterSpacing" Value="1.1" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
       <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style Selector="TextBlock.label.failure">
-      <Setter Property="Foreground" Value="{DynamicResource RemovedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
 
+    <Style Selector="Border.pill">
+      <Setter Property="Padding" Value="9,2" />
+      <Setter Property="CornerRadius" Value="99" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.pill.agent TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Border.pill.crafting">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Border.pill.crafting TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
+    <Style Selector="Border.slot">
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
+      <Setter Property="CornerRadius" Value="5" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+    <Style Selector="Rectangle.wire">
+      <Setter Property="Width" Value="2" />
+      <Setter Property="Margin" Value="0,6" />
+      <Setter Property="RadiusX" Value="1" />
+      <Setter Property="RadiusY" Value="1" />
+      <Setter Property="Fill" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="UniformGrid.cells">
+      <Setter Property="Width" Value="19" />
+      <Setter Property="Height" Value="19" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.cell">
+      <Setter Property="Width" Value="5" />
+      <Setter Property="Height" Value="5" />
+      <Setter Property="CornerRadius" Value="1" />
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="UniformGrid.done Border.cell.lit">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="UniformGrid.crafting Border.c0">
+      <Style.Animations>
+        <Animation Duration="0:0:1.2" Delay="0:0:0.00" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.crafting Border.c1">
+      <Style.Animations>
+        <Animation Duration="0:0:1.2" Delay="0:0:0.13" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.crafting Border.c2">
+      <Style.Animations>
+        <Animation Duration="0:0:1.2" Delay="0:0:0.26" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.crafting Border.c3">
+      <Style.Animations>
+        <Animation Duration="0:0:1.2" Delay="0:0:0.39" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.crafting Border.c4">
+      <Style.Animations>
+        <Animation Duration="0:0:1.2" Delay="0:0:0.52" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.crafting Border.c5">
+      <Style.Animations>
+        <Animation Duration="0:0:1.2" Delay="0:0:0.65" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.crafting Border.c6">
+      <Style.Animations>
+        <Animation Duration="0:0:1.2" Delay="0:0:0.78" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.crafting Border.c7">
+      <Style.Animations>
+        <Animation Duration="0:0:1.2" Delay="0:0:0.91" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.crafting Border.c8">
+      <Style.Animations>
+        <Animation Duration="0:0:1.2" Delay="0:0:1.04" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <Style Selector="Button.tool">
+      <Setter Property="Height" Value="26" />
+      <Setter Property="Padding" Value="9,0" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.tool:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.tool:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.earlier">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Height" Value="30" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="Margin" Value="0,0,0,26" />
+      <Setter Property="CornerRadius" Value="99" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.earlier:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.jump">
+      <Setter Property="Height" Value="30" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="CornerRadius" Value="99" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.jump:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+
+    <Style Selector="Border.composer">
+      <Setter Property="MaxWidth" Value="780" />
+      <Setter Property="Padding" Value="16,12,12,10" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.composer:focus-within">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
     <Style Selector="TextBox.prompt">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="MinHeight" Value="44" />
-      <Setter Property="MaxHeight" Value="220" />
-      <Setter Property="FontSize" Value="14" />
+      <Setter Property="MaxHeight" Value="240" />
+      <Setter Property="FontSize" Value="14.5" />
       <Setter Property="AcceptsReturn" Value="True" />
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
@@ -32,7 +277,6 @@
       <Setter Property="BorderBrush" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
     </Style>
-
     <Style Selector="Button.craft, Button.stop">
       <Setter Property="Height" Value="34" />
       <Setter Property="Padding" Value="14,0" />
@@ -57,20 +301,80 @@
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
     </Style>
+    <Style Selector="StackPanel.tools">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+    <Style Selector="Grid.answer:pointerover StackPanel.tools, Grid.answer.last StackPanel.tools">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="Border.note">
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="Padding" Value="10,4" />
+      <Setter Property="CornerRadius" Value="99" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Border.note.failure">
+      <Setter Property="BorderBrush" Value="{DynamicResource RemovedBrush}" />
+    </Style>
+    <Style Selector="Border.note.failure TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource RemovedBrush}" />
+    </Style>
   </UserControl.Styles>
 
   <DockPanel>
-    <Border DockPanel.Dock="Bottom"
+    <Border DockPanel.Dock="Top"
+            Height="44"
+            Padding="24,0"
             BorderBrush="{DynamicResource BorderBrush}"
-            BorderThickness="0,1,0,0"
-            Padding="24,16,24,20">
-      <Border MaxWidth="760"
-              Background="{DynamicResource SurfaceBrush}"
-              BorderBrush="{DynamicResource BorderBrush}"
-              BorderThickness="1"
-              CornerRadius="10"
-              Padding="14,12">
-        <StackPanel Spacing="10">
+            BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12">
+        <TextBlock VerticalAlignment="Center" FontSize="13.5" FontWeight="SemiBold" MaxWidth="420" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
+        <Border Grid.Column="1" Classes="pill crafting" IsVisible="{Binding IsCrafting}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <UniformGrid Classes="cells crafting" Rows="3" Columns="3" Width="13" Height="13">
+              <Border Classes="cell c0" Width="3" Height="3" />
+              <Border Classes="cell c1" Width="3" Height="3" />
+              <Border Classes="cell c2" Width="3" Height="3" />
+              <Border Classes="cell c3" Width="3" Height="3" />
+              <Border Classes="cell c4" Width="3" Height="3" />
+              <Border Classes="cell c5" Width="3" Height="3" />
+              <Border Classes="cell c6" Width="3" Height="3" />
+              <Border Classes="cell c7" Width="3" Height="3" />
+              <Border Classes="cell c8" Width="3" Height="3" />
+            </UniformGrid>
+            <TextBlock Classes="mono" Text="{Binding Elapsed}" />
+          </StackPanel>
+        </Border>
+        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
+          <Border Classes="pill agent">
+            <TextBlock Classes="mono" Text="{Binding AgentName}" />
+          </Border>
+          <Border Classes="pill" IsVisible="{Binding HasModel}">
+            <TextBlock Classes="mono" Text="{Binding Model}" />
+          </Border>
+          <ItemsControl ItemsSource="{Binding Badges}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="6" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <Border Classes="pill">
+                  <TextBlock Classes="mono" Text="{Binding}" />
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Border DockPanel.Dock="Bottom" Padding="24,12,24,18">
+      <Border Classes="composer">
+        <StackPanel Spacing="8">
           <TextBox x:Name="PromptBox"
                    Classes="prompt"
                    Text="{Binding Draft}"
@@ -92,48 +396,137 @@
                  Text="{Binding ProjectName, StringFormat='Start a chat in {0}.'}" />
 
       <ScrollViewer x:Name="Scroller" IsVisible="{Binding HasMessages}" ScrollChanged="Follow">
-        <ItemsControl ItemsSource="{Binding Messages}" MaxWidth="760" Margin="24,32">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Spacing="28" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.DataTemplates>
-            <DataTemplate DataType="conversations:YourMessage">
-              <StackPanel Spacing="8">
-                <TextBlock Classes="label" Text="YOU" />
-                <Border Background="{DynamicResource SurfaceBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="14,12">
-                  <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14" />
-                </Border>
-              </StackPanel>
-            </DataTemplate>
-            <DataTemplate DataType="conversations:CrafterMessage">
-              <StackPanel Spacing="10">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Image Source="/Assets/crafter.png" Width="12" Height="12" />
-                  <TextBlock Classes="label" Text="CRAFTER" />
-                  <TextBlock Classes="label"
-                             LetterSpacing="0"
-                             Foreground="{DynamicResource AccentBrush}"
-                             Text="· crafting"
-                             IsVisible="{Binding IsCrafting}" />
-                </StackPanel>
-                <md:MarkdownScrollViewer Markdown="{Binding Text}" />
-                <TextBlock Classes="label"
-                           Classes.failure="{Binding HasFailed}"
-                           LetterSpacing="0"
-                           TextWrapping="Wrap"
-                           Text="{Binding Note}"
-                           IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              </StackPanel>
-            </DataTemplate>
-          </ItemsControl.DataTemplates>
-        </ItemsControl>
+        <StackPanel MaxWidth="780" Margin="24,28,24,12">
+          <Button Classes="earlier" Content="{Binding EarlierLabel}" Command="{Binding ShowEarlierCommand}" IsVisible="{Binding HasEarlier}" />
+          <ItemsControl ItemsSource="{Binding Messages}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <VirtualizingStackPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.DataTemplates>
+              <DataTemplate DataType="conversations:YourMessage">
+                <Grid ColumnDefinitions="28,*" ColumnSpacing="16">
+                  <DockPanel>
+                    <Border DockPanel.Dock="Top" Classes="slot">
+                      <TextBlock HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                 FontSize="8.5"
+                                 FontWeight="SemiBold"
+                                 Foreground="{DynamicResource ForegroundMutedBrush}"
+                                 Text="YOU" />
+                    </Border>
+                    <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
+                  </DockPanel>
+                  <Border Grid.Column="1"
+                          Margin="0,0,0,22"
+                          Padding="16,12"
+                          CornerRadius="10"
+                          BorderThickness="1"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          Background="{DynamicResource SurfaceBrush}">
+                    <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14.5" LineHeight="22" />
+                  </Border>
+                </Grid>
+              </DataTemplate>
+
+              <DataTemplate DataType="conversations:CrafterMessage">
+                <Grid Classes="answer" Classes.last="{Binding IsLast}" ColumnDefinitions="28,*" ColumnSpacing="16" Background="Transparent">
+                  <DockPanel>
+                    <Border DockPanel.Dock="Top" Classes="slot">
+                      <UniformGrid Classes="cells" Classes.crafting="{Binding IsCrafting}" Classes.done="{Binding !IsCrafting}" Rows="3" Columns="3">
+                        <Border Classes="cell c0 lit" />
+                        <Border Classes="cell c1 lit" />
+                        <Border Classes="cell c2 lit" />
+                        <Border Classes="cell c3 lit" />
+                        <Border Classes="cell c4" />
+                        <Border Classes="cell c5 lit" />
+                        <Border Classes="cell c6 lit" />
+                        <Border Classes="cell c7 lit" />
+                        <Border Classes="cell c8 lit" />
+                      </UniformGrid>
+                    </Border>
+                    <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
+                  </DockPanel>
+                  <StackPanel Grid.Column="1" Margin="0,0,0,30" Spacing="10">
+                    <ItemsControl ItemsSource="{Binding Pieces}">
+                      <ItemsControl.DataTemplates>
+                        <DataTemplate DataType="conversations:Prose">
+                          <md:MarkdownScrollViewer Markdown="{Binding Text}">
+                            <md:MarkdownScrollViewer.MarkdownStyle>
+                              <Styles>
+                                <mdc:MarkdownStyleFluentTheme />
+                                <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CCode">
+                                  <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
+                                  <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+                                  <Setter Property="MonospaceFontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+                                </Style>
+                              </Styles>
+                            </md:MarkdownScrollViewer.MarkdownStyle>
+                          </md:MarkdownScrollViewer>
+                        </DataTemplate>
+                        <DataTemplate DataType="conversations:CodeBlock">
+                          <Border Margin="0,4,0,12"
+                                  CornerRadius="9"
+                                  ClipToBounds="True"
+                                  BorderThickness="1"
+                                  BorderBrush="{DynamicResource BorderBrush}"
+                                  Background="{DynamicResource BackgroundBrush}">
+                            <DockPanel>
+                              <Border DockPanel.Dock="Top"
+                                      Padding="12,5,6,5"
+                                      Background="{DynamicResource SurfaceBrush}"
+                                      BorderBrush="{DynamicResource BorderBrush}"
+                                      BorderThickness="0,0,0,1">
+                                <Grid ColumnDefinitions="*,Auto">
+                                  <TextBlock Classes="mono" Text="{Binding Language}" />
+                                  <Button Grid.Column="1" Classes="tool" Height="22" Content="Copy" Command="{Binding CopyCommand}" />
+                                </Grid>
+                              </Border>
+                              <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                <SelectableTextBlock Margin="14,12"
+                                                     FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                                     FontSize="12.5"
+                                                     LineHeight="20"
+                                                     Text="{Binding Text}" />
+                              </ScrollViewer>
+                            </DockPanel>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.DataTemplates>
+                    </ItemsControl>
+                    <Border Classes="note" Classes.failure="{Binding HasFailed}" IsVisible="{Binding HasNote}">
+                      <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Note}" />
+                    </Border>
+                    <StackPanel Classes="tools" Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsDone}">
+                      <Button Classes="tool" Content="Copy" Command="{Binding CopyCommand}" />
+                      <Button Classes="tool" Content="Retry" Command="{Binding RetryCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+
+              <DataTemplate DataType="conversations:ResumedMark">
+                <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12" Margin="0,0,0,26">
+                  <Rectangle Height="1" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Text}" />
+                  <Rectangle Grid.Column="2" Height="1" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.DataTemplates>
+          </ItemsControl>
+        </StackPanel>
       </ScrollViewer>
+
+      <Button x:Name="Jump"
+              Classes="jump"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Margin="0,0,0,12"
+              Content="↓ Latest"
+              IsVisible="False"
+              Click="ToLatest" />
     </Panel>
   </DockPanel>
 </UserControl>

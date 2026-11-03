@@ -14,11 +14,14 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 
     private readonly Crew crew;
 
-    public ProjectDesk(Project project, IChatArchive archive, Crew crew, Func<Project, Task> edit)
+    private readonly Func<string, Task> copy;
+
+    public ProjectDesk(Project project, IChatArchive archive, Crew crew, Func<Project, Task> edit, Func<string, Task> copy)
     {
         Project = project;
         this.archive = archive;
         this.crew = crew;
+        this.copy = copy;
 
         foreach (var record in archive.Load(project))
         {
@@ -75,7 +78,8 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         }
 
         var turns = agent is IKeepsHistory history ? await history.Replay(Project, past.SessionId) : [];
-        Selected = Add(new Chat(ChatId.New(), agent.Id, past.Title, new Conversation(agent.Begin(Project, past.SessionId), turns)), agent);
+        var resumed = $"resumed from {agent.Name} · {Elapsed.Since(past.LastActive, DateTimeOffset.Now)}";
+        Selected = Add(new Chat(ChatId.New(), agent.Id, past.Title, new Conversation(agent.Begin(Project, past.SessionId), turns)), agent, resumed);
         Save();
     }
 
@@ -168,9 +172,9 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         }
     }
 
-    private ConversationScreen Add(Chat chat, IAgent agent)
+    private ConversationScreen Add(Chat chat, IAgent agent, string? resumed = null)
     {
-        var screen = new ConversationScreen(chat, agent, Project.Name.Text, this);
+        var screen = new ConversationScreen(chat, agent, Project.Name.Text, this, copy, resumed);
         screen.PropertyChanged += Follow;
         screen.Concluded += Keep;
         Chats.Add(screen);
