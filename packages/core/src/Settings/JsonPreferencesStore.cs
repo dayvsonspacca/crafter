@@ -6,11 +6,6 @@ namespace Crafter.Core.Settings;
 
 public sealed class JsonPreferencesStore(string file, Preferences defaults) : IPreferencesStore
 {
-    public static JsonPreferencesStore InUserConfig() =>
-        new(
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "crafter", "preferences.json"),
-            Preferences.Default(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
-
     public Preferences Load()
     {
         if (!File.Exists(file))

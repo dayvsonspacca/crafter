@@ -48,11 +48,5 @@ public sealed class JsonBookshelfStoreTest : IDisposable
         Assert.Empty(new JsonBookshelfStore(File).Load());
     }
 
-    [Fact]
-    public void LivesInTheUserConfig()
-    {
-        Assert.NotNull(JsonBookshelfStore.InUserConfig());
-    }
-
     public void Dispose() => Directory.Delete(folder, recursive: true);
 }

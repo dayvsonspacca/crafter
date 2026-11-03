@@ -96,11 +96,5 @@ public sealed class JsonChatArchiveTest : IDisposable
         Assert.Empty(archive.Load(Crafter));
     }
 
-    [Fact]
-    public void LivesInTheUserData()
-    {
-        Assert.NotNull(JsonChatArchive.InUserData());
-    }
-
     public void Dispose() => Directory.Delete(folder, recursive: true);
 }

@@ -60,11 +60,5 @@ public sealed class JsonPreferencesStoreTest : IDisposable
         Assert.Equal(new Preferences("/home/hero/Projetos"), new JsonPreferencesStore(File, Defaults).Load());
     }
 
-    [Fact]
-    public void LivesInTheUserConfig()
-    {
-        Assert.NotNull(JsonPreferencesStore.InUserConfig());
-    }
-
     public void Dispose() => Directory.Delete(folder, recursive: true);
 }

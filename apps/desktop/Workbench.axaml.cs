@@ -21,21 +21,6 @@ public sealed partial class Workbench : Window
 
     private bool leaving;
 
-    public Workbench()
-        : this(WindowManager.Detect(), Hiring.Crew())
-    {
-    }
-
-    public Workbench(WindowManager windowManager, Crew crew)
-        : this(
-            windowManager,
-            new Bookshelf(JsonBookshelfStore.InUserConfig(), new JsonProjectSettingsStore(), () => DateTimeOffset.Now),
-            JsonPreferencesStore.InUserConfig(),
-            JsonChatArchive.InUserData(),
-            crew)
-    {
-    }
-
     public Workbench(
         WindowManager windowManager,
         Bookshelf bookshelf,

@@ -5,9 +5,6 @@ namespace Crafter.Core.Projects;
 
 public sealed class JsonBookshelfStore(string file) : IBookshelfStore
 {
-    public static JsonBookshelfStore InUserConfig() =>
-        new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "crafter", "projects.json"));
-
     public IReadOnlyList<Shelved> Load()
     {
         if (!File.Exists(file))

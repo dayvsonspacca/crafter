@@ -9,9 +9,6 @@ namespace Crafter.Core.Conversations;
 
 public sealed class JsonChatArchive(string folder) : IChatArchive
 {
-    public static JsonChatArchive InUserData() =>
-        new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "crafter", "chats"));
-
     public IReadOnlyList<ChatRecord> Load(Project project)
     {
         var file = FileOf(project);
