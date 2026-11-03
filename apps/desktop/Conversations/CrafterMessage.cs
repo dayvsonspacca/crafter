@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
 
 namespace Crafter.Desktop.Conversations;
@@ -11,22 +12,28 @@ public sealed partial class CrafterMessage : Message
 
     private readonly Action<CrafterMessage> retry;
 
-    public CrafterMessage(Func<string, Task> copy, Action<CrafterMessage> retry)
+    private readonly string agent;
+
+    private readonly Action<string, Decision> decide;
+
+    public CrafterMessage(Func<string, Task> copy, Action<CrafterMessage> retry, string agent, Action<string, Decision> decide)
     {
         this.copy = copy;
         this.retry = retry;
+        this.agent = agent;
+        this.decide = decide;
         Text = string.Empty;
         IsCrafting = true;
     }
 
     public CrafterMessage(string text, Ending ending, Func<string, Task> copy, Action<CrafterMessage> retry)
-        : this(copy, retry)
+        : this(copy, retry, string.Empty, (_, _) => { })
     {
-        Text = text;
+        Hear(new Wrote(text));
         Hear(ending);
     }
 
-    public ObservableCollection<AnswerPiece> Pieces { get; } = [];
+    public ObservableCollection<object> Items { get; } = [];
 
     [ObservableProperty]
     public partial string Text { get; set; }
@@ -34,6 +41,9 @@ public sealed partial class CrafterMessage : Message
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsDone))]
     public partial bool IsCrafting { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsWaiting { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasNote), nameof(IsDone))]
@@ -50,46 +60,31 @@ public sealed partial class CrafterMessage : Message
     {
         switch (reply)
         {
-            case Wrote wrote:
+            case Wrote wrote when wrote.Fragment.Length > 0:
                 Text += wrote.Fragment;
+                Writing().Text += wrote.Fragment;
+                break;
+            case Acting acting:
+                Items.Add(new ActivityItem(acting));
+                break;
+            case Acted acted:
+                Items.OfType<ActivityItem>().LastOrDefault(item => item.Id == acted.Id)?.Finish(acted);
+                break;
+            case NeedsApproval approval:
+                Items.Add(new ApprovalItem(approval, agent, Decided));
+                IsWaiting = true;
                 break;
             case Ending ending:
                 IsCrafting = false;
+                IsWaiting = false;
                 HasFailed = ending is Failed;
                 Note = NoteFor(ending);
+                foreach (var item in Items.OfType<ApprovalItem>())
+                {
+                    item.Close("Not answered");
+                }
+
                 break;
-        }
-    }
-
-    partial void OnTextChanged(string value)
-    {
-        var pieces = Conversations.Pieces.Of(value);
-
-        for (var at = 0; at < pieces.Count; at++)
-        {
-            var (language, text) = pieces[at];
-            if (at < Pieces.Count && Fits(Pieces[at], language))
-            {
-                Pieces[at].Text = text;
-                continue;
-            }
-
-            AnswerPiece piece = language is null ? new Prose() : new CodeBlock(language, copy);
-            piece.Text = text;
-
-            if (at < Pieces.Count)
-            {
-                Pieces[at] = piece;
-            }
-            else
-            {
-                Pieces.Add(piece);
-            }
-        }
-
-        while (Pieces.Count > pieces.Count)
-        {
-            Pieces.RemoveAt(Pieces.Count - 1);
         }
     }
 
@@ -99,12 +94,24 @@ public sealed partial class CrafterMessage : Message
     [RelayCommand]
     private void Retry() => retry(this);
 
-    private static bool Fits(AnswerPiece piece, string? language) => piece switch
+    private TextSegment Writing()
     {
-        Prose => language is null,
-        CodeBlock code => language is not null && code.Language == (language.Length > 0 ? language : "text"),
-        _ => false,
-    };
+        if (Items.Count > 0 && Items[^1] is TextSegment segment)
+        {
+            return segment;
+        }
+
+        var started = new TextSegment(copy);
+        Items.Add(started);
+
+        return started;
+    }
+
+    private void Decided(ApprovalItem item, Decision decision)
+    {
+        IsWaiting = Items.OfType<ApprovalItem>().Any(each => each.IsOpen);
+        decide(item.Id, decision);
+    }
 
     private static string? NoteFor(Ending ending) => ending switch
     {

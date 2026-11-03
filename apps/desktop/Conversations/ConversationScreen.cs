@@ -77,10 +77,16 @@ public sealed partial class ConversationScreen : ObservableObject
     public partial string Elapsed { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsClock))]
+    public partial bool IsWaiting { get; set; }
+
+    public bool ShowsClock => IsCrafting && !IsWaiting;
+
+    [ObservableProperty]
     public partial bool HasMessages { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCrafting), nameof(IsUnread), nameof(IsIdle))]
+    [NotifyPropertyChangedFor(nameof(IsCrafting), nameof(IsUnread), nameof(IsIdle), nameof(ShowsClock))]
     public partial ChatState State { get; set; }
 
     [ObservableProperty]
@@ -152,7 +158,14 @@ public sealed partial class ConversationScreen : ObservableObject
         }
 
         var prompt = new Prompt(Draft.Trim());
-        var answer = new CrafterMessage(copy, Retry);
+        var answer = new CrafterMessage(copy, Retry, AgentName, chat.Decide);
+        answer.PropertyChanged += (_, changed) =>
+        {
+            if (changed.PropertyName == nameof(CrafterMessage.IsWaiting))
+            {
+                IsWaiting = answer.IsWaiting;
+            }
+        };
 
         Draft = string.Empty;
         Messages.Add(new YourMessage(prompt.Text));
@@ -178,6 +191,7 @@ public sealed partial class ConversationScreen : ObservableObject
         }
 
         clock.Stop();
+        IsWaiting = false;
         State = IsInView ? ChatState.Idle : ChatState.Unread;
         Concluded?.Invoke(this, EventArgs.Empty);
     }

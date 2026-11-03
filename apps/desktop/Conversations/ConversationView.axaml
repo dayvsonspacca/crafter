@@ -52,6 +52,65 @@
       <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
     </Style>
 
+    <Style Selector="Border.pill.waiting">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSecondaryBrush}" />
+    </Style>
+    <Style Selector="Border.pill.waiting TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
+    </Style>
+    <Style Selector="StackPanel.activity">
+      <Setter Property="Margin" Value="0,0,0,2" />
+    </Style>
+    <Style Selector="Button.act">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="MinHeight" Value="28" />
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.act:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.act:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="Button.act TextBlock.what">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Border.output">
+      <Setter Property="Margin" Value="84,2,0,8" />
+      <Setter Property="Padding" Value="12,10" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="Border.approval">
+      <Setter Property="Margin" Value="0,6,0,16" />
+      <Setter Property="Padding" Value="16,14" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.approval.open">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSecondaryBrush}" />
+    </Style>
+    <Style Selector="Button.allow">
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.allow /template/ ContentPresenter#PART_ContentPresenter, Button.allow:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.allow:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
+
     <Style Selector="Border.slot">
       <Setter Property="Width" Value="22" />
       <Setter Property="Height" Value="22" />
@@ -351,7 +410,10 @@
             BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12">
         <TextBlock VerticalAlignment="Center" FontSize="13.5" FontWeight="SemiBold" MaxWidth="420" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
-        <Border Grid.Column="1" Classes="pill crafting" IsVisible="{Binding IsCrafting}">
+        <Border Grid.Column="1" Classes="pill waiting" IsVisible="{Binding IsWaiting}">
+          <TextBlock Classes="mono" Text="waiting for you" />
+        </Border>
+        <Border Grid.Column="1" Classes="pill crafting" IsVisible="{Binding ShowsClock}">
           <StackPanel Orientation="Horizontal" Spacing="8">
             <UniformGrid Classes="cells crafting" Rows="3" Columns="3" Width="13" Height="13">
               <Border Classes="cell c0" Width="3" Height="3" />
@@ -485,48 +547,106 @@
                     <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
                   </DockPanel>
                   <StackPanel Grid.Column="1" Margin="0,0,0,30" Spacing="10">
-                    <ItemsControl ItemsSource="{Binding Pieces}">
+                    <ItemsControl ItemsSource="{Binding Items}">
                       <ItemsControl.DataTemplates>
-                        <DataTemplate DataType="conversations:Prose">
-                          <md:MarkdownScrollViewer Markdown="{Binding Text}">
-                            <md:MarkdownScrollViewer.MarkdownStyle>
-                              <Styles>
-                                <mdc:MarkdownStyleFluentTheme />
-                                <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CCode">
-                                  <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
-                                  <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-                                  <Setter Property="MonospaceFontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-                                </Style>
-                              </Styles>
-                            </md:MarkdownScrollViewer.MarkdownStyle>
-                          </md:MarkdownScrollViewer>
+                        <DataTemplate DataType="conversations:TextSegment">
+                          <ItemsControl ItemsSource="{Binding Pieces}">
+                            <ItemsControl.DataTemplates>
+                              <DataTemplate DataType="conversations:Prose">
+                                <md:MarkdownScrollViewer Markdown="{Binding Text}">
+                                  <md:MarkdownScrollViewer.MarkdownStyle>
+                                    <Styles>
+                                      <mdc:MarkdownStyleFluentTheme />
+                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CCode">
+                                        <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
+                                        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+                                        <Setter Property="MonospaceFontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+                                      </Style>
+                                    </Styles>
+                                  </md:MarkdownScrollViewer.MarkdownStyle>
+                                </md:MarkdownScrollViewer>
+                              </DataTemplate>
+                              <DataTemplate DataType="conversations:CodeBlock">
+                                <Border Margin="0,4,0,12"
+                                        CornerRadius="9"
+                                        ClipToBounds="True"
+                                        BorderThickness="1"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        Background="{DynamicResource BackgroundBrush}">
+                                  <DockPanel>
+                                    <Border DockPanel.Dock="Top"
+                                            Padding="12,5,6,5"
+                                            Background="{DynamicResource SurfaceBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="0,0,0,1">
+                                      <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Classes="mono" Text="{Binding Language}" />
+                                        <Button Grid.Column="1" Classes="tool" Height="22" Content="Copy" Command="{Binding CopyCommand}" />
+                                      </Grid>
+                                    </Border>
+                                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                      <conversations:HighlightedCode Margin="14,12"
+                                                                     FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                                                     FontSize="12.5"
+                                                                     LineHeight="20"
+                                                                     Tokens="{Binding Tokens}" />
+                                    </ScrollViewer>
+                                  </DockPanel>
+                                </Border>
+                              </DataTemplate>
+                            </ItemsControl.DataTemplates>
+                          </ItemsControl>
                         </DataTemplate>
-                        <DataTemplate DataType="conversations:CodeBlock">
-                          <Border Margin="0,4,0,12"
-                                  CornerRadius="9"
-                                  ClipToBounds="True"
-                                  BorderThickness="1"
-                                  BorderBrush="{DynamicResource BorderBrush}"
-                                  Background="{DynamicResource BackgroundBrush}">
-                            <DockPanel>
-                              <Border DockPanel.Dock="Top"
-                                      Padding="12,5,6,5"
-                                      Background="{DynamicResource SurfaceBrush}"
+                        <DataTemplate DataType="conversations:ActivityItem">
+                          <StackPanel Classes="activity">
+                            <Button Classes="act" Command="{Binding ToggleCommand}" AutomationProperties.Name="{Binding Summary}">
+                              <Grid ColumnDefinitions="14,52,*,Auto" ColumnSpacing="10">
+                                <Panel Width="8" Height="8" VerticalAlignment="Center">
+                                  <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsRunning}" />
+                                  <Ellipse Fill="{DynamicResource AddedBrush}" IsVisible="{Binding IsFine}" />
+                                  <Ellipse Fill="{DynamicResource RemovedBrush}" IsVisible="{Binding IsFailed}" />
+                                </Panel>
+                                <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Tool}" />
+                                <TextBlock Grid.Column="2" Classes="mono what" TextTrimming="CharacterEllipsis" Text="{Binding Summary}" />
+                                <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Result}" />
+                              </Grid>
+                            </Button>
+                            <Border Classes="output" IsVisible="{Binding IsExpanded}">
+                              <SelectableTextBlock FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                                   FontSize="12"
+                                                   LineHeight="19"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource ForegroundMutedBrush}"
+                                                   Text="{Binding Output}" />
+                            </Border>
+                          </StackPanel>
+                        </DataTemplate>
+                        <DataTemplate DataType="conversations:ApprovalItem">
+                          <Border Classes="approval" Classes.open="{Binding IsOpen}">
+                            <StackPanel Spacing="10">
+                              <TextBlock FontSize="13.5" Text="{Binding Asking}" />
+                              <Border Padding="12,9"
+                                      CornerRadius="7"
+                                      BorderThickness="1"
                                       BorderBrush="{DynamicResource BorderBrush}"
-                                      BorderThickness="0,0,0,1">
-                                <Grid ColumnDefinitions="*,Auto">
-                                  <TextBlock Classes="mono" Text="{Binding Language}" />
-                                  <Button Grid.Column="1" Classes="tool" Height="22" Content="Copy" Command="{Binding CopyCommand}" />
-                                </Grid>
+                                      Background="{DynamicResource BackgroundBrush}">
+                                <SelectableTextBlock FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                                     FontSize="13"
+                                                     TextWrapping="Wrap"
+                                                     Text="{Binding Summary}" />
                               </Border>
-                              <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                <conversations:HighlightedCode Margin="14,12"
-                                                               FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                                               FontSize="12.5"
-                                                               LineHeight="20"
-                                                               Tokens="{Binding Tokens}" />
-                              </ScrollViewer>
-                            </DockPanel>
+                              <TextBlock FontSize="12.5"
+                                         TextWrapping="Wrap"
+                                         Foreground="{DynamicResource ForegroundMutedBrush}"
+                                         Text="{Binding Reason}"
+                                         IsVisible="{Binding HasReason}" />
+                              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsOpen}">
+                                <Button Classes="allow" Content="Allow" Command="{Binding AllowCommand}" />
+                                <Button Classes="tool" Height="34" Padding="14,0" Content="{Binding TrustLabel}" Command="{Binding AllowToolCommand}" />
+                                <Button Classes="tool" Height="34" Padding="14,0" Content="Deny" Command="{Binding DenyCommand}" />
+                              </StackPanel>
+                              <TextBlock Classes="mono" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
+                            </StackPanel>
                           </Border>
                         </DataTemplate>
                       </ItemsControl.DataTemplates>
