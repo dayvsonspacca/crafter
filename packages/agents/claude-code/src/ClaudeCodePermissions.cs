@@ -13,22 +13,23 @@ internal static class ClaudeCodePermissions
             return null;
         }
 
-        List<string> parts = [];
-        string? where = null;
+        List<(string Part, string Scope)> parts = [];
 
         foreach (var suggestion in Each(suggestions))
         {
-            parts.AddRange(Text(suggestion, "type") switch
+            var scope = Scope(Text(suggestion, "destination"));
+            parts.AddRange((Text(suggestion, "type") switch
             {
                 "addRules" when Text(suggestion, "behavior") == Allows => Rules(suggestion),
                 "addDirectories" => Strings(suggestion, "directories"),
                 "setMode" when Text(suggestion, "mode") is { } mode => [$"{mode} mode"],
                 _ => [],
-            });
-            where ??= Text(suggestion, "destination");
+            }).Select(part => (part, scope)));
         }
 
-        return parts.Count > 0 ? $"{string.Join(", ", parts.Distinct())} {Scope(where)}" : null;
+        var groups = parts.Distinct().GroupBy(each => each.Scope).Select(group => $"{string.Join(", ", group.Select(each => each.Part))} {group.Key}");
+
+        return parts.Count > 0 ? string.Join(", ", groups) : null;
     }
 
     public static (IReadOnlyList<string> Rules, IReadOnlyList<string> Directories) Granted(string? suggestions)

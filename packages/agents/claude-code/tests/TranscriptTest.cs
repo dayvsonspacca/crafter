@@ -197,6 +197,7 @@ public sealed class TranscriptTest
 
     [Theory]
     [InlineData("""[{"type":"addRules","rules":[{"toolName":"WebFetch"}],"behavior":"allow","destination":"session"}]""", "WebFetch in this chat")]
+    [InlineData("""[{"type":"addRules","rules":[{"toolName":"Bash","ruleContent":"ls /tmp/x"}],"behavior":"allow","destination":"localSettings"},{"type":"addRules","rules":[{"toolName":"Read","ruleContent":"//tmp/x/**"}],"behavior":"allow","destination":"session"}]""", "Bash(ls /tmp/x) in this project, Read(//tmp/x/**) in this chat")]
     [InlineData("""[{"type":"setMode","mode":"acceptEdits","destination":"session"}]""", "acceptEdits mode in this chat")]
     [InlineData("""[{"type":"addRules","rules":[{"toolName":"Read"}],"behavior":"allow","destination":"userSettings"}]""", "Read everywhere")]
     [InlineData("""[{"type":"addRules","rules":[{"toolName":"Bash"}],"behavior":"deny","destination":"session"}]""", null)]
