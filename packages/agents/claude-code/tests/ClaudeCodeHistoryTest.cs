@@ -50,7 +50,7 @@ public sealed class ClaudeCodeHistoryTest : IDisposable
     [Fact]
     public async Task SkipsSessionsWithoutAPrompt()
     {
-        Write("empty", DateTime.UtcNow, Queue(), User("<command-name>/clear</command-name>"), Meta("Caveat"), "not json", "[]");
+        Write("empty", DateTime.UtcNow, Queue(), User("<command-name>/clear</command-name>"), Meta("Caveat"), "not json", "[]", "{\"type\":\"user\", broken");
 
         Assert.Empty((await new ClaudeCodeHistory(home).List(Crafter, 5, Stop)).Latest);
     }
