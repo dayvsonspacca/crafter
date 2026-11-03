@@ -38,7 +38,6 @@
   <Color x:Key="ForegroundMutedColor">#949C95</Color>
   <Color x:Key="AccentColor">#D98557</Color>
   <Color x:Key="AccentSecondaryColor">#62AE98</Color>
-  <Color x:Key="AccentSecondaryFaintColor">#6662AE98</Color>
   <Color x:Key="OnAccentColor">#1A0E07</Color>
   <Color x:Key="AddedColor">#62AE98</Color>
   <Color x:Key="RemovedColor">#D96A5B</Color>
@@ -52,7 +51,6 @@
   <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource ForegroundMutedColor}" />
   <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
   <SolidColorBrush x:Key="AccentSecondaryBrush" Color="{StaticResource AccentSecondaryColor}" />
-  <SolidColorBrush x:Key="AccentSecondaryFaintBrush" Color="{StaticResource AccentSecondaryFaintColor}" />
   <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" />
   <SolidColorBrush x:Key="AddedBrush" Color="{StaticResource AddedColor}" />
   <SolidColorBrush x:Key="RemovedBrush" Color="{StaticResource RemovedColor}" />
