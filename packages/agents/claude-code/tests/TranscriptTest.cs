@@ -1,6 +1,6 @@
 using Crafter.Core.Conversations;
 
-namespace Crafter.ClaudeCode.Tests;
+namespace Crafter.Agents.ClaudeCode.Tests;
 
 public sealed class TranscriptTest
 {
@@ -9,7 +9,7 @@ public sealed class TranscriptTest
     {
         var replies = new Transcript().Hear("""{"type":"system","subtype":"init","session_id":"s-1","model":"claude-opus-5-5"}""");
 
-        Assert.Equal([new Began("claude-opus-5-5")], replies);
+        Assert.Equal([new Began("Opus 5.5")], replies);
     }
 
     [Fact]

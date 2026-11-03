@@ -1,30 +1,19 @@
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
 
-namespace Crafter.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode;
 
-public sealed class ClaudeCodeSession(string workingDirectory, string executable = "claude") : IAgent
+public sealed class ClaudeCodeSession(string workingDirectory, string executable = "claude", string? resumeFrom = null) : IAgentSession
 {
-    private static readonly string[] InheritedSession =
-    [
-        "CLAUDECODE",
-        "CLAUDE_CODE_ENTRYPOINT",
-        "CLAUDE_CODE_SESSION_ID",
-        "CLAUDE_CODE_CHILD_SESSION",
-        "CLAUDE_CODE_SESSION_ATTENDED",
-        "CLAUDE_CODE_MESSAGING_SOCKET",
-        "CLAUDE_CODE_MESSAGING_TOKEN",
-        "CLAUDE_CODE_EXECPATH",
-        "CLAUDE_PID",
-    ];
+    private string? sessionId = resumeFrom;
 
-    private string? sessionId;
+    public string? SessionId => sessionId;
 
     public async IAsyncEnumerable<Reply> Answer(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
     {
-        var process = Launch();
+        var process = ClaudeCodeProcess.Start(executable, workingDirectory, Arguments());
         if (process is null)
         {
             yield return new Failed($"Could not start '{executable}'. Is Claude Code installed and on the PATH?");
@@ -45,7 +34,10 @@ public sealed class ClaudeCodeSession(string workingDirectory, string executable
             {
                 while (await Listen(process, stop) is { } line)
                 {
-                    foreach (var reply in transcript.Hear(line))
+                    var replies = transcript.Hear(line);
+                    sessionId = transcript.SessionId ?? sessionId;
+
+                    foreach (var reply in replies)
                     {
                         ended |= reply is Ending;
 
@@ -57,10 +49,9 @@ public sealed class ClaudeCodeSession(string workingDirectory, string executable
             }
             finally
             {
-                sessionId = transcript.SessionId ?? sessionId;
                 if (!heardEverything)
                 {
-                    Kill(process);
+                    ClaudeCodeProcess.Kill(process);
                 }
             }
 
@@ -81,37 +72,6 @@ public sealed class ClaudeCodeSession(string workingDirectory, string executable
 
             yield return new Failed(
                 complaint.Length > 0 ? complaint : $"Claude Code exited with code {process.ExitCode} without an answer.");
-        }
-    }
-
-    private Process? Launch()
-    {
-        var start = new ProcessStartInfo(executable)
-        {
-            WorkingDirectory = workingDirectory,
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-
-        foreach (var argument in Arguments())
-        {
-            start.ArgumentList.Add(argument);
-        }
-
-        foreach (var variable in InheritedSession)
-        {
-            start.Environment.Remove(variable);
-        }
-
-        try
-        {
-            return Process.Start(start);
-        }
-        catch (Win32Exception)
-        {
-            return null;
         }
     }
 
@@ -143,20 +103,6 @@ public sealed class ClaudeCodeSession(string workingDirectory, string executable
         catch (OperationCanceledException)
         {
             return null;
-        }
-    }
-
-    private static void Kill(Process process)
-    {
-        try
-        {
-            if (!process.HasExited)
-            {
-                process.Kill(entireProcessTree: true);
-            }
-        }
-        catch (InvalidOperationException)
-        {
         }
     }
 }

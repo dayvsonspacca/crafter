@@ -5,7 +5,7 @@
   <Folder Name="/packages/">
     <Project Path="packages/core/src/Crafter.Core.csproj" />
     <Project Path="packages/core/tests/Crafter.Core.Tests.csproj" />
-    <Project Path="packages/claude-code/src/Crafter.ClaudeCode.csproj" />
-    <Project Path="packages/claude-code/tests/Crafter.ClaudeCode.Tests.csproj" />
+    <Project Path="packages/agents/claude-code/src/Crafter.Agents.ClaudeCode.csproj" />
+    <Project Path="packages/agents/claude-code/tests/Crafter.Agents.ClaudeCode.Tests.csproj" />
   </Folder>
 </Solution>

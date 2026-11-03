@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>Crafter.ClaudeCode</RootNamespace>
+    <RootNamespace>Crafter.Agents.ClaudeCode</RootNamespace>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../core/src/Crafter.Core.csproj" />
+    <ProjectReference Include="../../../core/src/Crafter.Core.csproj" />
   </ItemGroup>
 </Project>

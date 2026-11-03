@@ -1,6 +1,6 @@
 using Crafter.Core.Conversations;
 
-namespace Crafter.ClaudeCode.Tests;
+namespace Crafter.Agents.ClaudeCode.Tests;
 
 public sealed class ClaudeCodeSessionTest
 {
@@ -13,7 +13,7 @@ public sealed class ClaudeCodeSessionTest
 
         var replies = await claude.Session().Answer(new Prompt("oi"), Stop).ToListAsync(Stop);
 
-        Assert.Equal([new Began("claude-opus-5-5"), new Wrote("Olá"), new Finished()], replies);
+        Assert.Equal([new Began("Opus 5.5"), new Wrote("Olá"), new Finished()], replies);
     }
 
     [Fact]
@@ -47,6 +47,43 @@ public sealed class ClaudeCodeSessionTest
     }
 
     [Fact]
+    public async Task ResumesASessionItWasGiven()
+    {
+        using var claude = new FakeClaude(
+            $"""
+            cat > /dev/null
+            if [[ " $* " == *" --resume s-0 "* ]]; then text=resumed; else text=fresh; fi
+            {FakeClaude.Writes("$text")}
+            {FakeClaude.Success}
+            """);
+        var session = new ClaudeCodeSession(claude.Folder, claude.Executable, resumeFrom: "s-0");
+
+        var replies = await session.Answer(new Prompt("oi"), Stop).ToListAsync(Stop);
+
+        Assert.Contains(new Wrote("resumed"), replies);
+    }
+
+    [Fact]
+    public async Task KnowsItsSessionOnceClaudeCodeTellsIt()
+    {
+        using var claude = new FakeClaude($"cat > /dev/null\n{FakeClaude.Init}\nsleep 30");
+        using var asked = CancellationTokenSource.CreateLinkedTokenSource(Stop);
+        var session = claude.Session();
+
+        Assert.Null(session.SessionId);
+        await foreach (var reply in session.Answer(new Prompt("oi"), asked.Token))
+        {
+            if (reply is Began)
+            {
+                Assert.Equal("s-1", session.SessionId);
+                await asked.CancelAsync();
+            }
+        }
+
+        Assert.Equal("s-1", session.SessionId);
+    }
+
+    [Fact]
     public async Task LeavesTheParentClaudeCodeSessionBehind()
     {
         Environment.SetEnvironmentVariable("CLAUDECODE", "1");
@@ -73,7 +110,7 @@ public sealed class ClaudeCodeSessionTest
             }
         }
 
-        Assert.Equal([new Began("claude-opus-5-5"), new Stopped()], replies);
+        Assert.Equal([new Began("Opus 5.5"), new Stopped()], replies);
     }
 
     [Fact]

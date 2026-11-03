@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Crafter.Core.Conversations;
 
-namespace Crafter.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode;
 
 public sealed class Transcript
 {
@@ -40,7 +40,7 @@ public sealed class Transcript
     }
 
     private static IReadOnlyList<Reply> Introduction(JsonElement root) =>
-        Text(root, "model") is { } model ? [new Began(model)] : [];
+        Text(root, "model") is { } model ? [new Began(ModelName.Of(model))] : [];
 
     private static IReadOnlyList<Reply> Fragment(JsonElement root)
     {

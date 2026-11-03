@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Crafter.ClaudeCode.Tests</RootNamespace>
+    <RootNamespace>Crafter.Agents.ClaudeCode.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../src/Crafter.ClaudeCode.csproj" />
+    <ProjectReference Include="../src/Crafter.Agents.ClaudeCode.csproj" />
   </ItemGroup>
 </Project>

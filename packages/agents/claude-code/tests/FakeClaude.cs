@@ -1,4 +1,4 @@
-namespace Crafter.ClaudeCode.Tests;
+namespace Crafter.Agents.ClaudeCode.Tests;
 
 internal sealed class FakeClaude : IDisposable
 {
