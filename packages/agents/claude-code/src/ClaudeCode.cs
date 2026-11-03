@@ -19,7 +19,27 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
 
     private readonly ClaudeCodeHistory history = new(home ?? ClaudeCodeHistory.Home);
 
+    private readonly Choice model = new(
+        "model",
+        "Model",
+        "The model that answers.",
+        [new(null, "Default"), new("fable", "Fable"), new("opus", "Opus"), new("sonnet", "Sonnet"), new("haiku", "Haiku")]);
+
+    private readonly Choice effort = new(
+        "effort",
+        "Effort",
+        "How much the model thinks before answering.",
+        [new(null, "Default"), new("low", "Low"), new("medium", "Medium"), new("high", "High"), new("max", "Max")]);
+
+    private readonly Choice tools = new(
+        "tools",
+        "Tools",
+        "What Claude Code can do in the project.",
+        [new(null, "Chat only"), new(ClaudeCodeOptions.Plans, "Plan"), new(ClaudeCodeOptions.Edits, "Edit files")]);
+
     private ClaudeCodeOptions options = new(executable);
+
+    private Configuration configuration = Configuration.Empty;
 
     public AgentId Id { get; } = new("claude-code");
 
@@ -27,28 +47,16 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
 
     public string Summary => "Anthropic's coding agent";
 
-    public IReadOnlyList<Setting> Settings =>
-    [
-        new Choice(
-            "model",
-            "Model",
-            "The model that answers.",
-            [new(null, "Default"), new("fable", "Fable"), new("opus", "Opus"), new("sonnet", "Sonnet"), new("haiku", "Haiku")]),
-        new Choice(
-            "effort",
-            "Effort",
-            "How much the model thinks before answering.",
-            [new(null, "Default"), new("low", "Low"), new("medium", "Medium"), new("high", "High"), new("max", "Max")]),
-        new Choice(
-            "tools",
-            "Tools",
-            "What Claude Code can do in the project.",
-            [new(null, "Chat only"), new(ClaudeCodeOptions.Plans, "Plan"), new(ClaudeCodeOptions.Edits, "Edit files")]),
-        command,
-    ];
+    public IReadOnlyList<Setting> Settings => [model, effort, tools, command];
 
-    public void Configure(Configuration configuration) =>
+    public IReadOnlyList<string> Badges =>
+        [.. Made(model, label => label), .. Made(effort, label => $"{label} effort"), tools.Chosen(configuration).Label];
+
+    public void Configure(Configuration configuration)
+    {
+        this.configuration = configuration;
         options = new ClaudeCodeOptions(command.Value(configuration), configuration["model"], configuration["effort"], configuration["tools"]);
+    }
 
     public IAgentSession Begin(Project project, string? resumeFrom = null) =>
         new ClaudeCodeSession(project.Folder, () => options, resumeFrom);
@@ -147,6 +155,9 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
 
     private static string Said(Answer answer, string otherwise) =>
         answer.Complaints.Trim() is { Length: > 0 } complaint ? complaint : otherwise;
+
+    private IEnumerable<string> Made(Choice choice, Func<string, string> badge) =>
+        choice.Chosen(configuration) is { Value: not null } option ? [badge(option.Label)] : [];
 
     private sealed record Answer(int Code, string Output, string Complaints);
 }

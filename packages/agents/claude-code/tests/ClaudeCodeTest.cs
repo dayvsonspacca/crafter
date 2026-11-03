@@ -110,6 +110,18 @@ public sealed class ClaudeCodeTest
     }
 
     [Fact]
+    public void ShowsTheToolsAndOnlyTheChoicesThatWereMade()
+    {
+        var agent = new ClaudeCode();
+
+        Assert.Equal(["Chat only"], agent.Badges);
+
+        agent.Configure(Configuration.Empty.With("model", "opus").With("effort", "high").With("tools", ClaudeCodeOptions.Edits));
+
+        Assert.Equal(["Opus", "High effort", "Edit files"], agent.Badges);
+    }
+
+    [Fact]
     public async Task ChecksTheConfiguredExecutable()
     {
         using var claude = new FakeClaude(Script("""echo '{"loggedIn":true}'"""));
