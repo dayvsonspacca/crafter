@@ -56,6 +56,37 @@ public sealed class ClaudeCodeHistoryTest : IDisposable
     }
 
     [Fact]
+    public async Task LeavesOutCompactionSummariesAndTranscriptOnlyEntries()
+    {
+        Write(
+            "s-1",
+            DateTime.UtcNow,
+            Flagged("isCompactSummary", "This session is being continued from a previous conversation"),
+            User("Fix it"),
+            Assistant("Done."),
+            Flagged("isVisibleInTranscriptOnly", "Shown only in the transcript"));
+
+        var chat = Assert.Single((await new ClaudeCodeHistory(home).List(Crafter, 5, Stop)).Latest);
+        var turns = await new ClaudeCodeHistory(home).Replay(Crafter, "s-1", Stop);
+
+        Assert.Equal("Fix it", chat.Title.Text);
+        Assert.Null(chat.LastPrompt);
+        Assert.Equal([new Asked(new Prompt("Fix it")), new Answered("Done.", new Finished())], turns);
+    }
+
+    [Fact]
+    public async Task FindsTheLastPromptAtTheEndOfAHugeSession()
+    {
+        var noise = JsonSerializer.Serialize(new { type = "user", message = new { role = "user", content = new[] { new { type = "tool_result", content = new string('x', 200_000) } } } });
+        Write("huge", DateTime.UtcNow, [User("Start here"), .. Enumerable.Repeat(noise, 4), User("And finish there"), Assistant("Finished.")]);
+
+        var chat = Assert.Single((await new ClaudeCodeHistory(home).List(Crafter, 5, Stop)).Latest);
+
+        Assert.Equal("Start here", chat.Title.Text);
+        Assert.Equal(new Prompt("And finish there"), chat.LastPrompt);
+    }
+
+    [Fact]
     public async Task KeepsTheLatestAndCountsTheRest()
     {
         for (var at = 0; at < 8; at++)
@@ -121,6 +152,9 @@ public sealed class ClaudeCodeHistoryTest : IDisposable
 
     private static string User(object content) =>
         JsonSerializer.Serialize(new { type = "user", isSidechain = false, message = new { role = "user", content } });
+
+    private static string Flagged(string flag, string text) =>
+        JsonSerializer.Serialize(new Dictionary<string, object> { ["type"] = "user", [flag] = true, ["message"] = new { role = "user", content = text } });
 
     private static string Meta(string text) =>
         JsonSerializer.Serialize(new { type = "user", isMeta = true, message = new { role = "user", content = text } });

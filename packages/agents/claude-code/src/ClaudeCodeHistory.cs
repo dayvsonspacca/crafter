@@ -9,6 +9,10 @@ namespace Crafter.Agents.ClaudeCode;
 
 public sealed partial class ClaudeCodeHistory(string home)
 {
+    private const int Tail = 512 * 1024;
+
+    private static readonly string[] Spoken = ["\"type\":\"user\"", "\"type\":\"assistant\""];
+
     public static string Home =>
         Environment.GetEnvironmentVariable("CLAUDE_CONFIG_DIR") is { Length: > 0 } configured
             ? configured
@@ -22,28 +26,23 @@ public sealed partial class ClaudeCodeHistory(string home)
 
     private static PastChat? Summarize(FileInfo session)
     {
-        string? first = null;
-        string? last = null;
-
-        foreach (var entry in Entries(session.FullName))
+        if (First(session) is not { } first)
         {
-            if (Prompt(entry) is { } prompt)
-            {
-                first ??= prompt;
-                last = prompt;
-            }
+            return null;
         }
 
-        return first is null
-            ? null
-            : new PastChat(
-                Path.GetFileNameWithoutExtension(session.Name),
-                ChatTitle.From(new Prompt(first)),
-                session.LastWriteTimeUtc,
-                ReferenceEquals(first, last) ? null : new Prompt(last!));
+        var last = Last(session);
+
+        return new PastChat(
+            Path.GetFileNameWithoutExtension(session.Name),
+            ChatTitle.From(new Prompt(first)),
+            session.LastWriteTimeUtc,
+            last is not null && last != first ? new Prompt(last) : null);
     }
 
-    private static bool Opens(FileInfo session) => Entries(session.FullName).Any(entry => Prompt(entry) is not null);
+    private static string? First(FileInfo session) => Entries(Lines(session.FullName)).Select(Prompt).FirstOrDefault(prompt => prompt is not null);
+
+    private static string? Last(FileInfo session) => Entries(TailLines(session.FullName).Reverse()).Select(Prompt).FirstOrDefault(prompt => prompt is not null);
 
     private static IReadOnlyList<Turn> Retell(string file, string sessionId)
     {
@@ -55,7 +54,7 @@ public sealed partial class ClaudeCodeHistory(string home)
 
         var answer = new StringBuilder();
 
-        foreach (var entry in Entries(file))
+        foreach (var entry in Entries(Lines(file)))
         {
             if (Prompt(entry) is { } prompt)
             {
@@ -84,7 +83,11 @@ public sealed partial class ClaudeCodeHistory(string home)
 
     private static string? Prompt(JsonElement entry)
     {
-        if (Text(entry, "type") != "user" || Flag(entry, "isMeta") || Flag(entry, "isSidechain"))
+        if (Text(entry, "type") != "user"
+            || Flag(entry, "isMeta")
+            || Flag(entry, "isSidechain")
+            || Flag(entry, "isCompactSummary")
+            || Flag(entry, "isVisibleInTranscriptOnly"))
         {
             return null;
         }
@@ -124,7 +127,18 @@ public sealed partial class ClaudeCodeHistory(string home)
     private static bool Flag(JsonElement element, string property) =>
         element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.True;
 
-    private static IEnumerable<JsonElement> Entries(string file)
+    private static IEnumerable<JsonElement> Entries(IEnumerable<string> lines)
+    {
+        foreach (var line in lines)
+        {
+            if (Spoken.Any(spoken => line.Contains(spoken, StringComparison.Ordinal)) && Parse(line) is { } entry)
+            {
+                yield return entry;
+            }
+        }
+    }
+
+    private static IEnumerable<string> Lines(string file)
     {
         IEnumerable<string> lines;
         try
@@ -138,10 +152,26 @@ public sealed partial class ClaudeCodeHistory(string home)
 
         foreach (var line in lines)
         {
-            if (Parse(line) is { } entry)
-            {
-                yield return entry;
-            }
+            yield return line;
+        }
+    }
+
+    private static IReadOnlyList<string> TailLines(string file)
+    {
+        try
+        {
+            using var stream = File.OpenRead(file);
+            var start = Math.Max(0, stream.Length - Tail);
+            stream.Seek(start, SeekOrigin.Begin);
+
+            using var reader = new StreamReader(stream);
+            var lines = reader.ReadToEnd().Split('\n');
+
+            return start > 0 ? lines[1..] : lines;
+        }
+        catch (Exception unreadable) when (unreadable is IOException or UnauthorizedAccessException)
+        {
+            return [];
         }
     }
 
@@ -171,7 +201,7 @@ public sealed partial class ClaudeCodeHistory(string home)
                 chats.Add(chat);
                 total++;
             }
-            else if (chats.Count >= latest && Opens(session))
+            else if (chats.Count >= latest && First(session) is not null)
             {
                 total++;
             }
