@@ -2,7 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="using:Crafter.Desktop"
         xmlns:conversations="using:Crafter.Desktop.Conversations"
+        xmlns:projects="using:Crafter.Desktop.Projects"
         x:Class="Crafter.Desktop.Workbench"
+        x:DataType="local:WorkbenchScreen"
         Title="crafter"
         Icon="/Assets/crafter.png"
         Width="900" Height="640"
@@ -11,6 +13,24 @@
         Foreground="{DynamicResource ForegroundBrush}">
   <DockPanel>
     <local:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
-    <conversations:ConversationView />
+    <Panel>
+      <Panel IsVisible="{Binding Conversation, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <conversations:ConversationView DataContext="{Binding Conversation}" />
+      </Panel>
+
+      <StackPanel IsVisible="{Binding Conversation, Converter={x:Static ObjectConverters.IsNull}}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Spacing="8">
+        <TextBlock HorizontalAlignment="Center" FontSize="15" Text="Open a project to start crafting." />
+        <TextBlock HorizontalAlignment="Center"
+                   FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                   FontSize="11"
+                   Foreground="{DynamicResource ForegroundMutedBrush}"
+                   Text="Ctrl+O to open · Ctrl+K Ctrl+O to add a folder" />
+      </StackPanel>
+
+      <projects:ProjectPaletteView DataContext="{Binding Palette}" />
+    </Panel>
   </DockPanel>
 </Window>

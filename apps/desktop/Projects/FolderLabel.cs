@@ -1,0 +1,16 @@
+namespace Crafter.Desktop.Projects;
+
+public sealed record FolderLabel(string Folder)
+{
+    private static readonly string Home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+    public string Text => AtHome ? "~" + Folder[Home.Length..] : Folder;
+
+    public int Shift => AtHome ? Home.Length - 1 : 0;
+
+    private bool AtHome =>
+        Home.Length > 0
+        && (Folder == Home || Folder.StartsWith(Home + Path.DirectorySeparatorChar, StringComparison.Ordinal));
+
+    public override string ToString() => Text;
+}

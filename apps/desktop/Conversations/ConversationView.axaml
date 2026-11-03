@@ -91,15 +91,7 @@
     </Border>
 
     <Panel>
-      <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-        <Image Source="/Assets/crafter.png" Width="96" Height="96" />
-        <TextBlock Text="crafter" FontSize="28" HorizontalAlignment="Center" />
-        <TextBlock Text="Your agents craft the code. You bring the recipe."
-                   Foreground="{DynamicResource ForegroundMutedBrush}"
-                   HorizontalAlignment="Center" />
-      </StackPanel>
-
-      <ScrollViewer x:Name="Scroller" IsVisible="{Binding !IsEmpty}" ScrollChanged="Follow">
+      <ScrollViewer x:Name="Scroller" ScrollChanged="Follow">
         <ItemsControl ItemsSource="{Binding Messages}" MaxWidth="760" Margin="24,32">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>

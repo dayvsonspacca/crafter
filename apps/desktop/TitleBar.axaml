@@ -1,7 +1,19 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Crafter.Desktop"
              x:Class="Crafter.Desktop.TitleBar"
+             x:DataType="local:WorkbenchScreen"
              Height="35">
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="{StaticResource ForegroundColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="{StaticResource ForegroundColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutSeparatorBackground" Color="{StaticResource BorderColor}" />
+  </UserControl.Resources>
+
   <UserControl.Styles>
     <Style Selector="Button.control">
       <Setter Property="Width" Value="46" />
@@ -31,19 +43,55 @@
     <Style Selector="Button.close:pointerover Path, Button.close:pressed Path">
       <Setter Property="Stroke" Value="{DynamicResource OnAccentBrush}" />
     </Style>
+
+    <Style Selector="Menu.bar">
+      <Setter Property="Height" Value="35" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Menu.bar > MenuItem">
+      <Setter Property="Height" Value="35" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="MenuItem">
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="TextBlock.path, TextBlock.keys">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.current">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
   </UserControl.Styles>
 
   <Border Background="{DynamicResource SurfaceBrush}"
           BorderBrush="{DynamicResource BorderBrush}"
           BorderThickness="0,0,0,1"
           PointerPressed="Drag">
-    <Grid ColumnDefinitions="*,Auto">
-      <Image Source="/Assets/crafter.png"
-             Width="16" Height="16"
-             Margin="12,0,0,0"
-             HorizontalAlignment="Left"
-             VerticalAlignment="Center" />
-      <StackPanel Grid.Column="1" Orientation="Horizontal">
+    <Grid ColumnDefinitions="*,Auto,*">
+      <StackPanel Orientation="Horizontal" Spacing="6" Margin="12,0,0,0">
+        <Image Source="/Assets/crafter.png" Width="16" Height="16" VerticalAlignment="Center" />
+        <Menu Classes="bar">
+          <MenuItem x:Name="ProjectsMenu" Header="Projects" />
+        </Menu>
+      </StackPanel>
+
+      <StackPanel Grid.Column="1"
+                  Orientation="Horizontal"
+                  Spacing="8"
+                  VerticalAlignment="Center"
+                  IsHitTestVisible="False">
+        <TextBlock FontSize="12.5" FontWeight="SemiBold" Text="{Binding Current.Name, FallbackValue={x:Null}}" />
+        <TextBlock Classes="path" VerticalAlignment="Center" Text="{Binding CurrentFolder}" />
+      </StackPanel>
+
+      <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
         <Button x:Name="MinimizeButton" Classes="control" AutomationProperties.Name="Minimize" Click="Minimize">
           <Path Data="M3.5,8.5 L12.5,8.5" />
         </Button>

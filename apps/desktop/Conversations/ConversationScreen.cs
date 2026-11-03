@@ -14,7 +14,6 @@ public sealed partial class ConversationScreen : ObservableObject
         this.conversation = conversation;
         Draft = string.Empty;
         Model = "Claude Code";
-        IsEmpty = true;
     }
 
     public ObservableCollection<Message> Messages { get; } = [];
@@ -28,8 +27,13 @@ public sealed partial class ConversationScreen : ObservableObject
     [ObservableProperty]
     public partial bool IsCrafting { get; set; }
 
-    [ObservableProperty]
-    public partial bool IsEmpty { get; set; }
+    public void Leave()
+    {
+        if (CraftCommand.IsRunning)
+        {
+            CraftCommand.Cancel();
+        }
+    }
 
     [RelayCommand(IncludeCancelCommand = true)]
     private async Task Craft(CancellationToken stop)
@@ -45,7 +49,6 @@ public sealed partial class ConversationScreen : ObservableObject
         Draft = string.Empty;
         Messages.Add(new YourMessage(prompt.Text));
         Messages.Add(answer);
-        IsEmpty = false;
         IsCrafting = true;
 
         await foreach (var reply in conversation.Ask(prompt, stop))
