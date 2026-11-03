@@ -5,18 +5,24 @@ using Crafter.Core.Conversations;
 
 namespace Crafter.Agents.ClaudeCode;
 
-public sealed class ClaudeCodeSession(string workingDirectory, string executable = "claude", string? resumeFrom = null) : IAgentSession
+public sealed class ClaudeCodeSession(string workingDirectory, Func<ClaudeCodeOptions> options, string? resumeFrom = null) : IAgentSession
 {
     private string? sessionId = resumeFrom;
+
+    public ClaudeCodeSession(string workingDirectory, string executable = "claude", string? resumeFrom = null)
+        : this(workingDirectory, () => new ClaudeCodeOptions(executable), resumeFrom)
+    {
+    }
 
     public string? SessionId => sessionId;
 
     public async IAsyncEnumerable<Reply> Answer(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
     {
-        var process = ClaudeCodeProcess.Start(executable, workingDirectory, Arguments());
+        var now = options();
+        var process = ClaudeCodeProcess.Start(now.Executable, workingDirectory, now.Arguments(sessionId));
         if (process is null)
         {
-            yield return new Failed($"Could not start '{executable}'. Is Claude Code installed and on the PATH?");
+            yield return new Failed($"Could not start '{now.Executable}'. Is Claude Code installed and on the PATH?");
 
             yield break;
         }
@@ -73,13 +79,6 @@ public sealed class ClaudeCodeSession(string workingDirectory, string executable
             yield return new Failed(
                 complaint.Length > 0 ? complaint : $"Claude Code exited with code {process.ExitCode} without an answer.");
         }
-    }
-
-    private string[] Arguments()
-    {
-        string[] always = ["-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages", "--tools", ""];
-
-        return sessionId is null ? always : [.. always, "--resume", sessionId];
     }
 
     private static async Task Tell(Process process, Prompt prompt)

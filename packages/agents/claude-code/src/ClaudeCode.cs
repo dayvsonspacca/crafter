@@ -10,53 +10,83 @@ public sealed class ClaudeCode(string executable = "claude") : IAgent
 
     public const string SignIn = "claude auth login";
 
+    private const string Broken = "Not working";
+
     private static readonly TimeSpan Patience = TimeSpan.FromSeconds(20);
+
+    private readonly Entry command = new("executable", "Executable", "The command that starts Claude Code.", executable);
+
+    private ClaudeCodeOptions options = new(executable);
 
     public AgentId Id { get; } = new("claude-code");
 
     public string Name => "Claude Code";
 
-    public string Summary => "Anthropic's coding agent, run through the claude command.";
+    public string Summary => "Anthropic's coding agent";
+
+    public IReadOnlyList<Setting> Settings =>
+    [
+        new Choice(
+            "model",
+            "Model",
+            "The model that answers.",
+            [new(null, "Default"), new("fable", "Fable"), new("opus", "Opus"), new("sonnet", "Sonnet"), new("haiku", "Haiku")]),
+        new Choice(
+            "effort",
+            "Effort",
+            "How much the model thinks before answering.",
+            [new(null, "Default"), new("low", "Low"), new("medium", "Medium"), new("high", "High"), new("max", "Max")]),
+        new Choice(
+            "tools",
+            "Tools",
+            "What Claude Code can do in the project.",
+            [new(null, "Chat only"), new(ClaudeCodeOptions.Plans, "Plan"), new(ClaudeCodeOptions.Edits, "Edit files")]),
+        command,
+    ];
+
+    public void Configure(Configuration configuration) =>
+        options = new ClaudeCodeOptions(command.Value(configuration), configuration["model"], configuration["effort"], configuration["tools"]);
 
     public IAgentSession Begin(Project project, string? resumeFrom = null) =>
-        new ClaudeCodeSession(project.Folder, executable, resumeFrom);
+        new ClaudeCodeSession(project.Folder, () => options, resumeFrom);
 
     public async Task<Readiness> Check(CancellationToken stop = default)
     {
         var version = await Ask(["--version"], stop);
         if (version is null)
         {
-            return new Missing(Install);
+            return new Blocked("Not installed", "Install it from a terminal.", Install);
         }
 
         if (version.Code != 0)
         {
-            return new Broken(Said(version, $"`claude --version` exited with code {version.Code}."));
+            return new Blocked(Broken, Said(version, $"`claude --version` exited with code {version.Code}."), null);
         }
 
         var installed = version.Output.Trim().Split(' ', 2)[0];
         if (installed.Length == 0 || !char.IsAsciiDigit(installed[0]))
         {
-            return new Broken("`claude --version` did not answer with a version.");
+            return new Blocked(Broken, "`claude --version` did not answer with a version.", null);
         }
 
         var status = await Ask(["auth", "status", "--json"], stop);
 
         if (status is null || status.Code != 0)
         {
-            return new Ready(installed, null);
+            return new Ready("Ready", $"Version {installed}");
         }
 
         return Account(status.Output) switch
         {
-            { LoggedIn: false } => new SignedOut(SignIn),
-            { Label: var label } => new Ready(installed, label),
+            { LoggedIn: false } => new Blocked("Signed out", "Sign in from a terminal.", SignIn),
+            { Label: { } label } => new Ready("Ready", $"Version {installed} · {label}"),
+            _ => new Ready("Ready", $"Version {installed}"),
         };
     }
 
     private async Task<Answer?> Ask(string[] arguments, CancellationToken stop)
     {
-        using var process = ClaudeCodeProcess.Start(executable, Environment.CurrentDirectory, arguments);
+        using var process = ClaudeCodeProcess.Start(options.Executable, Environment.CurrentDirectory, arguments);
         if (process is null)
         {
             return null;

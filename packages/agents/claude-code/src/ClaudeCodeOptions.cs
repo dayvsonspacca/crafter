@@ -1,0 +1,37 @@
+namespace Crafter.Agents.ClaudeCode;
+
+public sealed record ClaudeCodeOptions(string Executable, string? Model = null, string? Effort = null, string? Tools = null)
+{
+    public const string Plans = "plan";
+
+    public const string Edits = "edit";
+
+    public IReadOnlyList<string> Arguments(string? resumeFrom)
+    {
+        List<string> arguments = ["-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages"];
+
+        arguments.AddRange(Tools switch
+        {
+            Plans => ["--permission-mode", "plan"],
+            Edits => ["--permission-mode", "acceptEdits"],
+            _ => ["--tools", string.Empty],
+        });
+
+        if (Model is { } model)
+        {
+            arguments.AddRange(["--model", model]);
+        }
+
+        if (Effort is { } effort)
+        {
+            arguments.AddRange(["--effort", effort]);
+        }
+
+        if (resumeFrom is { } session)
+        {
+            arguments.AddRange(["--resume", session]);
+        }
+
+        return arguments;
+    }
+}
