@@ -11,6 +11,7 @@ using Crafter.Desktop.Folders;
 using Crafter.Desktop.Projects;
 using Crafter.Desktop.Settings;
 using Crafter.Desktop.Setup;
+using Crafter.Desktop.Themes;
 
 namespace Crafter.Desktop;
 
@@ -31,7 +32,8 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         IPreferencesStore preferences,
         IChatArchive archive,
         Crew crew,
-        Func<string, Task> copy)
+        Func<string, Task> copy,
+        Action<Theme> apply)
     {
         this.bookshelf = bookshelf;
         this.archive = archive;
@@ -40,7 +42,7 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         Picker = new FolderPicker(preferences, bookshelf);
         Namer = new ProjectNamer(Picker);
         Setup = new SetupScreen(crew, preferences, copy);
-        Preferences = new PreferencesScreen(preferences, Picker, Setup);
+        Preferences = new PreferencesScreen(preferences, Picker, Setup, apply);
         Preferences.PropertyChanged += Follow;
         Setup.PropertyChanged += Follow;
         if (!Setup.IsPicking)

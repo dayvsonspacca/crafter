@@ -10,6 +10,7 @@ using Crafter.Core.Settings;
 using Crafter.Desktop.Conversations;
 using Crafter.Desktop.Keyboard;
 using Crafter.Desktop.Projects;
+using Crafter.Desktop.Themes;
 using Crafter.Desktop.WindowManagers;
 
 namespace Crafter.Desktop;
@@ -44,7 +45,7 @@ public sealed partial class Workbench : Window
     {
         InitializeComponent();
 
-        var screen = new WorkbenchScreen(bookshelf, preferences, archive, crew, Copy);
+        var screen = new WorkbenchScreen(bookshelf, preferences, archive, crew, Copy, Dress);
         DataContext = screen;
         Bar.ArrangeFor(windowManager);
         Listen(screen);
@@ -92,6 +93,14 @@ public sealed partial class Workbench : Window
         {
             var slot = place;
             shortcuts.On(ProjectShortcuts.Slot(slot)!, () => screen.OpenSlot(slot));
+        }
+    }
+
+    private static void Dress(Theme theme)
+    {
+        if (Application.Current is { } application)
+        {
+            application.RequestedThemeVariant = theme.Variant;
         }
     }
 

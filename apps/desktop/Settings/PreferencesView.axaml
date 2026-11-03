@@ -103,6 +103,28 @@
       <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
     </Style>
 
+    <Style Selector="Button.theme">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Margin" Value="0,0,12,12" />
+      <Setter Property="Padding" Value="10" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Button.theme /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.theme:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.theme:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.theme.chosen /template/ ContentPresenter#PART_ContentPresenter, Button.theme.chosen:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
     <Style Selector="Border.segments">
       <Setter Property="HorizontalAlignment" Value="Left" />
       <Setter Property="CornerRadius" Value="6" />
@@ -179,6 +201,85 @@
       <ScrollViewer Grid.Column="1">
         <ContentControl Margin="32,26,32,20" Content="{Binding Shown}">
           <ContentControl.DataTemplates>
+            <DataTemplate DataType="settings:AppearanceGroup">
+              <StackPanel>
+                <TextBlock Classes="heading" Text="Appearance" />
+                <Border Classes="setting" BorderThickness="0">
+                  <StackPanel Spacing="8">
+                    <TextBlock Classes="title" Text="Theme" />
+                    <TextBlock Classes="about" Text="Colors for the whole app." />
+                    <ItemsControl Margin="0,4,-12,0" ItemsSource="{Binding Themes}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <UniformGrid Columns="3" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="settings:ThemeChoice">
+                          <Button Classes="theme"
+                                  Classes.chosen="{Binding IsChosen}"
+                                  Command="{Binding ChooseCommand}"
+                                  AutomationProperties.Name="{Binding Theme.Name}">
+                            <StackPanel Spacing="10">
+                              <Border Height="96" CornerRadius="6" ClipToBounds="True" Background="{Binding Theme.Background}">
+                                <DockPanel>
+                                  <Border DockPanel.Dock="Top"
+                                          Height="12"
+                                          Background="{Binding Theme.Surface}"
+                                          BorderBrush="{Binding Theme.Line}"
+                                          BorderThickness="0,0,0,1">
+                                    <Border Width="28" Height="4" CornerRadius="2" Background="{Binding Theme.Muted}" />
+                                  </Border>
+                                  <Grid ColumnDefinitions="34*,66*">
+                                    <Border Background="{Binding Theme.Surface}" BorderBrush="{Binding Theme.Line}" BorderThickness="0,0,1,0" Padding="6,7">
+                                      <StackPanel Spacing="5">
+                                        <Border Height="5" CornerRadius="3" Background="{Binding Theme.Line}" />
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,14,0" Background="{Binding Theme.Muted}" />
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,8,0" Background="{Binding Theme.Muted}" />
+                                      </StackPanel>
+                                    </Border>
+                                    <DockPanel Grid.Column="1" Margin="8">
+                                      <Border DockPanel.Dock="Bottom"
+                                              Width="30"
+                                              Height="10"
+                                              CornerRadius="3"
+                                              HorizontalAlignment="Right"
+                                              Background="{Binding Theme.Accent}" />
+                                      <StackPanel Spacing="6">
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,40,0" Background="{Binding Theme.Foreground}" />
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,12,0" Background="{Binding Theme.Muted}" />
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,60,0" Background="{Binding Theme.AccentSecondary}" />
+                                      </StackPanel>
+                                    </DockPanel>
+                                  </Grid>
+                                </DockPanel>
+                              </Border>
+                              <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" Text="{Binding Theme.Name}" />
+                                <Border Grid.Column="1"
+                                        Width="16"
+                                        Height="16"
+                                        CornerRadius="4"
+                                        Background="{DynamicResource AccentBrush}"
+                                        IsVisible="{Binding IsChosen}">
+                                  <Path Width="10"
+                                        Height="10"
+                                        Stretch="Uniform"
+                                        StrokeThickness="2"
+                                        Stroke="{DynamicResource OnAccentBrush}"
+                                        Data="M3,8.5 L6.2,11.5 L13,4.5" />
+                                </Border>
+                              </Grid>
+                            </StackPanel>
+                          </Button>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </DataTemplate>
+
             <DataTemplate DataType="settings:ProjectsGroup">
               <StackPanel>
                 <TextBlock Classes="heading" Text="Projects" />

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Settings;
 using Crafter.Desktop.Folders;
 using Crafter.Desktop.Setup;
+using Crafter.Desktop.Themes;
 
 namespace Crafter.Desktop.Settings;
 
@@ -10,10 +11,10 @@ public sealed partial class PreferencesScreen : ObservableObject
 {
     private readonly IPreferencesStore store;
 
-    public PreferencesScreen(IPreferencesStore store, IFolderPicker folders, SetupScreen setup)
+    public PreferencesScreen(IPreferencesStore store, IFolderPicker folders, SetupScreen setup, Action<Theme> apply)
     {
         this.store = store;
-        AppGroups = [new ProjectsGroup(store, folders)];
+        AppGroups = [new AppearanceGroup(store, apply), new ProjectsGroup(store, folders)];
         AgentGroups = [.. setup.Panels.Select(panel => new AgentGroup(panel))];
         Show(AppGroups[0]);
     }
