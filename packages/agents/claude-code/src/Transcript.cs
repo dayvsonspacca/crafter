@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Crafter.Core.Conversations;
+using static Crafter.Agents.ClaudeCode.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode;
 
@@ -214,11 +215,5 @@ public sealed class Transcript(string? folder = null)
         root.TryGetProperty("stop_details", out var details) && details.ValueKind == JsonValueKind.Object
             ? Text(details, "category")
             : null;
-
-    private static string? Text(JsonElement element, string property) =>
-        element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String
-            ? value.GetString()
-            : null;
-
     private sealed record Request(string Input, string? Suggestions);
 }

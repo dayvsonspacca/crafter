@@ -1,4 +1,5 @@
 using System.Text.Json;
+using static Crafter.Agents.ClaudeCode.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode;
 
@@ -6,10 +7,7 @@ public static class ClaudeCodeTools
 {
     public static (string Summary, string? Stat) Describe(string tool, JsonElement input, string? folder)
     {
-        string? Field(string name) =>
-            input.ValueKind == JsonValueKind.Object && input.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
-                ? value.GetString()
-                : null;
+        string? Field(string name) => Text(input, name);
 
         string File() => Relative(Field("file_path") ?? Field("notebook_path") ?? Field("path") ?? string.Empty, folder);
 

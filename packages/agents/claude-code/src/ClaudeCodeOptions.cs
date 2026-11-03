@@ -6,7 +6,7 @@ public sealed record ClaudeCodeOptions(string Executable, string? Model = null, 
 
     public const string Edits = "acceptEdits";
 
-    private const string Legacy = "edit";
+    public const string Legacy = "edit";
 
     public IReadOnlyList<string> Arguments(string? resumeFrom)
     {

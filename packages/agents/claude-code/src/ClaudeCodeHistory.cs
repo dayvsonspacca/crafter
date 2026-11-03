@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
+using static Crafter.Agents.ClaudeCode.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode;
 
@@ -150,12 +151,6 @@ public sealed partial class ClaudeCodeHistory(string home)
         entry.TryGetProperty("message", out var message) && message.ValueKind == JsonValueKind.Object && message.TryGetProperty("content", out var content)
             ? content
             : null;
-
-    private static string? Text(JsonElement element, string property) =>
-        element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
-
-    private static bool Flag(JsonElement element, string property) =>
-        element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.True;
 
     private static IEnumerable<JsonElement> Entries(IEnumerable<string> lines)
     {

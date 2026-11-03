@@ -1,4 +1,5 @@
 using System.Text.Json;
+using static Crafter.Agents.ClaudeCode.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode;
 
@@ -75,7 +76,4 @@ internal static class ClaudeCodePermissions
 
     private static IEnumerable<JsonElement> Each(JsonElement array) =>
         array.ValueKind == JsonValueKind.Array ? array.EnumerateArray().Where(item => item.ValueKind == JsonValueKind.Object) : [];
-
-    private static string? Text(JsonElement element, string property) =>
-        element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
 }
