@@ -1,6 +1,7 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
+using Crafter.Core.Settings;
 using Crafter.Desktop.Conversations;
 using Microsoft.Extensions.Time.Testing;
 
@@ -34,11 +35,22 @@ public sealed class ProjectDeskTest
         Assert.Single(archive.Saved);
     }
 
+    [Fact]
+    public void RestoresTheAdjustmentsOfASavedChat()
+    {
+        var archive = new ArchiveInMemory();
+        archive.Save(Crafter, [new ChatRecord(ChatId.New(), new AgentId("stand-in"), ChatTitle.Of("oi"), null, []) { Adjustments = Configuration.Empty.With("tools", "plan") }]);
+
+        var desk = Desk(new StandInAgent(), archive);
+
+        Assert.Equal("plan", desk.Chats.Single().Record().Adjustments["tools"]);
+    }
+
     private static ProjectDesk Desk(IAgent agent, ArchiveInMemory? archive = null)
     {
         var crew = new Crew([agent]);
         crew.Hire([agent.Id]);
 
-        return new DeskFactory(archive ?? new ArchiveInMemory(), crew, new ClipboardInMemory(), new FakeTimeProvider(Noon)).Make(Crafter, _ => Task.CompletedTask);
+        return new DeskFactory(archive ?? new ArchiveInMemory(), crew, new PreferenceBook(new PreferencesInMemory(Preferences.Default("/home/hero"))), new ClipboardInMemory(), new FakeTimeProvider(Noon)).Make(Crafter, _ => Task.CompletedTask);
     }
 }

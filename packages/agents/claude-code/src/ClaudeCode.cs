@@ -40,33 +40,30 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
 
     public string Summary => "Anthropic's coding agent";
 
-    public Configuration Configuration { get; private set; } = Configuration.Empty;
-
-    public IReadOnlyList<Setting> Settings =>
+    public IReadOnlyList<Setting> Settings(Configuration configuration) =>
     [
-        new Choice("model", "Model", "The model that answers.", [new(null, "Default"), .. Offered("model", capabilities.Models)]),
-        new Choice("effort", "Effort", "How much the model thinks before answering.", [new(null, "Default"), .. Offered("effort", capabilities.Efforts)]),
+        new Choice("model", "Model", "The model that answers.", [new(null, "Default"), .. Offered(configuration, "model", capabilities.Models)]),
+        new Choice("effort", "Effort", "How much the model thinks before answering.", [new(null, "Default"), .. Offered(configuration, "effort", capabilities.Efforts)]),
         new Choice(
             "tools",
             "Tools",
             "What Claude Code can do in the project.",
-            [new(null, Names[ClaudeCodeOptions.Edits]), new(ClaudeCodeOptions.Chats, "Chat only"), .. Offered("tools", capabilities.Modes, ClaudeCodeOptions.Edits, ClaudeCodeOptions.Chats, "edit")]),
+            [new(null, Names[ClaudeCodeOptions.Edits]), new(ClaudeCodeOptions.Chats, "Chat only"), .. Offered(configuration, "tools", capabilities.Modes, ClaudeCodeOptions.Edits, ClaudeCodeOptions.Chats, "edit")]),
         command,
     ];
 
-    public void Configure(Configuration configuration) => Configuration = configuration;
-
     public IAgentSession Begin(Project project, string? resumeFrom = null) =>
-        new ClaudeCodeSession(project.Folder, adjustments => Options(adjustments.Over(Configuration)), resumeFrom);
+        new ClaudeCodeSession(project.Folder, Options, resumeFrom);
 
     public Task<Recollection> History(Project project, int latest, CancellationToken stop = default) => history.List(project, latest, stop);
 
     public Task<IReadOnlyList<Turn>> Replay(Project project, string sessionId, CancellationToken stop = default) =>
         history.Replay(project, sessionId, stop);
 
-    public async Task<Readiness> Check(CancellationToken stop = default)
+    public async Task<Readiness> Check(Configuration configuration, CancellationToken stop = default)
     {
-        var version = await Ask(["--version"], stop);
+        var executable = Options(configuration).Executable;
+        var version = await Ask(executable, ["--version"], stop);
         if (version is null)
         {
             return new Blocked("Not installed", "Install it from a terminal.", Install);
@@ -83,12 +80,12 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
             return new Blocked(Broken, "`claude --version` did not answer with a version.", null);
         }
 
-        if (await Ask(["--help"], stop) is { Code: 0 } help)
+        if (await Ask(executable, ["--help"], stop) is { Code: 0 } help)
         {
-            capabilities = ClaudeCodeCapabilities.Parse(help.Output).Introduced(await Introduce(stop));
+            capabilities = ClaudeCodeCapabilities.Parse(help.Output).Introduced(await Introduce(executable, stop));
         }
 
-        var status = await Ask(["auth", "status", "--json"], stop);
+        var status = await Ask(executable, ["auth", "status", "--json"], stop);
 
         if (status is null || status.Code != 0)
         {
@@ -103,9 +100,9 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
         };
     }
 
-    private async Task<Answer?> Ask(string[] arguments, CancellationToken stop)
+    private static async Task<Answer?> Ask(string executable, string[] arguments, CancellationToken stop)
     {
-        using var process = ClaudeCodeProcess.Start(Options(Configuration).Executable, Environment.CurrentDirectory, arguments);
+        using var process = ClaudeCodeProcess.Start(executable, Environment.CurrentDirectory, arguments);
         if (process is null)
         {
             return null;
@@ -131,10 +128,10 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
         }
     }
 
-    private async Task<string?> Introduce(CancellationToken stop)
+    private static async Task<string?> Introduce(string executable, CancellationToken stop)
     {
         using var process = ClaudeCodeProcess.Start(
-            Options(Configuration).Executable,
+            executable,
             Environment.CurrentDirectory,
             ["-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose"]);
         if (process is null)
@@ -213,10 +210,10 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
     private ClaudeCodeOptions Options(Configuration chosen) =>
         new(command.Value(chosen), chosen["model"], chosen["effort"], chosen["tools"]);
 
-    private IEnumerable<Option> Offered(string key, IEnumerable<ClaudeCodeModel> found)
+    private static IEnumerable<Option> Offered(Configuration configuration, string key, IEnumerable<ClaudeCodeModel> found)
     {
         List<ClaudeCodeModel> models = [.. found];
-        if (Configuration[key] is { } chosen && models.All(model => model.Value != chosen))
+        if (configuration[key] is { } chosen && models.All(model => model.Value != chosen))
         {
             models.Add(new ClaudeCodeModel(chosen));
         }
@@ -224,10 +221,10 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
         return models.Select(model => new Option(model.Value, model.Name ?? Named(model.Value)));
     }
 
-    private IEnumerable<Option> Offered(string key, IEnumerable<string> found, params string[] already)
+    private static IEnumerable<Option> Offered(Configuration configuration, string key, IEnumerable<string> found, params string[] already)
     {
         List<string> values = [.. found.Except(already)];
-        if (Configuration[key] is { } chosen && !values.Contains(chosen) && !already.Contains(chosen))
+        if (configuration[key] is { } chosen && !values.Contains(chosen) && !already.Contains(chosen))
         {
             values.Add(chosen);
         }

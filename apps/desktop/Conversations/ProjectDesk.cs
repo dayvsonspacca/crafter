@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
+using Crafter.Core.Settings;
 using Crafter.Desktop.Platform;
 
 namespace Crafter.Desktop.Conversations;
@@ -15,24 +16,26 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 
     private readonly Crew crew;
 
+    private readonly PreferenceBook preferences;
+
     private readonly IClipboard clipboard;
 
     private readonly TimeProvider time;
 
-    public ProjectDesk(Project project, IChatArchive archive, Crew crew, Func<Project, Task> edit, IClipboard clipboard, TimeProvider time)
+    public ProjectDesk(Project project, IChatArchive archive, Crew crew, PreferenceBook preferences, Func<Project, Task> edit, IClipboard clipboard, TimeProvider time)
     {
         Project = project;
         this.archive = archive;
         this.crew = crew;
+        this.preferences = preferences;
         this.clipboard = clipboard;
         this.time = time;
 
         foreach (var record in archive.Load(project))
         {
             var agent = crew.Find(record.Agent);
-            var session = agent.Begin(project, record.SessionId);
-            session.Adjust(record.Adjustments);
-            Add(new Chat(record.Id, agent.Id, record.Title, new Conversation(session, record.Turns)), agent);
+            var conversation = new Conversation(agent.Begin(project, record.SessionId), record.Turns, record.Adjustments);
+            Add(new Chat(record.Id, agent.Id, record.Title, conversation), agent);
         }
 
         Overview = new ProjectOverview(this, crew, edit, time);
@@ -182,7 +185,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 
     private ConversationScreen Add(Chat chat, IAgent agent, string? resumed = null)
     {
-        var screen = new ConversationScreen(chat, agent, Project.Name.Text, this, clipboard, time, resumed);
+        var screen = new ConversationScreen(chat, agent, preferences, Project.Name.Text, this, clipboard, time, resumed);
         screen.PropertyChanged += Follow;
         screen.Concluded += Keep;
         Chats.Add(screen);

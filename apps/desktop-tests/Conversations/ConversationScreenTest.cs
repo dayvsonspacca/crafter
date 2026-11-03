@@ -1,4 +1,6 @@
+using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Core.Settings;
 using Crafter.Desktop.Conversations;
 using Microsoft.Extensions.Time.Testing;
 
@@ -9,6 +11,8 @@ public sealed class ConversationScreenTest
     private readonly FakeTimeProvider time = new();
 
     private readonly ClipboardInMemory clipboard = new();
+
+    private readonly PreferenceBook preferences = new(new PreferencesInMemory(Preferences.Default("/home/hero")));
 
     [Fact]
     public async Task CountsTheSecondsWhileCrafting()
@@ -73,6 +77,18 @@ public sealed class ConversationScreenTest
         Assert.Equal(["just test"], clipboard.Copied);
     }
 
+    [Fact]
+    public async Task AsksWithThePreferencesOfTheMoment()
+    {
+        var session = new ScriptedSession([new Finished()]);
+        var screen = Screen(session);
+
+        preferences.Configure(new AgentId("stand-in"), Configuration.Empty.With("model", "opus"));
+        await Ask(screen, "oi");
+
+        Assert.Equal([Configuration.Empty.With("model", "opus")], session.Configurations);
+    }
+
     private static Task Ask(ConversationScreen screen, string prompt)
     {
         screen.Draft = prompt;
@@ -80,11 +96,11 @@ public sealed class ConversationScreenTest
         return screen.CraftCommand.ExecuteAsync(null);
     }
 
-    private ConversationScreen Screen(Crafter.Core.Agents.IAgentSession session)
+    private ConversationScreen Screen(IAgentSession session)
     {
         var agent = new StandInAgent(() => session);
         var chat = new Chat(ChatId.New(), agent.Id, ChatTitle.Untitled, new Conversation(session));
 
-        return new ConversationScreen(chat, agent, "crafter", new KeeperInMemory(), clipboard, time);
+        return new ConversationScreen(chat, agent, preferences, "crafter", new KeeperInMemory(), clipboard, time);
     }
 }

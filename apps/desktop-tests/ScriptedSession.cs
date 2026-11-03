@@ -8,16 +8,16 @@ internal sealed class ScriptedSession(IReadOnlyList<Reply> replies, bool hangs =
 {
     public string? SessionId => null;
 
-    public Configuration Adjustments { get; private set; } = Configuration.Empty;
-
-    public void Adjust(Configuration adjustments) => Adjustments = adjustments;
+    public List<Configuration> Configurations { get; } = [];
 
     public void Decide(string request, Decision decision)
     {
     }
 
-    public async IAsyncEnumerable<Reply> Answer(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
+    public async IAsyncEnumerable<Reply> Answer(Prompt prompt, Configuration configuration, [EnumeratorCancellation] CancellationToken stop = default)
     {
+        Configurations.Add(configuration);
+
         foreach (var reply in replies)
         {
             yield return reply;

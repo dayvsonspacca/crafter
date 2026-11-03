@@ -41,7 +41,7 @@ public static class Composition
             new ProjectNamer(picker),
             setup,
             new PreferencesScreen(preferences, picker, setup, new ApplicationThemeSwitcher()),
-            new DeskFactory(new JsonChatArchive(Path.Combine(Data, "chats")), crew, clipboard, time),
+            new DeskFactory(new JsonChatArchive(Path.Combine(Data, "chats")), crew, preferences, clipboard, time),
             clipboard);
 
         return new Workbench(WindowManager.Detect(), screen);

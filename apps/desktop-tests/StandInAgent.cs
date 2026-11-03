@@ -17,15 +17,11 @@ internal sealed class StandInAgent(Func<IAgentSession> sessions, Readiness? read
 
     public string Summary => "Stands in for a real agent.";
 
-    public IReadOnlyList<Setting> Settings => [];
-
-    public Configuration Configuration { get; private set; } = Configuration.Empty;
+    public IReadOnlyList<Setting> Settings(Configuration configuration) => [];
 
     public IReadOnlyList<Turn> Replays { get; init; } = [];
 
-    public void Configure(Configuration configuration) => Configuration = configuration;
-
-    public Task<Readiness> Check(CancellationToken stop = default) => Task.FromResult(readiness ?? new Ready("Ready", "1.0"));
+    public Task<Readiness> Check(Configuration configuration, CancellationToken stop = default) => Task.FromResult(readiness ?? new Ready("Ready", "1.0"));
 
     public IAgentSession Begin(Project project, string? resumeFrom = null) => sessions();
 

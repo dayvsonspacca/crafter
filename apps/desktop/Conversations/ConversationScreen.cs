@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Core.Settings;
 using Crafter.Desktop.Platform;
 
 namespace Crafter.Desktop.Conversations;
@@ -16,6 +17,8 @@ public sealed partial class ConversationScreen : ObservableObject
     private readonly Chat chat;
 
     private readonly IAgent agent;
+
+    private readonly PreferenceBook preferences;
 
     private readonly IChatKeeper keeper;
 
@@ -31,10 +34,11 @@ public sealed partial class ConversationScreen : ObservableObject
 
     private DateTimeOffset started;
 
-    public ConversationScreen(Chat chat, IAgent agent, string projectName, IChatKeeper keeper, IClipboard clipboard, TimeProvider time, string? resumed = null)
+    public ConversationScreen(Chat chat, IAgent agent, PreferenceBook preferences, string projectName, IChatKeeper keeper, IClipboard clipboard, TimeProvider time, string? resumed = null)
     {
         this.chat = chat;
         this.agent = agent;
+        this.preferences = preferences;
         this.keeper = keeper;
         this.clipboard = clipboard;
         this.time = time;
@@ -100,6 +104,8 @@ public sealed partial class ConversationScreen : ObservableObject
     public partial bool IsInView { get; set; }
 
     public string? SessionId => chat.SessionId;
+
+    private Configuration Preferred => preferences.Current.ConfigurationOf(agent.Id);
 
     public ChatRecord Record() => chat.Record();
 
@@ -184,7 +190,7 @@ public sealed partial class ConversationScreen : ObservableObject
         Tick();
         clock.Change(Second, Second);
 
-        var replies = chat.Ask(prompt, stop);
+        var replies = chat.Ask(prompt, Preferred, stop);
         OnPropertyChanged(nameof(Title));
 
         await foreach (var reply in replies)
@@ -204,7 +210,7 @@ public sealed partial class ConversationScreen : ObservableObject
     }
 
     private IReadOnlyList<ChatChooser> Choose() =>
-        [.. agent.Settings.OfType<Choice>().Select(choice => new ChatChooser(choice, agent.Configuration, chat.Adjustments, Adjust))];
+        [.. agent.Settings(Preferred).OfType<Choice>().Select(choice => new ChatChooser(choice, Preferred, chat.Adjustments, Adjust))];
 
     private void Adjust(string key, string? value)
     {

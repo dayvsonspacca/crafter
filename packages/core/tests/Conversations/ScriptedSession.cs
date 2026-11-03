@@ -10,17 +10,16 @@ internal sealed class ScriptedSession(params Reply[] replies) : IAgentSession
 
     public string? SessionId { get; set; }
 
-    public Configuration Adjustments { get; private set; } = Configuration.Empty;
-
-    public void Adjust(Configuration adjustments) => Adjustments = adjustments;
+    public List<Configuration> Configurations { get; } = [];
 
     public List<(string Request, Decision Decision)> Decisions { get; } = [];
 
     public void Decide(string request, Decision decision) => Decisions.Add((request, decision));
 
-    public async IAsyncEnumerable<Reply> Answer(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
+    public async IAsyncEnumerable<Reply> Answer(Prompt prompt, Configuration configuration, [EnumeratorCancellation] CancellationToken stop = default)
     {
         Heard.Add(prompt);
+        Configurations.Add(configuration);
 
         foreach (var reply in replies)
         {

@@ -14,8 +14,8 @@ public sealed class ChatTest
     {
         var chat = new Chat(ChatId.New(), Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession(new Finished())));
 
-        await chat.Ask(new Prompt("Cover Paces with tests"), Stop).ToListAsync(Stop);
-        await chat.Ask(new Prompt("And the bot too"), Stop).ToListAsync(Stop);
+        await chat.Ask(new Prompt("Cover Paces with tests"), Configuration.Empty, Stop).ToListAsync(Stop);
+        await chat.Ask(new Prompt("And the bot too"), Configuration.Empty, Stop).ToListAsync(Stop);
 
         Assert.Equal("Cover Paces with tests", chat.Title.Text);
     }
@@ -26,7 +26,7 @@ public sealed class ChatTest
         var history = new Turn[] { new Asked(new Prompt("oi")), new Answered("Olá", new Finished()) };
         var chat = new Chat(ChatId.New(), Claude, ChatTitle.Of("Greetings"), new Conversation(new ScriptedSession(new Finished()), history));
 
-        await chat.Ask(new Prompt("again"), Stop).ToListAsync(Stop);
+        await chat.Ask(new Prompt("again"), Configuration.Empty, Stop).ToListAsync(Stop);
 
         Assert.Equal("Greetings", chat.Title.Text);
     }
@@ -37,7 +37,7 @@ public sealed class ChatTest
         var id = ChatId.New();
         var chat = new Chat(id, Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession(new Wrote("Olá"), new Finished()) { SessionId = "s-1" }));
 
-        await chat.Ask(new Prompt("oi"), Stop).ToListAsync(Stop);
+        await chat.Ask(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
         var record = chat.Record();
 
         Assert.Equal(id, record.Id);

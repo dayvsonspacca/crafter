@@ -24,7 +24,7 @@ public sealed class ClaudeCodeTest
     {
         using var claude = new FakeClaude(Script("""echo '{"loggedIn":true,"authMethod":"claude.ai","subscriptionType":"team","email":"hero@example.com"}'"""));
 
-        Assert.Equal(new Ready("Ready", "Version 2.1.317 · claude.ai · team"), await new ClaudeCode(claude.Executable).Check(Stop));
+        Assert.Equal(new Ready("Ready", "Version 2.1.317 · claude.ai · team"), await new ClaudeCode(claude.Executable).Check(Configuration.Empty, Stop));
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public sealed class ClaudeCodeTest
     {
         using var claude = new FakeClaude(Script("echo 'not json'"));
 
-        Assert.Equal(new Ready("Ready", "Version 2.1.317"), await new ClaudeCode(claude.Executable).Check(Stop));
+        Assert.Equal(new Ready("Ready", "Version 2.1.317"), await new ClaudeCode(claude.Executable).Check(Configuration.Empty, Stop));
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public sealed class ClaudeCodeTest
     {
         using var claude = new FakeClaude(Script("echo '{\"loggedIn\":true}'"));
 
-        Assert.Equal(new Ready("Ready", "Version 2.1.317"), await new ClaudeCode(claude.Executable).Check(Stop));
+        Assert.Equal(new Ready("Ready", "Version 2.1.317"), await new ClaudeCode(claude.Executable).Check(Configuration.Empty, Stop));
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public sealed class ClaudeCodeTest
     {
         using var claude = new FakeClaude(Script("echo 'unknown command' >&2; exit 1"));
 
-        Assert.Equal(new Ready("Ready", "Version 2.1.317"), await new ClaudeCode(claude.Executable).Check(Stop));
+        Assert.Equal(new Ready("Ready", "Version 2.1.317"), await new ClaudeCode(claude.Executable).Check(Configuration.Empty, Stop));
     }
 
     [Fact]
@@ -56,13 +56,13 @@ public sealed class ClaudeCodeTest
     {
         using var claude = new FakeClaude(Script("""echo '{"loggedIn":false,"authMethod":"none"}'"""));
 
-        Assert.Equal(new Blocked("Signed out", "Sign in from a terminal.", "claude auth login"), await new ClaudeCode(claude.Executable).Check(Stop));
+        Assert.Equal(new Blocked("Signed out", "Sign in from a terminal.", "claude auth login"), await new ClaudeCode(claude.Executable).Check(Configuration.Empty, Stop));
     }
 
     [Fact]
     public async Task AsksToInstallWhenMissing()
     {
-        var readiness = await new ClaudeCode("/nonexistent/crafter-claude").Check(Stop);
+        var readiness = await new ClaudeCode("/nonexistent/crafter-claude").Check(Configuration.Empty, Stop);
 
         Assert.Equal(new Blocked("Not installed", "Install it from a terminal.", ClaudeCode.Install), readiness);
     }
@@ -72,7 +72,7 @@ public sealed class ClaudeCodeTest
     {
         using var claude = new FakeClaude("echo 'libc mismatch' >&2\nexit 2");
 
-        Assert.Equal(new Blocked("Not working", "libc mismatch", null), await new ClaudeCode(claude.Executable).Check(Stop));
+        Assert.Equal(new Blocked("Not working", "libc mismatch", null), await new ClaudeCode(claude.Executable).Check(Configuration.Empty, Stop));
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public sealed class ClaudeCodeTest
     {
         using var claude = new FakeClaude("echo '{\"type\":\"system\"}'");
 
-        Assert.Equal(new Blocked("Not working", "`claude --version` did not answer with a version.", null), await new ClaudeCode(claude.Executable).Check(Stop));
+        Assert.Equal(new Blocked("Not working", "`claude --version` did not answer with a version.", null), await new ClaudeCode(claude.Executable).Check(Configuration.Empty, Stop));
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public sealed class ClaudeCodeTest
     {
         using var claude = new FakeClaude("exit 2");
 
-        Assert.Equal(new Blocked("Not working", "`claude --version` exited with code 2.", null), await new ClaudeCode(claude.Executable).Check(Stop));
+        Assert.Equal(new Blocked("Not working", "`claude --version` exited with code 2.", null), await new ClaudeCode(claude.Executable).Check(Configuration.Empty, Stop));
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public sealed class ClaudeCodeTest
         using var claude = new FakeClaude($"read -r line\n{FakeClaude.Writes("$(pwd)")}\n{FakeClaude.Success}");
         var session = new ClaudeCode(claude.Executable).Begin(new Project(claude.Folder), resumeFrom: "s-0");
 
-        var replies = await session.Answer(new Crafter.Core.Conversations.Prompt("oi"), Stop).ToListAsync(Stop);
+        var replies = await session.Answer(new Crafter.Core.Conversations.Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
 
         Assert.Contains(new Crafter.Core.Conversations.Wrote(claude.Folder), replies);
         Assert.Equal("s-1", session.SessionId);
@@ -106,7 +106,7 @@ public sealed class ClaudeCodeTest
     [Fact]
     public void OffersModelEffortToolsAndExecutable()
     {
-        Assert.Equal(["model", "effort", "tools", "executable"], new ClaudeCode().Settings.Select(setting => setting.Key));
+        Assert.Equal(["model", "effort", "tools", "executable"], new ClaudeCode().Settings(Configuration.Empty).Select(setting => setting.Key));
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public sealed class ClaudeCodeTest
         File.WriteAllText(Path.Combine(claude.Folder, "introduction.json"), ClaudeCodeCapabilitiesTest.Introduction + "\n");
         var agent = new ClaudeCode(claude.Executable);
 
-        await agent.Check(Stop);
+        await agent.Check(Configuration.Empty, Stop);
 
         Assert.Equal(["Default", "Opus 5.5", "Sonnet 4.6", "Claude next"], Labels(agent, "model"));
         Assert.Equal(["Default", "Low", "Medium", "High", "Extra high", "Max"], Labels(agent, "effort"));
@@ -137,7 +137,7 @@ public sealed class ClaudeCodeTest
         File.WriteAllText(Path.Combine(claude.Folder, "help.txt"), ClaudeCodeCapabilitiesTest.Help);
         var agent = new ClaudeCode(claude.Executable);
 
-        await agent.Check(Stop);
+        await agent.Check(Configuration.Empty, Stop);
 
         Assert.Equal(["Default", "Fable", "Opus", "Sonnet"], Labels(agent, "model"));
     }
@@ -152,7 +152,7 @@ public sealed class ClaudeCodeTest
         File.WriteAllText(Path.Combine(claude.Folder, "help.txt"), ClaudeCodeCapabilitiesTest.Help);
         var agent = new ClaudeCode(claude.Executable);
 
-        await agent.Check(Stop);
+        await agent.Check(Configuration.Empty, Stop);
 
         Assert.Equal(["Default", "Fable", "Opus", "Sonnet"], Labels(agent, "model"));
     }
@@ -161,29 +161,27 @@ public sealed class ClaudeCodeTest
     public void KeepsOfferingAChoiceTheHelpNoLongerLists()
     {
         var agent = new ClaudeCode();
+        var chosen = Configuration.Empty.With("effort", "turbo-mode").With("tools", "edit").With("model", "claude-opus-4-1");
 
-        agent.Configure(Configuration.Empty.With("effort", "turbo-mode").With("tools", "edit").With("model", "claude-opus-4-1"));
-
-        Assert.Equal(["Default", "Turbo mode"], Labels(agent, "effort"));
-        Assert.Equal(["Default", "Claude opus 4 1"], Labels(agent, "model"));
-        Assert.Equal(["Edit files", "Chat only"], Labels(agent, "tools"));
+        Assert.Equal(["Default", "Turbo mode"], Labels(agent, "effort", chosen));
+        Assert.Equal(["Default", "Claude opus 4 1"], Labels(agent, "model", chosen));
+        Assert.Equal(["Edit files", "Chat only"], Labels(agent, "tools", chosen));
     }
 
     [Fact]
-    public async Task AnswersWithTheAdjustmentsOfTheChatOverThePreferences()
+    public async Task AnswersWithTheConfigurationItIsGiven()
     {
         using var claude = new FakeClaude($"read -r line\n{FakeClaude.Writes("$*")}\n{FakeClaude.Success}");
-        var agent = new ClaudeCode(claude.Executable);
-        agent.Configure(Configuration.Empty.With("model", "opus"));
-        var session = agent.Begin(new Project(claude.Folder));
+        var session = new ClaudeCode(claude.Executable).Begin(new Project(claude.Folder));
 
-        session.Adjust(Configuration.Empty.With("tools", ClaudeCodeOptions.Chats));
-        var replies = await session.Answer(new Crafter.Core.Conversations.Prompt("oi"), Stop).ToListAsync(Stop);
+        var replies = await session.Answer(
+            new Crafter.Core.Conversations.Prompt("oi"),
+            Configuration.Empty.With("model", "opus").With("tools", ClaudeCodeOptions.Chats),
+            Stop).ToListAsync(Stop);
 
         var said = Assert.Single(replies.OfType<Crafter.Core.Conversations.Wrote>()).Fragment;
         Assert.Contains("--model opus", said);
         Assert.Contains("--tools", said);
-        Assert.Equal("chat", session.Adjustments["tools"]);
     }
 
     [Fact]
@@ -192,28 +190,28 @@ public sealed class ClaudeCodeTest
         using var claude = new FakeClaude(Script("""echo '{"loggedIn":true}'"""));
         var agent = new ClaudeCode("/nonexistent/crafter-claude");
 
-        agent.Configure(Configuration.Empty.With("executable", claude.Executable));
-
-        Assert.IsType<Ready>(await agent.Check(Stop));
+        Assert.IsType<Ready>(await agent.Check(Configuration.Empty.With("executable", claude.Executable), Stop));
     }
 
     [Fact]
-    public async Task AnswersWithTheConfigurationOfTheMomentItIsAsked()
+    public async Task AnswersEachPromptWithItsOwnConfiguration()
     {
         using var claude = new FakeClaude($"read -r line\n{FakeClaude.Writes("$*")}\n{FakeClaude.Success}");
-        var agent = new ClaudeCode(claude.Executable);
-        var session = agent.Begin(new Project(claude.Folder));
+        var session = new ClaudeCode(claude.Executable).Begin(new Project(claude.Folder));
 
-        agent.Configure(Configuration.Empty.With("model", "opus").With("tools", "plan"));
-        var replies = await session.Answer(new Crafter.Core.Conversations.Prompt("oi"), Stop).ToListAsync(Stop);
+        await session.Answer(new Crafter.Core.Conversations.Prompt("oi"), Configuration.Empty.With("model", "sonnet"), Stop).ToListAsync(Stop);
+        var replies = await session.Answer(
+            new Crafter.Core.Conversations.Prompt("de novo"),
+            Configuration.Empty.With("model", "opus").With("tools", "plan"),
+            Stop).ToListAsync(Stop);
 
         var said = Assert.Single(replies.OfType<Crafter.Core.Conversations.Wrote>()).Fragment;
         Assert.Contains("--model opus", said);
         Assert.Contains("--permission-mode plan", said);
     }
 
-    private static IEnumerable<string> Labels(ClaudeCode agent, string key) =>
-        agent.Settings.OfType<Choice>().Single(choice => choice.Key == key).Options.Select(option => option.Label);
+    private static IEnumerable<string> Labels(ClaudeCode agent, string key, Configuration? configuration = null) =>
+        agent.Settings(configuration ?? Configuration.Empty).OfType<Choice>().Single(choice => choice.Key == key).Options.Select(option => option.Label);
 
     private static string Script(string status) =>
         $"""

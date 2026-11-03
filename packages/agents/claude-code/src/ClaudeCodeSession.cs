@@ -26,11 +26,7 @@ public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuratio
     {
     }
 
-    public Configuration Adjustments { get; private set; } = Configuration.Empty;
-
     public string? SessionId => sessionId;
-
-    public void Adjust(Configuration adjustments) => Adjustments = adjustments;
 
     public void Decide(string request, Decision decision)
     {
@@ -40,9 +36,9 @@ public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuratio
         }
     }
 
-    public async IAsyncEnumerable<Reply> Answer(Prompt prompt, [EnumeratorCancellation] CancellationToken stop = default)
+    public async IAsyncEnumerable<Reply> Answer(Prompt prompt, Configuration configuration, [EnumeratorCancellation] CancellationToken stop = default)
     {
-        var now = options(Adjustments);
+        var now = options(configuration);
         var process = ClaudeCodeProcess.Start(now.Executable, workingDirectory, [.. now.Arguments(sessionId), .. Granted()]);
         if (process is null)
         {

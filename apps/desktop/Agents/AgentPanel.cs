@@ -22,8 +22,7 @@ public sealed partial class AgentPanel : ObservableObject
         this.preferences = preferences;
         this.clipboard = clipboard;
         configuration = preferences.Current.ConfigurationOf(agent.Id);
-        agent.Configure(configuration);
-        Settings = [.. agent.Settings.Select(Present)];
+        Settings = [.. agent.Settings(configuration).Select(Present)];
     }
 
     public AgentId Id => agent.Id;
@@ -81,8 +80,8 @@ public sealed partial class AgentPanel : ObservableObject
     private async Task Check()
     {
         IsChecking = true;
-        Readiness = await agent.Check();
-        Settings = [.. agent.Settings.Select(Present)];
+        Readiness = await agent.Check(configuration);
+        Settings = [.. agent.Settings(configuration).Select(Present)];
         IsChecking = false;
     }
 
@@ -99,7 +98,6 @@ public sealed partial class AgentPanel : ObservableObject
     private void Change(string key, string? value)
     {
         configuration = configuration.With(key, value);
-        agent.Configure(configuration);
         preferences.Configure(agent.Id, configuration);
     }
 }
