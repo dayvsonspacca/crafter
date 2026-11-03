@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Crafter.Desktop.WindowManagers;
 
 namespace Crafter.Desktop;
 
@@ -10,9 +11,9 @@ public sealed partial class CrafterApplication : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
-            desktop.MainWindow = new Workbench();
+            lifetime.MainWindow = new Workbench(WindowManager.Detect());
         }
 
         base.OnFrameworkInitializationCompleted();

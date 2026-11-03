@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Crafter.Desktop.TitleBar"
+             Height="35">
+  <UserControl.Styles>
+    <Style Selector="Button.control">
+      <Setter Property="Width" Value="46" />
+      <Setter Property="Height" Value="35" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.control Path">
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="StrokeThickness" Value="1" />
+      <Setter Property="Stroke" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Button.control:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.control:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Button.control:pointerover Path, Button.control:pressed Path">
+      <Setter Property="Stroke" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.close:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.close:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Button.close:pointerover Path, Button.close:pressed Path">
+      <Setter Property="Stroke" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border Background="{DynamicResource SurfaceBrush}"
+          BorderBrush="{DynamicResource BorderBrush}"
+          BorderThickness="0,0,0,1"
+          PointerPressed="Drag">
+    <Grid ColumnDefinitions="*,Auto">
+      <Image Source="/Assets/crafter.png"
+             Width="16" Height="16"
+             Margin="12,0,0,0"
+             HorizontalAlignment="Left"
+             VerticalAlignment="Center" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal">
+        <Button x:Name="MinimizeButton" Classes="control" AutomationProperties.Name="Minimize" Click="Minimize">
+          <Path Data="M3.5,8.5 L12.5,8.5" />
+        </Button>
+        <Button x:Name="MaximizeButton" Classes="control" AutomationProperties.Name="Maximize" Click="ToggleMaximize">
+          <Panel>
+            <Path x:Name="MaximizeIcon" Data="M3.5,3.5 H12.5 V12.5 H3.5 Z" />
+            <Path x:Name="RestoreIcon" IsVisible="False" Data="M3.5,5.5 H10.5 V12.5 H3.5 Z M5.5,5.5 V3.5 H12.5 V10.5 H10.5" />
+          </Panel>
+        </Button>
+        <Button Classes="control close" AutomationProperties.Name="Close" Click="Close">
+          <Path Data="M4,4 L12,12 M12,4 L4,12" />
+        </Button>
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

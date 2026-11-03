@@ -1,11 +1,16 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+        xmlns:local="using:Crafter.Desktop"
         x:Class="Crafter.Desktop.Workbench"
         Title="crafter"
         Icon="/Assets/crafter.png"
         Width="900" Height="640"
+        WindowDecorations="None"
         Background="{DynamicResource BackgroundBrush}"
         Foreground="{DynamicResource ForegroundBrush}">
-  <md:MarkdownScrollViewer Source="avares://crafter/Assets/README.md" Margin="24" />
+  <DockPanel>
+    <local:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
+    <md:MarkdownScrollViewer Source="avares://crafter/Assets/README.md" Margin="24" />
+  </DockPanel>
 </Window>
