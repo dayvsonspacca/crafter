@@ -520,11 +520,11 @@
                                 </Grid>
                               </Border>
                               <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                <SelectableTextBlock Margin="14,12"
-                                                     FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                                     FontSize="12.5"
-                                                     LineHeight="20"
-                                                     Text="{Binding Text}" />
+                                <conversations:HighlightedCode Margin="14,12"
+                                                               FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                                               FontSize="12.5"
+                                                               LineHeight="20"
+                                                               Tokens="{Binding Tokens}" />
                               </ScrollViewer>
                             </DockPanel>
                           </Border>

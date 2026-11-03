@@ -24,5 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="../../packages/core/src/Crafter.Core.csproj" />
     <ProjectReference Include="../../packages/agents/claude-code/src/Crafter.Agents.ClaudeCode.csproj" />
+    <ProjectReference Include="../../packages/highlight/src/Crafter.Highlight.csproj" />
   </ItemGroup>
 </Project>
