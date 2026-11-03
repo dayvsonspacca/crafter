@@ -82,6 +82,36 @@
           BorderThickness="0,0,0,1">
     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
       <StackPanel Orientation="Horizontal">
+        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+          <Button Classes="tab"
+                  Classes.selected="{Binding ShowsOverview}"
+                  Width="44"
+                  Padding="0"
+                  HorizontalContentAlignment="Center"
+                  Command="{Binding ShowOverviewCommand}"
+                  ToolTip.Tip="{Binding Overview.Name}"
+                  AutomationProperties.Name="Overview">
+            <Border Width="18"
+                    Height="18"
+                    CornerRadius="4"
+                    ClipToBounds="True"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    Background="{DynamicResource SurfaceBrush}">
+              <Panel>
+                <Image Source="{Binding Overview.Icon}" Stretch="UniformToFill" IsVisible="{Binding Overview.HasIcon}" />
+                <TextBlock HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                           FontSize="10"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource RemovedBrush}"
+                           Text="{Binding Overview.Letter}"
+                           IsVisible="{Binding !Overview.HasIcon}" />
+              </Panel>
+            </Border>
+          </Button>
+        </Border>
         <ItemsControl ItemsSource="{Binding Chats}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>

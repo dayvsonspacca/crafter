@@ -22,7 +22,14 @@
         <Panel>
           <DockPanel IsVisible="{Binding ShowsConversation}">
             <conversations:ChatTabs DockPanel.Dock="Top" DataContext="{Binding Desk}" />
-            <conversations:ConversationView DataContext="{Binding Desk.Selected}" />
+            <Panel>
+              <Panel IsVisible="{Binding !Desk.ShowsOverview}">
+                <conversations:ConversationView DataContext="{Binding Desk.Selected}" />
+              </Panel>
+              <Panel IsVisible="{Binding Desk.ShowsOverview}">
+                <conversations:ProjectOverviewView DataContext="{Binding Desk.Overview}" />
+              </Panel>
+            </Panel>
           </DockPanel>
 
           <TextBlock IsVisible="{Binding ShowsHint}"

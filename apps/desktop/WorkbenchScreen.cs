@@ -38,6 +38,7 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         this.crew = crew;
         this.copy = copy;
         Picker = new FolderPicker(preferences, bookshelf);
+        Namer = new ProjectNamer(Picker);
         Setup = new SetupScreen(crew, preferences, copy);
         Preferences = new PreferencesScreen(preferences, Picker, Setup);
         Preferences.PropertyChanged += Follow;
@@ -58,7 +59,7 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
 
     public FolderPicker Picker { get; }
 
-    public ProjectNamer Namer { get; } = new();
+    public ProjectNamer Namer { get; }
 
     public PreferencesScreen Preferences { get; }
 
@@ -118,6 +119,8 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         Preferences.IsOpen = false;
         if (project == Current)
         {
+            Desk?.ShowOverview();
+
             return;
         }
 
@@ -129,13 +132,14 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
         bookshelf.Open(project);
         if (!desks.TryGetValue(project, out var desk))
         {
-            desk = new ProjectDesk(project, archive, crew);
+            desk = new ProjectDesk(project, archive, crew, Edit);
             desks[project] = desk;
         }
 
         Current = project;
         Desk = desk;
         desk.IsShown = true;
+        desk.ShowOverview();
         Restock();
     }
 
@@ -172,22 +176,22 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
 
     public Task CopyPath(Project project) => copy(project.Folder);
 
-    public async Task Rename(Project project)
+    public async Task Edit(Project project)
     {
-        if (await Namer.Rename(project) is not Named named)
+        if (await Namer.Edit(project) is not Named named)
         {
             return;
         }
 
-        var renamed = bookshelf.Rename(project, named.Name);
-        if (desks.TryGetValue(renamed, out var desk))
+        var edited = bookshelf.Edit(project, named.Name, named.Icon);
+        if (desks.TryGetValue(edited, out var desk))
         {
-            desk.Rename(renamed);
+            desk.Describe(edited);
         }
 
-        if (renamed == Current)
+        if (edited == Current)
         {
-            Current = renamed;
+            Current = edited;
         }
 
         Restock();
@@ -222,7 +226,7 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
     }
 
     [RelayCommand]
-    private Task RenameCurrent() => Current is { } project ? Rename(project) : Task.CompletedTask;
+    private Task EditCurrent() => Current is { } project ? Edit(project) : Task.CompletedTask;
 
     [RelayCommand]
     private void ToggleSidebar() => IsSidebarVisible = !IsSidebarVisible;

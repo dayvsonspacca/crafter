@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Projects;
@@ -13,9 +14,15 @@ public sealed partial class ShelfItem(Project project, Shortcut? shortcut, IShel
 
     public string Name => Project.Name.Text;
 
+    public Bitmap? Icon { get; } = ProjectIcon.Of(project);
+
+    public bool HasIcon => Icon is not null;
+
+    public string Letter => ProjectIcon.Letter(Project);
+
     public string Keys { get; } = shortcut?.ToString() ?? string.Empty;
 
-    public bool HasChats => Desk is not null;
+    public bool HasChats => Desk?.Count > 0;
 
     public bool IsCrafting => Desk?.IsCrafting ?? false;
 
@@ -48,7 +55,7 @@ public sealed partial class ShelfItem(Project project, Shortcut? shortcut, IShel
     private void Open() => keeper.Open(Project);
 
     [RelayCommand]
-    private Task Rename() => keeper.Rename(Project);
+    private Task Edit() => keeper.Edit(Project);
 
     [RelayCommand]
     private void Close() => keeper.Close();

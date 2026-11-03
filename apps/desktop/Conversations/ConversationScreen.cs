@@ -56,6 +56,8 @@ public sealed partial class ConversationScreen : ObservableObject
     [ObservableProperty]
     public partial bool IsInView { get; set; }
 
+    public string? SessionId => chat.SessionId;
+
     public ChatRecord Record() => chat.Record();
 
     public void Leave()

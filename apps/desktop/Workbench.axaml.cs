@@ -80,7 +80,7 @@ public sealed partial class Workbench : Window
     {
         shortcuts.On(ProjectShortcuts.Add, () => screen.AddCommand.Execute(null));
         shortcuts.On(ProjectShortcuts.Close, () => screen.CloseCommand.Execute(null));
-        shortcuts.On(ProjectShortcuts.Rename, () => screen.RenameCurrentCommand.Execute(null));
+        shortcuts.On(ProjectShortcuts.Edit, () => screen.EditCurrentCommand.Execute(null));
         shortcuts.On(WorkbenchShortcuts.ToggleSidebar, () => screen.ToggleSidebarCommand.Execute(null));
         shortcuts.On(WorkbenchShortcuts.TogglePreferences, () => screen.TogglePreferencesCommand.Execute(null));
         shortcuts.On(ChatShortcuts.New, () => screen.NewChatCommand.Execute(null));

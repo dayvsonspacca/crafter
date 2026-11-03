@@ -6,7 +6,7 @@ public interface IShelfKeeper
 {
     void Open(Project project);
 
-    Task Rename(Project project);
+    Task Edit(Project project);
 
     void Close();
 

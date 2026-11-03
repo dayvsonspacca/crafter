@@ -23,6 +23,8 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
 
     private IReadOnlyList<string> found = [];
 
+    private bool images;
+
     public FolderPicker(IPreferencesStore store, Bookshelf bookshelf)
     {
         this.store = store;
@@ -53,29 +55,19 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
     [ObservableProperty]
     public partial bool IsOpen { get; set; }
 
-    public Task<string?> Pick(string title, string start)
-    {
-        choosing?.TrySetResult(null);
-        choosing = new TaskCompletionSource<string?>();
-        preferences = store.Load();
+    public Task<string?> Pick(string title, string start) => Open(title, start, forImages: false);
 
-        Title = title;
-        Go(Directory.Exists(start) ? start : preferences.ProjectsRoot);
-        IsOpen = true;
-        _ = Find();
-
-        return choosing.Task;
-    }
+    public Task<string?> PickImage(string title, string start) => Open(title, start, forImages: true);
 
     public void Move(int step)
     {
-        List<FolderChoice> choices = [.. Entries.OfType<FolderChoice>()];
+        List<PickerEntry> choices = [.. Entries.Where(entry => entry is not PickerHeading)];
         if (choices.Count == 0)
         {
             return;
         }
 
-        var at = Selected is FolderChoice selected ? choices.IndexOf(selected) : -1;
+        var at = Selected is { } selected ? choices.IndexOf(selected) : -1;
         Selected = at < 0
             ? choices[step > 0 ? 0 : choices.Count - 1]
             : choices[(at + step + choices.Count) % choices.Count];
@@ -97,7 +89,24 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
         }
     }
 
-    public void Choose() => Finish(Selected is FolderChoice choice ? choice.Folder : Location);
+    public void Choose()
+    {
+        switch (Selected)
+        {
+            case ImageChoice image:
+                Finish(image.File);
+                break;
+            case FolderChoice choice when images:
+                Go(choice.Folder);
+                break;
+            case FolderChoice choice:
+                Finish(choice.Folder);
+                break;
+            case null when !images:
+                Finish(Location);
+                break;
+        }
+    }
 
     public void Cancel() => Finish(null);
 
@@ -124,6 +133,25 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
         }
 
         Restock();
+    }
+
+    private Task<string?> Open(string title, string start, bool forImages)
+    {
+        choosing?.TrySetResult(null);
+        choosing = new TaskCompletionSource<string?>();
+        preferences = store.Load();
+        images = forImages;
+        found = [];
+
+        Title = title;
+        Go(Directory.Exists(start) ? start : preferences.ProjectsRoot);
+        IsOpen = true;
+        if (!images)
+        {
+            _ = Find();
+        }
+
+        return choosing.Task;
     }
 
     private void Go(string folder)
@@ -187,6 +215,14 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
             here.ForEach(Entries.Add);
         }
 
+        List<ImageChoice> pictures = images ? [.. Pictures(wanted)] : [];
+
+        if (pictures.Count > 0)
+        {
+            Entries.Add(new PickerHeading("IMAGES"));
+            pictures.ForEach(Entries.Add);
+        }
+
         List<FolderChoice> repositories = [.. found
             .Select(folder => Found(folder, wanted, shelved))
             .OfType<FolderChoice>()
@@ -198,7 +234,29 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
             repositories.ForEach(Entries.Add);
         }
 
-        Selected = Entries.OfType<FolderChoice>().FirstOrDefault();
+        Selected = (PickerEntry?)pictures.FirstOrDefault() ?? Entries.OfType<FolderChoice>().FirstOrDefault();
+    }
+
+    private IEnumerable<ImageChoice> Pictures(string wanted)
+    {
+        IEnumerable<string> files;
+        try
+        {
+            files = [.. Directory.EnumerateFiles(Location).Where(file => ImageChoice.Formats.Contains(Path.GetExtension(file)))];
+        }
+        catch (Exception unreadable) when (unreadable is IOException or UnauthorizedAccessException)
+        {
+            yield break;
+        }
+
+        foreach (var file in files.Order(StringComparer.OrdinalIgnoreCase))
+        {
+            var name = Path.GetFileName(file);
+            if (!name.StartsWith('.') && FuzzyMatch.Hits(name, wanted) is { } hits)
+            {
+                yield return new ImageChoice(file, Piece.Split(name, hits));
+            }
+        }
     }
 
     private static FolderChoice? Found(string folder, string wanted, HashSet<string> shelved)

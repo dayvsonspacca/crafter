@@ -88,6 +88,34 @@
           <TextBlock Classes="about" Text="How crafter shows this project." />
           <TextBox x:Name="NameBox" FontSize="14" Text="{Binding Name}" AutomationProperties.Name="Name" />
         </StackPanel>
+
+        <StackPanel Spacing="8" IsVisible="{Binding !IsAdding}">
+          <TextBlock FontSize="14" FontWeight="SemiBold" Text="Project icon" />
+          <TextBlock Classes="about" Text="Any image. crafter keeps a copy in the project." />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Border Width="44"
+                    Height="44"
+                    CornerRadius="10"
+                    ClipToBounds="True"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    Background="{DynamicResource SurfaceBrush}">
+              <Panel>
+                <Image Source="{Binding Preview}" Stretch="UniformToFill" IsVisible="{Binding HasPreview}" />
+                <TextBlock HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource RemovedBrush}"
+                           Text="{Binding Letter}"
+                           IsVisible="{Binding !HasPreview}" />
+              </Panel>
+            </Border>
+            <Button Classes="ghost" VerticalAlignment="Center" Content="Choose…" Command="{Binding ChooseIconCommand}" />
+            <Button Classes="ghost" VerticalAlignment="Center" Content="Remove" Command="{Binding RemoveIconCommand}" IsVisible="{Binding HasPreview}" />
+          </StackPanel>
+        </StackPanel>
       </StackPanel>
     </DockPanel>
   </local:Modal>

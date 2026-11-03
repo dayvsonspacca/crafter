@@ -14,7 +14,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 
     private readonly Crew crew;
 
-    public ProjectDesk(Project project, IChatArchive archive, Crew crew)
+    public ProjectDesk(Project project, IChatArchive archive, Crew crew, Func<Project, Task> edit)
     {
         Project = project;
         this.archive = archive;
@@ -26,17 +26,14 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
             Add(new Chat(record.Id, agent.Id, record.Title, new Conversation(agent.Begin(project, record.SessionId), record.Turns)), agent);
         }
 
-        if (Chats.Count == 0)
-        {
-            NewChat();
-        }
-        else
-        {
-            Selected = Chats[0];
-        }
+        Overview = new ProjectOverview(this, crew, edit);
     }
 
     public Project Project { get; private set; }
+
+    public ProjectOverview Overview { get; }
+
+    public bool ShowsOverview => Selected is null;
 
     public ObservableCollection<ConversationScreen> Chats { get; } = [];
 
@@ -47,6 +44,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
     public bool HasUnread => Chats.Any(chat => chat.State == ChatState.Unread);
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsOverview))]
     public partial ConversationScreen? Selected { get; set; }
 
     [ObservableProperty]
@@ -60,14 +58,36 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         Save();
     }
 
+    [RelayCommand]
+    public void ShowOverview()
+    {
+        Selected = null;
+        _ = Overview.Refresh();
+    }
+
+    public async Task Resume(IAgent agent, PastChat past)
+    {
+        if (Chats.FirstOrDefault(chat => chat.SessionId == past.SessionId) is { } open)
+        {
+            Selected = open;
+
+            return;
+        }
+
+        var turns = agent is IKeepsHistory history ? await history.Replay(Project, past.SessionId) : [];
+        Selected = Add(new Chat(ChatId.New(), agent.Id, past.Title, new Conversation(agent.Begin(Project, past.SessionId), turns)), agent);
+        Save();
+    }
+
     public void Select(ConversationScreen chat) => Selected = chat;
 
-    public void Rename(Project renamed)
+    public void Describe(Project described)
     {
-        Project = renamed;
+        Project = described;
+        Overview.Describe(described);
         foreach (var chat in Chats)
         {
-            chat.ProjectName = renamed.Name.Text;
+            chat.ProjectName = described.Name.Text;
         }
     }
 
@@ -84,20 +104,17 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         chat.Concluded -= Keep;
         Chats.RemoveAt(place);
 
-        if (Chats.Count == 0)
+        if (Selected == chat)
         {
-            NewChat();
-        }
-        else
-        {
-            if (Selected == chat)
-            {
-                Selected = Chats[Math.Min(place, Chats.Count - 1)];
-            }
-
-            Save();
+            Selected = Chats.Count > 0 ? Chats[Math.Min(place, Chats.Count - 1)] : null;
         }
 
+        if (Selected is null)
+        {
+            _ = Overview.Refresh();
+        }
+
+        Save();
         Notify();
     }
 
@@ -111,12 +128,12 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 
     public void Next(int step)
     {
-        if (Chats.Count < 2 || Selected is null)
+        if (Chats.Count == 0)
         {
             return;
         }
 
-        var place = Chats.IndexOf(Selected);
+        var place = Selected is null ? (step > 0 ? -1 : Chats.Count) : Chats.IndexOf(Selected);
         Selected = Chats[(place + step + Chats.Count) % Chats.Count];
     }
 

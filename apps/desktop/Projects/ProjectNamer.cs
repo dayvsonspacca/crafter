@@ -1,16 +1,25 @@
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Folders;
 using Crafter.Core.Projects;
+using Crafter.Desktop.Folders;
 
 namespace Crafter.Desktop.Projects;
 
 public sealed partial class ProjectNamer : ObservableObject
 {
+    private readonly IFolderPicker images;
+
     private TaskCompletionSource<Naming>? naming;
 
-    public ProjectNamer()
+    private string home = string.Empty;
+
+    private IconChange icon = new SameIcon();
+
+    public ProjectNamer(IFolderPicker images)
     {
+        this.images = images;
         Title = string.Empty;
         Folder = string.Empty;
         Name = string.Empty;
@@ -43,18 +52,34 @@ public sealed partial class ProjectNamer : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(FinishCommand))]
     public partial string Name { get; set; }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPreview))]
+    public partial Bitmap? Preview { get; set; }
+
+    public bool HasPreview => Preview is not null;
+
+    public string Letter => Name.Trim() is { Length: > 0 } name ? name[..1].ToUpperInvariant() : string.Empty;
+
     public Task<Naming> Add(string folder, ProjectName suggested)
     {
         Folder = ProjectName.Of(folder).Text;
         IsRepository = FolderListing.IsRepository(folder);
+        home = folder;
+        Show(new SameIcon(), null);
 
         return Ask("Add Project", adding: true, suggested, "Add", "Back");
     }
 
-    public Task<Naming> Rename(Project project) => Ask("Rename Project", adding: false, project.Name, "Rename", "Cancel");
+    public Task<Naming> Edit(Project project)
+    {
+        home = project.Folder;
+        Show(new SameIcon(), ProjectIcon.Of(project));
+
+        return Ask("Edit Project", adding: false, project.Name, "Save", "Cancel");
+    }
 
     [RelayCommand(CanExecute = nameof(CanFinish))]
-    public void Finish() => End(new Named(new ProjectName(Name)));
+    public void Finish() => End(new Named(new ProjectName(Name), icon));
 
     [RelayCommand]
     public void Back() => End(IsAdding ? new WentBack() : new Dismissed());
@@ -62,6 +87,26 @@ public sealed partial class ProjectNamer : ObservableObject
     public void Dismiss() => End(new Dismissed());
 
     private bool CanFinish() => Name.Trim().Length > 0;
+
+    partial void OnNameChanged(string value) => OnPropertyChanged(nameof(Letter));
+
+    [RelayCommand]
+    private async Task ChooseIcon()
+    {
+        if (await images.PickImage("Choose an icon", home) is { } file && ProjectIcon.Load(file) is { } preview)
+        {
+            Show(new NewIcon(file), preview);
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveIcon() => Show(new NoIcon(), null);
+
+    private void Show(IconChange change, Bitmap? preview)
+    {
+        icon = change;
+        Preview = preview;
+    }
 
     private Task<Naming> Ask(string title, bool adding, ProjectName suggested, string confirm, string retreat)
     {

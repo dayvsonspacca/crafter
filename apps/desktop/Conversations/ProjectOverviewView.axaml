@@ -1,0 +1,153 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conversations="using:Crafter.Desktop.Conversations"
+             x:Class="Crafter.Desktop.Conversations.ProjectOverviewView"
+             x:DataType="conversations:ProjectOverview">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.kicker">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.mono">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+
+    <Style Selector="Button.primary, Button.ghost">
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
+    <Style Selector="Button.ghost">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+
+    <Style Selector="Button.recent">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="12,10" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style Selector="Button.recent:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.recent:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Border.chip">
+      <Setter Property="Padding" Value="8,1" />
+      <Setter Property="CornerRadius" Value="99" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.chip.open">
+      <Setter Property="BorderBrush" Value="#66C99A5B" />
+    </Style>
+    <Style Selector="Border.chip.open TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
+    </Style>
+    <Style Selector="Ellipse.pulse">
+      <Style.Animations>
+        <Animation Duration="0:0:1.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="1" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Opacity" Value="0.35" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer>
+    <StackPanel MaxWidth="760" Margin="24,56,24,32" Spacing="36">
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="18">
+        <Border Width="64"
+                Height="64"
+                CornerRadius="14"
+                ClipToBounds="True"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource BorderBrush}"
+                Background="{DynamicResource SurfaceBrush}">
+          <Panel>
+            <Image Source="{Binding Icon}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}" />
+            <TextBlock HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                       FontSize="26"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource RemovedBrush}"
+                       Text="{Binding Letter}"
+                       IsVisible="{Binding !HasIcon}" />
+          </Panel>
+        </Border>
+        <TextBlock Grid.Column="1"
+                   VerticalAlignment="Center"
+                   FontSize="28"
+                   FontWeight="Medium"
+                   TextTrimming="CharacterEllipsis"
+                   Text="{Binding Name}" />
+        <Button Grid.Column="2" Classes="ghost" Content="Edit" Command="{Binding EditCommand}" />
+        <Button Grid.Column="3" Classes="primary" Content="New chat" Command="{Binding NewChatCommand}" />
+      </Grid>
+
+      <StackPanel Spacing="6">
+        <TextBlock Classes="kicker" Margin="12,0,12,6" Text="RECENT CHATS" />
+        <ItemsControl ItemsSource="{Binding Recent}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="conversations:RecentChat">
+              <Button Classes="recent"
+                      Command="{Binding $parent[UserControl].((conversations:ProjectOverview)DataContext).ResumeCommand}"
+                      CommandParameter="{Binding}"
+                      AutomationProperties.Name="{Binding Title}">
+                <Grid ColumnDefinitions="10,*,Auto,Auto" ColumnSpacing="12">
+                  <Panel Width="7" Height="7" VerticalAlignment="Center">
+                    <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsCrafting}" />
+                    <Ellipse Fill="{DynamicResource AccentSecondaryBrush}" IsVisible="{Binding IsUnread}" />
+                    <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
+                  </Panel>
+                  <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
+                  <Border Grid.Column="2" Classes="chip" Classes.open="{Binding IsOpen}">
+                    <TextBlock Classes="mono" FontSize="10.5" Text="{Binding Tag}" />
+                  </Border>
+                  <TextBlock Grid.Column="3" Classes="mono" MinWidth="64" TextAlignment="Right" Text="{Binding When}" />
+                </Grid>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Margin="12,4"
+                   FontSize="13"
+                   Foreground="{DynamicResource ForegroundMutedBrush}"
+                   Text="No chats yet."
+                   IsVisible="{Binding !HasRecent}" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

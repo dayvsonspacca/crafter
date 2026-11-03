@@ -68,15 +68,6 @@
     <Style Selector="Button.project.current TextBlock.name">
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
-    <Style Selector="Button.project Button.more">
-      <Setter Property="IsVisible" Value="False" />
-    </Style>
-    <Style Selector="Button.project:pointerover Button.more">
-      <Setter Property="IsVisible" Value="True" />
-    </Style>
-    <Style Selector="Button.project:pointerover StackPanel.activity">
-      <Setter Property="IsVisible" Value="False" />
-    </Style>
     <Style Selector="TextBlock.keys.unread">
       <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
     </Style>
@@ -94,19 +85,6 @@
           </KeyFrame>
         </Animation>
       </Style.Animations>
-    </Style>
-
-    <Style Selector="Button.more">
-      <Setter Property="Width" Value="22" />
-      <Setter Property="Height" Value="22" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="CornerRadius" Value="4" />
-      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
-      <Setter Property="HorizontalContentAlignment" Value="Center" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>
-    <Style Selector="Button.more /template/ ContentPresenter#PART_ContentPresenter, Button.more:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
     </Style>
 
     <Style Selector="Button.foot">
@@ -180,10 +158,10 @@
                         AutomationProperties.Name="{Binding Name}">
                   <Button.ContextFlyout>
                     <MenuFlyout>
-                      <MenuItem Command="{Binding RenameCommand}">
+                      <MenuItem Command="{Binding EditCommand}">
                         <MenuItem.Header>
                           <Grid ColumnDefinitions="*,Auto" MinWidth="200">
-                            <TextBlock Text="Rename…" VerticalAlignment="Center" />
+                            <TextBlock Text="Edit Project…" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="1" Margin="24,0,0,0" FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace" FontSize="11" Foreground="{DynamicResource ForegroundMutedBrush}" VerticalAlignment="Center" Text="F2" IsVisible="{Binding IsCurrent}" />
                           </Grid>
                         </MenuItem.Header>
@@ -209,33 +187,42 @@
                       <MenuItem Classes="danger" Header="Remove from Projects" Command="{Binding RemoveCommand}" />
                     </MenuFlyout>
                   </Button.ContextFlyout>
-                  <Grid ColumnDefinitions="10,*,Auto" ColumnSpacing="8">
-                    <Ellipse Width="6"
-                             Height="6"
-                             Fill="{DynamicResource AccentBrush}"
-                             VerticalAlignment="Center"
-                             IsVisible="{Binding IsCurrent}" />
+                  <Grid ColumnDefinitions="18,*,Auto" ColumnSpacing="8">
+                    <Border Width="18"
+                            Height="18"
+                            CornerRadius="4"
+                            ClipToBounds="True"
+                            VerticalAlignment="Center"
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Background="{DynamicResource SurfaceBrush}">
+                      <Panel>
+                        <Image Source="{Binding Icon}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}" />
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource RemovedBrush}"
+                                   Text="{Binding Letter}"
+                                   IsVisible="{Binding !HasIcon}" />
+                      </Panel>
+                    </Border>
                     <TextBlock Grid.Column="1" Classes="name" VerticalAlignment="Center" Text="{Binding Name}" />
-                    <Panel Grid.Column="2" VerticalAlignment="Center">
-                      <StackPanel Classes="activity" Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasChats}">
-                        <Ellipse Classes="pulse"
-                                 Width="6"
-                                 Height="6"
-                                 VerticalAlignment="Center"
-                                 Fill="{DynamicResource AccentBrush}"
-                                 IsVisible="{Binding IsCrafting}" />
-                        <Border MinWidth="18" Height="18" Padding="5,0" CornerRadius="99" Background="{DynamicResource BackgroundBrush}">
-                          <TextBlock Classes="keys"
-                                     Classes.unread="{Binding HasUnread}"
-                                     HorizontalAlignment="Center"
-                                     Text="{Binding ChatCount}" />
-                        </Border>
-                      </StackPanel>
-                      <Button Classes="more" Click="ShowMenu" AutomationProperties.Name="More actions">
-                        <Path Width="14" Height="14" Fill="{DynamicResource ForegroundBrush}"
-                              Data="M2.3,7 A1.2,1.2 0 1 1 2.29,7 Z M6.8,7 A1.2,1.2 0 1 1 6.79,7 Z M11.3,7 A1.2,1.2 0 1 1 11.29,7 Z" />
-                      </Button>
-                    </Panel>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasChats}">
+                      <Ellipse Classes="pulse"
+                               Width="6"
+                               Height="6"
+                               VerticalAlignment="Center"
+                               Fill="{DynamicResource AccentBrush}"
+                               IsVisible="{Binding IsCrafting}" />
+                      <Border MinWidth="18" Height="18" Padding="5,0" CornerRadius="99" Background="{DynamicResource BackgroundBrush}">
+                        <TextBlock Classes="keys"
+                                   Classes.unread="{Binding HasUnread}"
+                                   HorizontalAlignment="Center"
+                                   Text="{Binding ChatCount}" />
+                      </Border>
+                    </StackPanel>
                   </Grid>
                 </Button>
               </DataTemplate>
