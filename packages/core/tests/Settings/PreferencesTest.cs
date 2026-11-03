@@ -50,6 +50,26 @@ public sealed class PreferencesTest
     }
 
     [Fact]
+    public void StartsWithoutAChosenTheme()
+    {
+        Assert.Null(Preferences.Default("/home/hero").Theme);
+    }
+
+    [Theory]
+    [InlineData(" deepslate ", "deepslate")]
+    [InlineData("  ", null)]
+    public void KeepsTheChosenTheme(string chosen, string? kept)
+    {
+        Assert.Equal(kept, (Preferences.Default("/home/hero") with { Theme = chosen }).Theme);
+    }
+
+    [Fact]
+    public void ComparesTheTheme()
+    {
+        Assert.NotEqual(Preferences.Default("/home/hero") with { Theme = "nether" }, Preferences.Default("/home/hero"));
+    }
+
+    [Fact]
     public void StartsWithAnEmptyConfigurationForEachAgent()
     {
         Assert.Same(Configuration.Empty, Preferences.Default("/home/hero").ConfigurationOf(new AgentId("claude-code")));

@@ -31,6 +31,12 @@ public sealed record Preferences
         init => agents = [.. (value ?? []).Distinct()];
     }
 
+    public string? Theme
+    {
+        get;
+        init => field = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
     public IReadOnlyDictionary<AgentId, Configuration> Configurations
     {
         get => configurations;
@@ -47,9 +53,10 @@ public sealed record Preferences
     public bool Equals(Preferences? other) =>
         other is not null
         && ProjectsRoot == other.ProjectsRoot
+        && Theme == other.Theme
         && Agents.SequenceEqual(other.Agents)
         && configurations.Count == other.configurations.Count
         && configurations.All(each => other.ConfigurationOf(each.Key).Equals(each.Value));
 
-    public override int GetHashCode() => HashCode.Combine(ProjectsRoot, Agents.Count, configurations.Count);
+    public override int GetHashCode() => HashCode.Combine(ProjectsRoot, Theme, Agents.Count, configurations.Count);
 }
