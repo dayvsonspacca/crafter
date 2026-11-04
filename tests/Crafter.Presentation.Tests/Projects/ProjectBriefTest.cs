@@ -27,6 +27,8 @@ public sealed class ProjectBriefTest : IDisposable
 
     private readonly PreferencesInMemory saved;
 
+    private readonly SettingsInMemory settings = new();
+
     private readonly WorkbenchViewModel workbench;
 
     private readonly LibraryViewModel library;
@@ -43,7 +45,7 @@ public sealed class ProjectBriefTest : IDisposable
         var clipboard = new ClipboardInMemory();
         saved = new PreferencesInMemory(new UserPreferences(home) { Agents = [agent.Id], Library = "git@github.com:hero/crafter-library.git" });
         var preferences = new PreferenceBook(saved);
-        var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), time.GetLocalNow);
+        var bookshelf = new Bookshelf(new ShelfInMemory(), settings, time.GetLocalNow);
         var picker = new FolderPickerViewModel(preferences, bookshelf);
         var setup = new SetupViewModel(crew, preferences, clipboard);
         library = new LibraryViewModel(preferences, new LibraryInMemory { Contents = new LibraryContents([Commit, Migrations], []) }, time);
@@ -181,6 +183,58 @@ public sealed class ProjectBriefTest : IDisposable
 
         Assert.Equal(["Always write tests"], workbench.Brief.Axioms.Select(axiom => axiom.Text));
         Assert.True(workbench.Brief.HasAxioms);
+    }
+
+    [Fact]
+    public void WritesTheSummaryAndKeepsItOnlyOnceSaved()
+    {
+        workbench.Status.ShowBriefCommand.Execute(null);
+        workbench.Brief.ShowSummaryTabCommand.Execute(null);
+        Assert.True(workbench.Brief.ShowsSummary);
+        Assert.False(workbench.Brief.ShowsSkills);
+        Assert.False(workbench.Brief.SaveSummaryCommand.CanExecute(null));
+
+        workbench.Brief.Summary = "Crafter is my IDE for coding with AI agents.";
+        Assert.Null(workbench.SummaryOf(crafter));
+
+        workbench.Brief.SaveSummaryCommand.Execute(null);
+
+        Assert.Equal("Crafter is my IDE for coding with AI agents.", workbench.SummaryOf(crafter));
+        Assert.Null(workbench.SummaryOf(lorekeeper));
+        Assert.False(workbench.Brief.SaveSummaryCommand.CanExecute(null));
+
+        workbench.Brief.Close();
+        workbench.Brief.Open(crafter);
+        Assert.Equal("Crafter is my IDE for coding with AI agents.", workbench.Brief.Summary);
+    }
+
+    [Fact]
+    public void StartsTheSummaryFromTheInstructionsFileTheProjectBrings()
+    {
+        settings.Instructions[crafter.Folder] = new AgentInstructions("CLAUDE.md", "Crafter is my IDE.");
+
+        workbench.Status.ShowBriefCommand.Execute(null);
+
+        Assert.True(workbench.Brief.CanInherit);
+        Assert.Equal("Start from CLAUDE.md", workbench.Brief.InheritLabel);
+
+        workbench.Brief.InheritCommand.Execute(null);
+
+        Assert.Equal("Crafter is my IDE.", workbench.Brief.Summary);
+        Assert.False(workbench.Brief.CanInherit);
+        Assert.Null(workbench.SummaryOf(crafter));
+
+        workbench.Brief.SaveSummaryCommand.Execute(null);
+        Assert.Equal("Crafter is my IDE.", workbench.SummaryOf(crafter));
+    }
+
+    [Fact]
+    public void OffersNoInstructionsFileToAProjectWithoutOne()
+    {
+        workbench.Status.ShowBriefCommand.Execute(null);
+
+        Assert.False(workbench.Brief.CanInherit);
+        Assert.False(workbench.Brief.InheritCommand.CanExecute(null));
     }
 
     public void Dispose() => Directory.Delete(home, recursive: true);

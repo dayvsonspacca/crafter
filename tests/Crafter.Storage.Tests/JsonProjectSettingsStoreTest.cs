@@ -41,6 +41,39 @@ public sealed class JsonProjectSettingsStoreTest : IDisposable
     }
 
     [Fact]
+    public void KeepsTheSummaryInAMarkdownFileOfItsOwn()
+    {
+        var store = new JsonProjectSettingsStore();
+        Assert.Null(store.LoadSummary(folder));
+
+        store.SaveSummary(folder, "  Crafter is my IDE.\n\nIt is written in C#.  ");
+
+        Assert.Equal("Crafter is my IDE.\n\nIt is written in C#.", store.LoadSummary(folder));
+        Assert.Equal("Crafter is my IDE.\n\nIt is written in C#.\n", System.IO.File.ReadAllText(Path.Combine(folder, ".crafter", "summary.md")));
+
+        store.SaveSummary(folder, " ");
+
+        Assert.Null(store.LoadSummary(folder));
+        Assert.False(System.IO.File.Exists(Path.Combine(folder, ".crafter", "summary.md")));
+    }
+
+    [Fact]
+    public void FindsTheAgentsInstructionsTheProjectBrings()
+    {
+        var store = new JsonProjectSettingsStore();
+        Assert.Null(store.FindInstructions(folder));
+
+        System.IO.File.WriteAllText(Path.Combine(folder, "CLAUDE.md"), "Crafter is my IDE.\n");
+        Assert.Equal(new AgentInstructions("CLAUDE.md", "Crafter is my IDE."), store.FindInstructions(folder));
+
+        System.IO.File.WriteAllText(Path.Combine(folder, "AGENTS.md"), "\n");
+        Assert.Equal("CLAUDE.md", store.FindInstructions(folder)?.File);
+
+        System.IO.File.WriteAllText(Path.Combine(folder, "AGENTS.md"), "Crafter is an IDE.");
+        Assert.Equal("AGENTS.md", store.FindInstructions(folder)?.File);
+    }
+
+    [Fact]
     public void KeepsTheIcon()
     {
         var store = new JsonProjectSettingsStore();

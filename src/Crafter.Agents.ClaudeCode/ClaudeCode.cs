@@ -12,15 +12,16 @@ using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 namespace Crafter.Agents.ClaudeCode;
 
 // Servers says which tool servers a project's sessions connect to, skills which library skills they
-// get and axioms which rules they follow; none unless Crafter grants them. Shelves is where the skills
-// are copied for Claude Code.
+// get, axioms which rules they follow and summary what the project is; none unless Crafter grants
+// them. Shelves is where the skills are copied for Claude Code.
 public sealed class ClaudeCode(
     string executable = "claude",
     string? home = null,
     Func<Project, IAgentSession, IReadOnlyList<ToolServer>>? servers = null,
     Func<Project, IReadOnlyList<Skill>>? skills = null,
     string? shelves = null,
-    Func<Project, IReadOnlyList<string>>? axioms = null) : IAgent, IKeepsHistory
+    Func<Project, IReadOnlyList<string>>? axioms = null,
+    Func<Project, string?>? summary = null) : IAgent, IKeepsHistory
 {
     public const string Install = "curl -fsSL https://claude.ai/install.sh | bash";
 
@@ -70,7 +71,7 @@ public sealed class ClaudeCode(
     public IAgentSession Begin(Project project, string? resumeFrom = null)
     {
         ClaudeCodeSession? session = null;
-        session = new ClaudeCodeSession(project.Folder, Options, resumeFrom, () => servers?.Invoke(project, session!) ?? [], () => Skills(project), () => axioms?.Invoke(project) ?? []);
+        session = new ClaudeCodeSession(project.Folder, Options, resumeFrom, () => servers?.Invoke(project, session!) ?? [], () => Skills(project), () => axioms?.Invoke(project) ?? [], () => summary?.Invoke(project));
 
         return session;
     }

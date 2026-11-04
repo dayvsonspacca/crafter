@@ -3,7 +3,8 @@ using System.Text;
 namespace Crafter.Agents.ClaudeCode.Cli;
 
 // How a session learns the project's axioms: the system prompt lists them. Claude Code's own memory
-// and its CLAUDE.md and AGENTS.md files are turned off, so these are the only standing rules.
+// and its CLAUDE.md and AGENTS.md files are turned off, so these are the only standing rules; what the
+// project is comes in the summary.
 public static class ClaudeCodeAxioms
 {
     public static string Brief(IReadOnlyList<string> axioms)

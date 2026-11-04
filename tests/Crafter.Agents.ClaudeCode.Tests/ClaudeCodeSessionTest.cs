@@ -81,6 +81,20 @@ public sealed class ClaudeCodeSessionTest
     }
 
     [Fact]
+    public async Task HandsOverTheProjectsSummaryAheadOfItsAxioms()
+    {
+        using var claude = new FakeClaude($"printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");
+        var session = new ClaudeCodeSession(claude.Folder, _ => new ClaudeCodeOptions(claude.Executable), axioms: () => ["Never add comments"], summary: () => "Crafter is my IDE.");
+
+        await session.Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
+
+        var arguments = File.ReadAllText(Path.Combine(claude.Folder, "arguments"));
+        Assert.Single(arguments.Split('\n'), line => line == "--append-system-prompt");
+        Assert.Contains("Crafter is my IDE.", arguments);
+        Assert.True(arguments.IndexOf("# Project summary", StringComparison.Ordinal) < arguments.IndexOf("# Axioms", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task StartsClaudeCodeWithoutItsMemoryOrInstructionFiles()
     {
         using var claude = new FakeClaude($"env > \"$(dirname \"$0\")/environment\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");

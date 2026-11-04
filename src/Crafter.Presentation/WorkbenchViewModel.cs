@@ -56,7 +56,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         Setup = setup;
         Preferences = preferencesScreen;
         Status = status;
-        Brief = new ProjectBriefViewModel(Preferences.Library, (project, skill) => bookshelf.Has(project, skill.Id), Give, AxiomsOf, Hold, Drop);
+        Brief = new ProjectBriefViewModel(Preferences.Library, (project, skill) => bookshelf.Has(project, skill.Id), Give, AxiomsOf, Hold, Drop, SummaryOf, Summarize, bookshelf.InstructionsIn);
         Preferences.Library.Changed += (_, _) => Recount();
         Status.BriefWanted += (_, _) =>
         {
@@ -267,6 +267,11 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         [.. Preferences.Library.Skills.Where(skill => Preferences.Library.IsDefault(skill) || bookshelf.Has(project, skill.Id))];
 
     public IReadOnlyList<string> AxiomsOf(Project project) => bookshelf.AxiomsOf(project);
+
+    public string? SummaryOf(Project project) => bookshelf.SummaryOf(project);
+
+    // A new summary reaches the project's chats when their sessions start again.
+    public bool Summarize(Project project, string summary) => bookshelf.Summarize(project, summary);
 
     // A new axiom reaches the project's chats when their sessions start again.
     public bool Hold(Project project, string axiom) => Changed(project, bookshelf.Hold(project, axiom));

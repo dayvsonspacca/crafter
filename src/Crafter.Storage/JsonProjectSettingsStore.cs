@@ -12,6 +12,11 @@ public sealed class JsonProjectSettingsStore : IProjectSettingsStore
 
     private const string Icon = "icon";
 
+    private const string Summary = "summary.md";
+
+    // The instructions files agents read on their own, in the order one is preferred over another.
+    private static readonly string[] Instructions = ["AGENTS.md", "CLAUDE.md", Path.Combine(".claude", "CLAUDE.md")];
+
     private static readonly JsonTypeInfo<SettingsEntry> Shape = (JsonTypeInfo<SettingsEntry>)new JsonSerializerOptions(ProjectSettingsJson.Default.Options)
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -77,6 +82,37 @@ public sealed class JsonProjectSettingsStore : IProjectSettingsStore
         foreach (var icon in Directory.EnumerateFiles(home, Icon + ".*"))
         {
             File.Delete(icon);
+        }
+    }
+
+    public string? LoadSummary(string folder) => Read(Path.Combine(folder, Home, Summary));
+
+    public void SaveSummary(string folder, string? summary)
+    {
+        var file = Path.Combine(folder, Home, Summary);
+        if (string.IsNullOrWhiteSpace(summary))
+        {
+            File.Delete(file);
+        }
+        else
+        {
+            JsonFile.Write(file, summary.Trim() + "\n");
+        }
+    }
+
+    public AgentInstructions? FindInstructions(string folder) =>
+        Instructions.Select(name => Read(Path.Combine(folder, name)) is { } text ? new AgentInstructions(name, text) : null).FirstOrDefault(found => found is not null);
+
+    // A file's text without its surrounding blank space; a missing, empty or unreadable one is none.
+    private static string? Read(string file)
+    {
+        try
+        {
+            return File.Exists(file) && File.ReadAllText(file).Trim() is { Length: > 0 } text ? text : null;
+        }
+        catch (Exception unreachable) when (unreachable is IOException or UnauthorizedAccessException)
+        {
+            return null;
         }
     }
 

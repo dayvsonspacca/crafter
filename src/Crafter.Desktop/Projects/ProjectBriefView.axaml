@@ -44,6 +44,7 @@
       <Border DockPanel.Dock="Top" Padding="20,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}">
         <StackPanel Orientation="Horizontal" Spacing="18">
           <Button Classes="tab" Classes.chosen="{Binding ShowsSkills}" Content="Skills" Command="{Binding ShowSkillsTabCommand}" />
+          <Button Classes="tab" Classes.chosen="{Binding ShowsSummary}" Content="Summary" Command="{Binding ShowSummaryTabCommand}" />
           <Button Classes="tab" Classes.chosen="{Binding ShowsAxioms}" Content="Axioms" Command="{Binding ShowAxiomsTabCommand}" />
         </StackPanel>
       </Border>
@@ -74,6 +75,29 @@
                        Text="Defaults come from Preferences → Library and reach every project; tick others for this one. Call a skill in a chat with /." />
           </StackPanel>
         </ScrollViewer>
+
+        <DockPanel IsVisible="{Binding ShowsSummary}" Margin="20,16,20,20">
+          <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,14,0,0">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+              <TextBlock Classes="about"
+                         VerticalAlignment="Center"
+                         Text="What the project is, read by its agent before every chat. Rules go in Axioms. A chat takes a change when its session starts again." />
+              <Button Grid.Column="1" Content="{Binding InheritLabel}" Command="{Binding InheritCommand}" IsVisible="{Binding CanInherit}" />
+              <Button Grid.Column="2" Classes="primary" Content="Save" Command="{Binding SaveSummaryCommand}" />
+            </Grid>
+          </StackPanel>
+
+          <TextBox Text="{Binding Summary}"
+                   AcceptsReturn="True"
+                   TextWrapping="Wrap"
+                   VerticalContentAlignment="Top"
+                   PlaceholderText="Crafter is my IDE for coding with AI agents, written in C# with Avalonia…"
+                   AutomationProperties.Name="Summary">
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveSummaryCommand}" />
+            </TextBox.KeyBindings>
+          </TextBox>
+        </DockPanel>
 
         <DockPanel IsVisible="{Binding ShowsAxioms}" Margin="20,16,20,20">
           <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,14,0,0">

@@ -16,7 +16,8 @@ public sealed class ClaudeCodeSession(
     string? resumeFrom = null,
     Func<IReadOnlyList<ToolServer>>? servers = null,
     Func<ClaudeCodeSkillShelf?>? skills = null,
-    Func<IReadOnlyList<string>>? axioms = null) : IAgentSession, IWorksInBackground
+    Func<IReadOnlyList<string>>? axioms = null,
+    Func<string?>? summary = null) : IAgentSession, IWorksInBackground
 {
     private readonly List<string> allowed = [];
 
@@ -33,6 +34,9 @@ public sealed class ClaudeCodeSession(
 
     // The axioms the running session was started with.
     private IReadOnlyList<string> held = [];
+
+    // The summary the running session was started with.
+    private string? told;
 
     private string? sessionId = resumeFrom;
 
@@ -154,6 +158,7 @@ public sealed class ClaudeCodeSession(
 
         shelf = skills?.Invoke();
         held = axioms?.Invoke() ?? [];
+        told = summary?.Invoke();
         var started = ClaudeCodeRun.Start(wanted, workingDirectory, [.. wanted.Arguments(sessionId), .. Granted()]);
         if (started is null)
         {
@@ -168,12 +173,17 @@ public sealed class ClaudeCodeSession(
         return run = started;
     }
 
-    // Asked for again on every start, so a server, a skill or an axiom granted or revoked since takes
+    // Asked for again on every start, so a server, a skill, an axiom or a summary changed since takes
     // effect then. Claude Code's own skills and slash commands stay off: Crafter's skills are the only ones.
     private IEnumerable<string> Granted()
     {
         yield return "--disable-slash-commands";
-        string[] briefs = [.. shelf is { } given ? [ClaudeCodeSkills.Catalog(given)] : Array.Empty<string>(), .. held.Count > 0 ? [ClaudeCodeAxioms.Brief(held)] : Array.Empty<string>()];
+        string[] briefs =
+        [
+            .. string.IsNullOrWhiteSpace(told) ? Array.Empty<string>() : [ClaudeCodeSummary.Brief(told)],
+            .. shelf is { } given ? [ClaudeCodeSkills.Catalog(given)] : Array.Empty<string>(),
+            .. held.Count > 0 ? [ClaudeCodeAxioms.Brief(held)] : Array.Empty<string>(),
+        ];
         if (briefs.Length > 0)
         {
             yield return "--append-system-prompt";

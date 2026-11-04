@@ -99,6 +99,26 @@ public sealed class Bookshelf
         return true;
     }
 
+    // What a shelved project is, in the user's words: the context its agent gets before any rule.
+    public string? SummaryOf(Project project) =>
+        Shelves(project) ? settings.LoadSummary(project.Folder) : null;
+
+    // A blank summary drops it; the same text again changes nothing.
+    public bool Summarize(Project project, string summary)
+    {
+        var text = summary.Trim();
+        if (!Shelves(project) || text == (SummaryOf(project) ?? string.Empty))
+        {
+            return false;
+        }
+
+        settings.SaveSummary(project.Folder, text.Length > 0 ? text : null);
+
+        return true;
+    }
+
+    public AgentInstructions? InstructionsIn(Project project) => settings.FindInstructions(project.Folder);
+
     public Project Edit(Project project, ProjectName name, IconChange change)
     {
         var icon = change switch

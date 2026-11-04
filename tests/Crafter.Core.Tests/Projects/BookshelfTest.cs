@@ -223,6 +223,31 @@ public sealed class BookshelfTest
     }
 
     [Fact]
+    public void KeepsAndDropsTheSummaryInTheProjectsOwnFolder()
+    {
+        var settings = new SettingsInMemory();
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning)), settings, () => Morning);
+
+        Assert.True(bookshelf.Summarize(Crafter, " Crafter is my IDE. "));
+        Assert.False(bookshelf.Summarize(Crafter, "Crafter is my IDE."));
+
+        Assert.Equal("Crafter is my IDE.", bookshelf.SummaryOf(Crafter));
+        Assert.Equal("Crafter is my IDE.", settings.LoadSummary(Crafter.Folder));
+
+        Assert.True(bookshelf.Summarize(Crafter, " "));
+        Assert.Null(bookshelf.SummaryOf(Crafter));
+    }
+
+    [Fact]
+    public void SummarizesNoProjectOffTheShelf()
+    {
+        var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), () => Morning);
+
+        Assert.False(bookshelf.Summarize(Crafter, "Crafter is my IDE."));
+        Assert.Null(bookshelf.SummaryOf(Crafter));
+    }
+
+    [Fact]
     public void HoldsNoAxiomForAProjectOffTheShelf()
     {
         var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), () => Morning);
