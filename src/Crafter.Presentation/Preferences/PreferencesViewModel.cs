@@ -11,7 +11,7 @@ public sealed partial class PreferencesViewModel : ObservableObject
 {
     public PreferencesViewModel(PreferenceBook preferences, IFolderPicker folders, SetupViewModel setup, IThemeSwitcher themes)
     {
-        AppGroups = [new AppearanceGroupViewModel(preferences, themes), new ProjectsGroupViewModel(preferences, folders)];
+        AppGroups = [new AppearanceGroupViewModel(preferences, themes), new ProjectsGroupViewModel(preferences, folders), new ShortcutsGroupViewModel()];
         AgentGroups = [.. setup.Panels.Select(panel => new AgentGroupViewModel(panel))];
         Show(AppGroups[0]);
     }

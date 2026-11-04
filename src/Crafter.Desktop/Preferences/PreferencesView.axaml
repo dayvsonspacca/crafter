@@ -5,6 +5,7 @@
              xmlns:preferences="using:Crafter.Presentation.Preferences"
              xmlns:options="using:Crafter.Presentation.Agents.Options"
              xmlns:controls="using:Crafter.Desktop.Controls"
+             xmlns:keyboard="using:Crafter.Presentation.Keyboard"
              x:Class="Crafter.Desktop.Preferences.PreferencesView"
              x:DataType="preferences:PreferencesViewModel"
              Focusable="True"
@@ -52,6 +53,24 @@
       <Setter Property="Padding" Value="0,16" />
       <Setter Property="BorderThickness" Value="0,0,0,1" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Border.shortcut">
+      <Setter Property="Padding" Value="0,10" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Border.cap">
+      <Setter Property="MinWidth" Value="24" />
+      <Setter Property="Padding" Value="6,2" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
+      <Setter Property="BorderThickness" Value="1,1,1,2" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.cap TextBlock">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
     </Style>
     <Style Selector="TextBox.path">
       <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
@@ -258,6 +277,57 @@
                                IsVisible="{Binding IsRootMissing}" />
                   </StackPanel>
                 </Border>
+              </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate DataType="preferences:ShortcutsGroupViewModel">
+              <StackPanel>
+                <TextBlock Classes="heading" Text="Shortcuts" />
+                <ItemsControl ItemsSource="{Binding Groups}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="keyboard:ShortcutGroup">
+                      <StackPanel Margin="0,24,0,0">
+                        <TextBlock Classes="title" Margin="0,0,0,4" Text="{Binding Name}" />
+                        <ItemsControl ItemsSource="{Binding Entries}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="keyboard:ShortcutEntry">
+                              <Border Classes="shortcut">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                  <TextBlock VerticalAlignment="Center" FontSize="{StaticResource FontSizeBody}" Text="{Binding Action}" />
+                                  <ItemsControl Grid.Column="1" ItemsSource="{Binding Chords}" AutomationProperties.Name="{Binding Keys}">
+                                    <ItemsControl.ItemsPanel>
+                                      <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="12" />
+                                      </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="keyboard:KeyChord">
+                                        <ItemsControl ItemsSource="{Binding Caps}">
+                                          <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                              <StackPanel Orientation="Horizontal" Spacing="4" />
+                                            </ItemsPanelTemplate>
+                                          </ItemsControl.ItemsPanel>
+                                          <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                              <Border Classes="cap">
+                                                <TextBlock Text="{Binding}" />
+                                              </Border>
+                                            </DataTemplate>
+                                          </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                </Grid>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
               </StackPanel>
             </DataTemplate>
 
