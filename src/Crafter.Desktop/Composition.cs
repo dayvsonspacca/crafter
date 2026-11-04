@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using Crafter.Agents.ClaudeCode;
 using Crafter.Core.Agents;
 using Crafter.Core.Preferences;
@@ -34,9 +35,13 @@ public static class Composition
         var time = TimeProvider.System;
         var clipboard = new AvaloniaClipboard();
 
-        // Sessions ask for their tool servers when they start, after the server below is up.
+        // Sessions ask for their tool servers and skills when they start, after both below are up.
         CrafterMcp? mcp = null;
-        var crew = new Crew([new ClaudeCode(servers: project => mcp?.ServersFor(project) ?? [])]);
+        WorkbenchViewModel? workbench = null;
+        var crew = new Crew([new ClaudeCode(
+            servers: project => mcp?.ServersFor(project) ?? [],
+            skills: project => workbench is { } shown ? OnUi(() => shown.SkillsFor(project)) : [],
+            plugins: Path.Combine(Data, "claude-code", "plugins"))]);
         var preferences = new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), UserPreferences.Default(Home)));
         var bookshelf = new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), time.GetLocalNow);
         var picker = new FolderPickerViewModel(preferences, bookshelf);
@@ -55,9 +60,12 @@ public static class Composition
             clipboard,
             new StatusBarViewModel(branches, time));
 
+        workbench = viewModel;
         mcp = new CrafterMcp(viewModel, new CrafterAbilities(viewModel, library, branches));
         mcp.Start();
 
         return new WorkbenchWindow(WindowManager.Detect(), viewModel);
     }
+
+    private static T OnUi<T>(Func<T> read) => Dispatcher.UIThread.CheckAccess() ? read() : Dispatcher.UIThread.Invoke(read);
 }

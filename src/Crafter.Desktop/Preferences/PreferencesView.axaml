@@ -293,7 +293,7 @@
                 <Border Classes="setting" BorderThickness="0">
                   <StackPanel Spacing="8">
                     <TextBlock Classes="title" Text="Repository" />
-                    <TextBlock Classes="about" Text="One git repository keeps your skills and agents. Crafter clones it with your git access and keeps it in sync on its own; it never writes to it." />
+                    <TextBlock Classes="about" Text="One git repository keeps your skills and agents. Crafter clones it with your git access and keeps it in sync on its own; it writes to it only when an agent that manages Crafter saves a skill." />
                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                       <TextBox Classes="path"
                                Text="{Binding Draft}"
@@ -315,20 +315,28 @@
                 <Border Classes="setting" BorderThickness="0" IsVisible="{Binding IsLinked}">
                   <StackPanel Spacing="8">
                     <TextBlock Classes="title" Text="Skills" />
-                    <TextBlock Classes="about" Text="Every folder under skills/ with a skill.json (name, description, when to use) and an instructions.md." />
+                    <TextBlock Classes="about" Text="Every folder under skills/ with a skill.json (name, description, when to use) and an instructions.md. A default reaches every project's agent; give others to one project from its Capabilities in the status bar. Defaults are this Crafter's choice, not the library's." />
                     <TextBlock Classes="about"
                                Text="No skills in the repository yet."
                                IsVisible="{Binding ShowsEmpty}" />
-                    <ItemsControl ItemsSource="{Binding Skills}">
+                    <ItemsControl ItemsSource="{Binding Entries}">
                       <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="core:Skill">
+                        <DataTemplate x:DataType="library:LibrarySkillViewModel">
                           <Border Classes="entry">
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                               <StackPanel Spacing="2">
-                                <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Name}" />
-                                <TextBlock Classes="about" Text="{Binding Description}" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                  <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Skill.Name}" />
+                                  <TextBlock Classes="status" VerticalAlignment="Center" Text="{Binding Skill.Id}" />
+                                </StackPanel>
+                                <TextBlock Classes="about" Text="{Binding Skill.Description}" />
                               </StackPanel>
-                              <TextBlock Grid.Column="1" Classes="status" VerticalAlignment="Top" Text="{Binding Id}" />
+                              <ToggleSwitch Grid.Column="1"
+                                            VerticalAlignment="Top"
+                                            IsChecked="{Binding IsDefault}"
+                                            OnContent="Default"
+                                            OffContent="Default"
+                                            AutomationProperties.Name="{Binding Skill.Name, StringFormat='Give {0} to every project'}" />
                             </Grid>
                           </Border>
                         </DataTemplate>

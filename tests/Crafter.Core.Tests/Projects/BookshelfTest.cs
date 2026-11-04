@@ -210,4 +210,23 @@ public sealed class BookshelfTest
         Assert.False(bookshelf.Can(Crafter, Capability.ManageCrafter));
         Assert.Empty(store.Saved[0].Capabilities);
     }
+
+    [Fact]
+    public void GivesAndTakesASkillAndKeepsItThroughReopening()
+    {
+        var store = new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning));
+        var bookshelf = new Bookshelf(store, new SettingsInMemory(), () => Morning.AddHours(1));
+
+        bookshelf.Give(Crafter, "commit", given: true);
+        bookshelf.Open(Crafter);
+
+        Assert.True(bookshelf.Has(Crafter, "commit"));
+        Assert.False(bookshelf.Has(Beacon, "commit"));
+        Assert.Equal(["commit"], store.Saved[0].Skills);
+
+        bookshelf.Give(Crafter, "commit", given: false);
+
+        Assert.False(bookshelf.Has(Crafter, "commit"));
+        Assert.Empty(store.Saved[0].Skills);
+    }
 }

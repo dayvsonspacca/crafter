@@ -22,6 +22,19 @@ public sealed class StatusBarViewModelTest
         Assert.True(status.HasBranch);
     }
 
+    [Theory]
+    [InlineData(0, 0, "No capabilities")]
+    [InlineData(1, 0, "1 capability")]
+    [InlineData(2, 0, "2 capabilities")]
+    [InlineData(0, 1, "1 skill")]
+    [InlineData(1, 3, "1 capability · 3 skills")]
+    public void CountsWhatTheProjectHolds(int granted, int skills, string label)
+    {
+        using var status = new StatusBarViewModel(branches, time) { Granted = granted, Skills = skills };
+
+        Assert.Equal(label, status.CapabilitiesLabel);
+    }
+
     [Fact]
     public void NoticesAnAgentSwitchingBranches()
     {

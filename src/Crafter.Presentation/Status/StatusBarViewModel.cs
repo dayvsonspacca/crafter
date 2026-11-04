@@ -36,12 +36,20 @@ public sealed partial class StatusBarViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(CapabilitiesLabel))]
     public partial int Granted { get; set; }
 
-    public string CapabilitiesLabel => Granted switch
+    // How many library skills it gets, defaults included; they open in the same window.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CapabilitiesLabel))]
+    public partial int Skills { get; set; }
+
+    public string CapabilitiesLabel => (Granted, Skills) switch
     {
-        0 => "No capabilities",
-        1 => "1 capability",
-        var count => $"{count} capabilities",
+        (0, 0) => "No capabilities",
+        (_, 0) => Count(Granted, "capability", "capabilities"),
+        (0, _) => Count(Skills, "skill", "skills"),
+        _ => $"{Count(Granted, "capability", "capabilities")} · {Count(Skills, "skill", "skills")}",
     };
+
+    private static string Count(int count, string one, string many) => count == 1 ? $"1 {one}" : $"{count} {many}";
 
     public bool HasProject => project is not null;
 

@@ -40,6 +40,18 @@ public sealed class ClaudeCodeSessionTest
     }
 
     [Fact]
+    public async Task HandsTheProjectsSkillsOverAsAPlugin()
+    {
+        using var claude = new FakeClaude($"printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");
+        var session = new ClaudeCodeSession(claude.Folder, _ => new ClaudeCodeOptions(claude.Executable), skills: () => "/plugins/crafter");
+
+        await session.Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
+
+        var arguments = File.ReadAllLines(Path.Combine(claude.Folder, "arguments"));
+        Assert.Equal("/plugins/crafter", arguments[Array.IndexOf(arguments, "--plugin-dir") + 1]);
+    }
+
+    [Fact]
     public async Task ConnectsNoServerToAProjectWithoutOne()
     {
         using var claude = new FakeClaude($"printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");
@@ -47,6 +59,7 @@ public sealed class ClaudeCodeSessionTest
         await claude.Session().Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
 
         Assert.DoesNotContain("--mcp-config", File.ReadAllLines(Path.Combine(claude.Folder, "arguments")));
+        Assert.DoesNotContain("--plugin-dir", File.ReadAllLines(Path.Combine(claude.Folder, "arguments")));
     }
 
     [Fact]

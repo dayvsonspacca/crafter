@@ -12,6 +12,7 @@ public sealed partial class PreferencesViewModel : ObservableObject
 {
     public PreferencesViewModel(PreferenceBook preferences, IFolderPicker folders, SetupViewModel setup, IThemeSwitcher themes, LibraryViewModel library)
     {
+        Library = library;
         AppGroups =
         [
             new AppearanceGroupViewModel(preferences, themes),
@@ -22,6 +23,8 @@ public sealed partial class PreferencesViewModel : ObservableObject
         AgentGroups = [.. setup.Panels.Select(panel => new AgentGroupViewModel(panel))];
         Show(AppGroups[0]);
     }
+
+    public LibraryViewModel Library { get; }
 
     public IReadOnlyList<PreferenceGroupViewModel> AppGroups { get; }
 

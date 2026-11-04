@@ -5,13 +5,20 @@ using Crafter.Agents.ClaudeCode.Protocol;
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
+using Crafter.Core.Library;
 using Crafter.Core.Projects;
 using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode;
 
-// Servers says which tool servers a project's sessions connect to; none unless Crafter grants them.
-public sealed class ClaudeCode(string executable = "claude", string? home = null, Func<Project, IReadOnlyList<ToolServer>>? servers = null) : IAgent, IKeepsHistory
+// Servers says which tool servers a project's sessions connect to and skills which library skills
+// they get; none unless Crafter grants them. Plugins is where the skills are written for Claude Code.
+public sealed class ClaudeCode(
+    string executable = "claude",
+    string? home = null,
+    Func<Project, IReadOnlyList<ToolServer>>? servers = null,
+    Func<Project, IReadOnlyList<Skill>>? skills = null,
+    string? plugins = null) : IAgent, IKeepsHistory
 {
     public const string Install = "curl -fsSL https://claude.ai/install.sh | bash";
 
@@ -58,7 +65,7 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
     ];
 
     public IAgentSession Begin(Project project, string? resumeFrom = null) =>
-        new ClaudeCodeSession(project.Folder, Options, resumeFrom, () => servers?.Invoke(project) ?? []);
+        new ClaudeCodeSession(project.Folder, Options, resumeFrom, () => servers?.Invoke(project) ?? [], () => Skills(project));
 
     public Task<Recollection> History(Project project, int latest, CancellationToken stop = default) => history.List(project, latest, stop);
 
@@ -191,6 +198,24 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
 
     private static string Said(Answer answer, string otherwise) =>
         answer.Complaints.Trim() is { Length: > 0 } complaint ? complaint : otherwise;
+
+    // A plugin that cannot be written leaves the session without skills rather than without a start.
+    private string? Skills(Project project)
+    {
+        if (skills is null || plugins is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return ClaudeCodeSkills.Write(ClaudeCodeSkills.FolderFor(plugins, project.Folder), skills(project));
+        }
+        catch (Exception unwritable) when (unwritable is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
 
     private ClaudeCodeOptions Options(Configuration chosen) =>
         new(command.Value(chosen), chosen[ClaudeCodeSettings.Model], chosen[ClaudeCodeSettings.Effort], chosen[ClaudeCodeSettings.Tools]);

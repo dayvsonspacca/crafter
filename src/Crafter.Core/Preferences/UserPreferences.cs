@@ -9,6 +9,8 @@ public sealed record UserPreferences
 
     private readonly IReadOnlyList<AgentId> agents = [];
 
+    private readonly IReadOnlyList<string> defaultSkills = [];
+
     private readonly IReadOnlyDictionary<AgentId, Configuration> configurations = new Dictionary<AgentId, Configuration>();
 
     public UserPreferences(string projectsRoot)
@@ -45,6 +47,14 @@ public sealed record UserPreferences
         init => field = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
+    // The library skills every project gets, by id. This Crafter's choice: another machine linked
+    // to the same library keeps its own.
+    public IReadOnlyList<string> DefaultSkills
+    {
+        get => defaultSkills;
+        init => defaultSkills = [.. (value ?? []).Distinct()];
+    }
+
     // Whether the system looked dark the last time Crafter saw it, so the next start can paint
     // the right variant before the system answers.
     public bool? SystemDark { get; init; }
@@ -69,8 +79,9 @@ public sealed record UserPreferences
         && SystemDark == other.SystemDark
         && Library == other.Library
         && Agents.SequenceEqual(other.Agents)
+        && DefaultSkills.SequenceEqual(other.DefaultSkills)
         && configurations.Count == other.configurations.Count
         && configurations.All(each => other.ConfigurationOf(each.Key).Equals(each.Value));
 
-    public override int GetHashCode() => HashCode.Combine(ProjectsRoot, Theme, SystemDark, Library, Agents.Count, configurations.Count);
+    public override int GetHashCode() => HashCode.Combine(ProjectsRoot, Theme, SystemDark, Library, Agents.Count, DefaultSkills.Count, configurations.Count);
 }

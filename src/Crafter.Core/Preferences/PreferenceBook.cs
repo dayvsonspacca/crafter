@@ -27,6 +27,9 @@ public sealed class PreferenceBook
 
     public void LinkLibrary(string? repository) => Change(Current with { Library = repository });
 
+    public void MakeDefault(string skill, bool isDefault) =>
+        Change(Current with { DefaultSkills = isDefault ? [.. Current.DefaultSkills, skill] : [.. Current.DefaultSkills.Where(each => each != skill)] });
+
     private void Change(UserPreferences changed)
     {
         if (changed == Current)

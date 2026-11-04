@@ -14,7 +14,8 @@ public sealed class ClaudeCodeSession(
     string workingDirectory,
     Func<Configuration, ClaudeCodeOptions> options,
     string? resumeFrom = null,
-    Func<IReadOnlyList<ToolServer>>? servers = null) : IAgentSession, IWorksInBackground
+    Func<IReadOnlyList<ToolServer>>? servers = null,
+    Func<string?>? skills = null) : IAgentSession, IWorksInBackground
 {
     private readonly List<string> allowed = [];
 
@@ -150,9 +151,15 @@ public sealed class ClaudeCodeSession(
         return run = started;
     }
 
-    // Asked for again on every start, so a server granted or revoked since takes effect then.
+    // Asked for again on every start, so a server or a skill granted or revoked since takes effect then.
     private IEnumerable<string> Granted()
     {
+        if (skills?.Invoke() is { } plugin)
+        {
+            yield return "--plugin-dir";
+            yield return plugin;
+        }
+
         var connected = servers?.Invoke() ?? [];
         if (connected.Count > 0)
         {

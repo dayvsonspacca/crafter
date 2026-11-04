@@ -12,6 +12,10 @@
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
     <Style Selector="Border.tool">
       <Setter Property="Padding" Value="0,6" />
       <Setter Property="BorderThickness" Value="0,0,0,1" />
@@ -51,8 +55,33 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
+      <StackPanel Spacing="10">
+        <StackPanel Spacing="2">
+          <TextBlock Classes="section" Text="Skills" />
+          <TextBlock Classes="about" Text="From the library. The defaults you set in Preferences → Library reach every project; tick others for this one." />
+        </StackPanel>
+        <TextBlock Classes="about" Text="The library has no skills yet." IsVisible="{Binding !HasSkills}" />
+        <ItemsControl ItemsSource="{Binding Skills}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="capabilities:SkillChoiceViewModel">
+              <Border Classes="tool">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                  <CheckBox IsChecked="{Binding IsGiven}" IsEnabled="{Binding CanChange}" AutomationProperties.Name="{Binding Skill.Name}">
+                    <StackPanel Spacing="1">
+                      <TextBlock Foreground="{DynamicResource ForegroundBrush}" FontWeight="SemiBold" Text="{Binding Skill.Name}" />
+                      <TextBlock Classes="about" Text="{Binding Skill.Description}" />
+                    </StackPanel>
+                  </CheckBox>
+                  <TextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Top" Text="default" IsVisible="{Binding IsDefault}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
       <TextBlock Classes="about"
-                 Text="Granted here in Crafter, never in the project's files. New chats get the change; an open chat gets it when its session starts again, and loses it at once." />
+                 Text="Granted here in Crafter, never in the project's files. New chats get the change; an open chat gets it when its session starts again, and loses a capability at once." />
     </StackPanel>
   </controls:Modal>
 </UserControl>

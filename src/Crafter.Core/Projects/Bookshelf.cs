@@ -67,6 +67,23 @@ public sealed class Bookshelf
         store.Save(shelf);
     }
 
+    // Whether the project was given this library skill, defaults aside.
+    public bool Has(Project project, string skill) =>
+        shelf.Find(shelved => shelved.Project == project)?.Skills.Contains(skill) ?? false;
+
+    public void Give(Project project, string skill, bool given)
+    {
+        var place = shelf.FindIndex(shelved => shelved.Project == project);
+        if (place < 0 || Has(project, skill) == given)
+        {
+            return;
+        }
+
+        var skills = shelf[place].Skills;
+        shelf[place] = shelf[place] with { Skills = given ? [.. skills, skill] : [.. skills.Where(each => each != skill)] };
+        store.Save(shelf);
+    }
+
     public Project Edit(Project project, ProjectName name, IconChange change)
     {
         var icon = change switch

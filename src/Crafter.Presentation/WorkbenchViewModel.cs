@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Crafter.Core.Library;
 using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
 using Crafter.Presentation.Agents;
@@ -49,7 +50,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         Setup = setup;
         Preferences = preferencesScreen;
         Status = status;
-        Capabilities = new CapabilitiesViewModel(bookshelf.Can, Allow);
+        Capabilities = new CapabilitiesViewModel(bookshelf.Can, Allow, Preferences.Library, (project, skill) => bookshelf.Has(project, skill.Id), Give);
+        Preferences.Library.Changed += (_, _) => Recount();
         Status.CapabilitiesWanted += (_, _) =>
         {
             if (Current is { } current)
@@ -118,7 +120,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         {
             field = value;
             Status.Watch(value);
-            Status.Granted = Granted(value);
+            Recount();
             OnPropertyChanged();
             OnPropertyChanged(nameof(Heading));
         }
@@ -234,11 +236,24 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public void Allow(Project project, Capability capability, bool allowed)
     {
         bookshelf.Allow(project, capability, allowed);
-        Status.Granted = Granted(Current);
+        Recount();
     }
 
-    private int Granted(Project? project) =>
-        project is null ? 0 : CapabilityCatalog.All.Count(info => bookshelf.Can(project, info.Capability));
+    // The library skills a project's agent gets: this Crafter's defaults and the ones given to it.
+    public IReadOnlyList<Skill> SkillsFor(Project project) =>
+        [.. Preferences.Library.Skills.Where(skill => Preferences.Library.IsDefault(skill) || bookshelf.Has(project, skill.Id))];
+
+    public void Give(Project project, Skill skill, bool given)
+    {
+        bookshelf.Give(project, skill.Id, given);
+        Recount();
+    }
+
+    private void Recount()
+    {
+        Status.Granted = Current is { } project ? CapabilityCatalog.All.Count(info => bookshelf.Can(project, info.Capability)) : 0;
+        Status.Skills = Current is { } shown ? SkillsFor(shown).Count : 0;
+    }
 
     public int OpenChats(Project project) => desks.GetValueOrDefault(project)?.Count ?? 0;
 

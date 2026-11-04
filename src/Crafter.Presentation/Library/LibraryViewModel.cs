@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Library;
@@ -65,11 +66,35 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(HasProblems))]
     public partial IReadOnlyList<LibraryProblem> Problems { get; private set; } = [];
 
+    // The skills as Preferences lists them, each with whether every project gets it.
+    public ObservableCollection<LibrarySkillViewModel> Entries { get; } = [];
+
     public bool HasSkills => Skills.Count > 0;
 
     public bool HasProblems => Problems.Count > 0;
 
     public bool ShowsEmpty => IsLinked && !HasSkills && !IsSyncing;
+
+    // The skills read, or which of them are defaults, changed.
+    public event EventHandler? Changed;
+
+    public bool IsDefault(Skill skill) => preferences.Current.DefaultSkills.Contains(skill.Id);
+
+    public void MakeDefault(Skill skill, bool isDefault)
+    {
+        if (IsDefault(skill) == isDefault)
+        {
+            return;
+        }
+
+        preferences.MakeDefault(skill.Id, isDefault);
+        if (Entries.FirstOrDefault(entry => entry.Skill.Id == skill.Id) is { } entry)
+        {
+            entry.IsDefault = isDefault;
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
 
     public void Dispose() => timer.Dispose();
 
@@ -156,6 +181,14 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
     {
         Skills = contents.Skills;
         Problems = contents.Problems;
+
+        Entries.Clear();
+        foreach (var skill in contents.Skills)
+        {
+            Entries.Add(new LibrarySkillViewModel(skill, IsDefault(skill), MakeDefault));
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnUi(Action action)
