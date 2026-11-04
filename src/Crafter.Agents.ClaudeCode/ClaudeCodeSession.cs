@@ -63,6 +63,8 @@ public sealed class ClaudeCodeSession(
         }
     }
 
+    public string? Output(string job) => run?.OutputOf(job) is { } file ? ClaudeCodeOutput.Latest(file) : null;
+
     public void Stop(string job) => run?.Stop(job);
 
     // Killing the process tree reads every process on the machine to find Claude Code's children,

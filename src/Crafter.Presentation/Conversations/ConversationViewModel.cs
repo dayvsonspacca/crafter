@@ -425,7 +425,7 @@ public sealed partial class ConversationViewModel : ObservableObject
             }
             else
             {
-                Jobs.Add(new JobViewModel(job, time.GetUtcNow(), chat.Stop));
+                Jobs.Add(new JobViewModel(job, time.GetUtcNow(), chat.Output, chat.Stop));
             }
         }
 

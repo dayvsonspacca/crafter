@@ -34,6 +34,8 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
 
     public void Decide(string request, Decision decision) => conversation.Decide(request, decision);
 
+    public string? Output(string job) => conversation.Output(job);
+
     public void Stop(string job) => conversation.Stop(job);
 
     public void Dismiss() => conversation.Dismiss();

@@ -62,6 +62,14 @@ internal sealed class ClaudeCodeRun
         }
     }
 
+    public string? OutputOf(string job)
+    {
+        lock (gate)
+        {
+            return transcript.OutputOf(job);
+        }
+    }
+
     public bool IsOpen
     {
         get

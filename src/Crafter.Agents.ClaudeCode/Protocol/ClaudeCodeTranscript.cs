@@ -37,6 +37,8 @@ public sealed partial class ClaudeCodeTranscript(string? folder = null)
 
     public string InputOf(string request) => requests.GetValueOrDefault(request)?.Input ?? "{}";
 
+    public string? OutputOf(string job) => owners.GetValueOrDefault(job) is { } owner ? outputs.GetValueOrDefault(owner) : null;
+
     public string? SuggestionsOf(string request) => requests.GetValueOrDefault(request)?.Suggestions;
 
     public static string? Withdraws(string line)
@@ -169,7 +171,7 @@ public sealed partial class ClaudeCodeTranscript(string? folder = null)
             id,
             kind,
             description is { Length: > 0 } said ? said : at >= 0 ? jobs[at].Description : id,
-            owner is not null ? outputs.GetValueOrDefault(owner) : null);
+            OutputOf(id) is not null);
 
         if (at < 0)
         {

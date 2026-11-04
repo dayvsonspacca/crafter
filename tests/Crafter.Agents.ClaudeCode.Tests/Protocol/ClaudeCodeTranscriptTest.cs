@@ -261,7 +261,8 @@ public sealed class ClaudeCodeTranscriptTest
 
         transcript.Hear("""{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t-1","content":"Command running in background with ID: b-1. Output is being written to: /tmp/tasks/b-1.output. You will be notified."}]}}""");
 
-        Assert.Equal([new Job("b-1", JobKind.Shell, "Dev server", "/tmp/tasks/b-1.output")], transcript.Jobs);
+        Assert.Equal([new Job("b-1", JobKind.Shell, "Dev server", Prints: true)], transcript.Jobs);
+        Assert.Equal("/tmp/tasks/b-1.output", transcript.OutputOf("b-1"));
     }
 
     [Fact]

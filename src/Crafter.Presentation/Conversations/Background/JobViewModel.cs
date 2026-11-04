@@ -4,11 +4,9 @@ using Crafter.Core.Agents.Background;
 
 namespace Crafter.Presentation.Conversations.Background;
 
-public sealed partial class JobViewModel(Job job, DateTimeOffset since, Action<string> stop) : ObservableObject
+public sealed partial class JobViewModel(Job job, DateTimeOffset since, Func<string, string?> printed, Action<string> stop) : ObservableObject
 {
     private Job job = job;
-
-    private const int Tail = 16 * 1024;
 
     private const int Lines = 40;
 
@@ -29,7 +27,7 @@ public sealed partial class JobViewModel(Job job, DateTimeOffset since, Action<s
 
     public bool IsAgent => job.Kind == JobKind.Agent;
 
-    public bool HasOutput => job.Output is not null;
+    public bool HasOutput => job.Prints;
 
     public DateTimeOffset Since { get; } = since;
 
@@ -87,26 +85,13 @@ public sealed partial class JobViewModel(Job job, DateTimeOffset since, Action<s
 
     private void Read()
     {
-        if (!IsOpen || job.Output is not { } file)
+        if (!IsOpen || !job.Prints)
         {
             return;
         }
 
-        try
-        {
-            using var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            var start = Math.Max(0, stream.Length - Tail);
-            stream.Seek(start, SeekOrigin.Begin);
-            using var reader = new StreamReader(stream);
-            var lines = reader.ReadToEnd().TrimEnd().Split('\n');
-            var shown = lines[(start > 0 ? 1 : 0)..];
-            Output = string.Join('\n', shown[Math.Max(0, shown.Length - Lines)..]);
-        }
-        catch (Exception unreadable) when (unreadable is IOException or UnauthorizedAccessException)
-        {
-            Output = string.Empty;
-        }
-
+        var lines = (printed(job.Id) ?? string.Empty).TrimEnd().Split('\n');
+        Output = string.Join('\n', lines[Math.Max(0, lines.Length - Lines)..]);
         if (Output.Length == 0)
         {
             Output = "No output yet.";

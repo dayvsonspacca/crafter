@@ -275,6 +275,21 @@ public sealed class ConversationViewModelTest
     }
 
     [Fact]
+    public void ShowsTheLastLinesAJobPrintedAsItsAgentGivesThem()
+    {
+        var session = new ScriptedSession();
+        var viewModel = ViewModel(session);
+        session.Printed["b-1"] = string.Join('\n', Enumerable.Range(1, 50)) + "\n";
+
+        session.Run(new Job("b-1", JobKind.Shell, "Dev server", Prints: true), new Job("b-2", JobKind.Shell, "Quiet", Prints: true));
+        viewModel.Jobs[0].ToggleCommand.Execute(null);
+        viewModel.Jobs[1].ToggleCommand.Execute(null);
+
+        Assert.Equal(string.Join('\n', Enumerable.Range(11, 40)), viewModel.Jobs[0].Output);
+        Assert.Equal("No output yet.", viewModel.Jobs[1].Output);
+    }
+
+    [Fact]
     public async Task ShowsWhatTheAgentSaysWhenItWakes()
     {
         var session = new ScriptedSession();

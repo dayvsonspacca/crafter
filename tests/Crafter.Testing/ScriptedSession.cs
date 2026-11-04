@@ -20,6 +20,10 @@ public sealed class ScriptedSession(params Reply[] replies) : IAgentSession, IWo
 
     public bool IsDismissed { get; private set; }
 
+    public Dictionary<string, string> Printed { get; } = [];
+
+    public string? Output(string job) => Printed.GetValueOrDefault(job);
+
     public void Stop(string job) => StoppedJobs.Add(job);
 
     public void Dismiss() => IsDismissed = true;

@@ -45,6 +45,8 @@ public sealed class Conversation
 
     public void Decide(string request, Decision decision) => agent.Decide(request, decision);
 
+    public string? Output(string job) => agent is IWorksInBackground background ? background.Output(job) : null;
+
     public void Stop(string job)
     {
         if (agent is IWorksInBackground background)

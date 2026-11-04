@@ -10,6 +10,9 @@ public interface IWorksInBackground
 
     IReadOnlyList<Job> Jobs { get; }
 
+    // The latest of what a job printed, or nothing when it has not printed or cannot be read.
+    string? Output(string job);
+
     void Stop(string job);
 
     void Dismiss();
