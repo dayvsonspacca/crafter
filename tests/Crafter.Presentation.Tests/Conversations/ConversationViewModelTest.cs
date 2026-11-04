@@ -457,6 +457,26 @@ public sealed class ConversationViewModelTest
         Assert.False(viewModel.HasEarlier);
     }
 
+    [Fact]
+    public async Task KeepsItsLatestExchangesOnScreenAsTheChatGoesOn()
+    {
+        var viewModel = ViewModel(new ScriptedSession(new Wrote("Done."), new Finished()));
+
+        for (var at = 1; at <= ConversationViewModel.Kept + 2; at++)
+        {
+            await Ask(viewModel, $"Ask {at}");
+        }
+
+        Assert.Equal(ConversationViewModel.Kept * 2, viewModel.Messages.Count);
+        Assert.Equal("Ask 3", Assert.IsType<YourMessageViewModel>(viewModel.Messages[0]).Text);
+        Assert.Equal("Show 4 earlier messages", viewModel.EarlierLabel);
+
+        viewModel.ShowEarlierCommand.Execute(null);
+
+        Assert.Equal("Ask 1", Assert.IsType<YourMessageViewModel>(viewModel.Messages[0]).Text);
+        Assert.False(viewModel.HasEarlier);
+    }
+
     private static Task Ask(ConversationViewModel viewModel, string prompt)
     {
         viewModel.Draft = prompt;

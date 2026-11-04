@@ -21,6 +21,10 @@ public sealed partial class ConversationViewModel : ObservableObject
     // every answer on screen costs to draw and more to take down when the chat closes.
     public const int Window = 5;
 
+    // The most exchanges a chat keeps on screen as it goes on; past this, sending moves the oldest
+    // back among the earlier ones, so a long session costs no more to close than a short one.
+    public const int Kept = 10;
+
     private static readonly TimeSpan Second = TimeSpan.FromSeconds(1);
 
     private readonly Chat chat;
@@ -333,6 +337,7 @@ public sealed partial class ConversationViewModel : ObservableObject
         }
 
         Messages.Add(asked);
+        Trim();
         lastAsked = asked;
         IsAsking = true;
         started = time.GetUtcNow();
@@ -548,6 +553,39 @@ public sealed partial class ConversationViewModel : ObservableObject
 
         Mark();
         HasMessages = Messages.Count > 0;
+    }
+
+    private void Trim()
+    {
+        var asks = Messages.Count(message => message is YourMessageViewModel);
+        while (asks > Kept)
+        {
+            var first = IndexOfAsk(0);
+            var next = IndexOfAsk(first + 1);
+            for (var at = 0; at < next; at++)
+            {
+                earlier.Add(Messages[0]);
+                Messages.RemoveAt(0);
+            }
+
+            asks--;
+        }
+
+        OnPropertyChanged(nameof(HasEarlier));
+        OnPropertyChanged(nameof(EarlierLabel));
+    }
+
+    private int IndexOfAsk(int from)
+    {
+        for (var at = from; at < Messages.Count; at++)
+        {
+            if (Messages[at] is YourMessageViewModel)
+            {
+                return at;
+            }
+        }
+
+        return Messages.Count;
     }
 
     private void Mark()
