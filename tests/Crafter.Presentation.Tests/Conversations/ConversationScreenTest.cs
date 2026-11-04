@@ -103,7 +103,7 @@ public sealed class ConversationScreenTest
 
     private ConversationScreen Screen(IAgentSession session)
     {
-        var agent = new StandInAgent { Sessions = () => session };
+        var agent = new ScriptedAgent { Sessions = () => session };
         var chat = new Chat(ChatId.New(), agent.Id, ChatTitle.Untitled, new Conversation(session));
 
         return new ConversationScreen(chat, agent, preferences, "crafter", new KeeperInMemory(), clipboard, time);

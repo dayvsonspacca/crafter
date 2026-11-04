@@ -47,7 +47,7 @@ public sealed partial class ShelfItem(Project project, Shortcut? shortcut, IShel
             newValue.PropertyChanged += Follow;
         }
 
-        Announce();
+        NotifyDerived();
     }
 
     [RelayCommand]
@@ -65,9 +65,9 @@ public sealed partial class ShelfItem(Project project, Shortcut? shortcut, IShel
     [RelayCommand]
     private void Remove() => keeper.Remove(Project);
 
-    private void Follow(object? sender, PropertyChangedEventArgs changed) => Announce();
+    private void Follow(object? sender, PropertyChangedEventArgs changed) => NotifyDerived();
 
-    private void Announce()
+    private void NotifyDerived()
     {
         OnPropertyChanged(nameof(HasChats));
         OnPropertyChanged(nameof(IsCrafting));

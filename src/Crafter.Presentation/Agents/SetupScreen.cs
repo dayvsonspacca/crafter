@@ -99,10 +99,15 @@ public sealed partial class SetupScreen : ObservableObject
 
         if (changed.PropertyName is nameof(AgentPanel.IsMarked) or nameof(AgentPanel.Readiness))
         {
-            OnPropertyChanged(nameof(NeedsSetup));
-            OnPropertyChanged(nameof(Headline));
-            OnPropertyChanged(nameof(Explanation));
+            NotifyDerived();
         }
+    }
+
+    private void NotifyDerived()
+    {
+        OnPropertyChanged(nameof(NeedsSetup));
+        OnPropertyChanged(nameof(Headline));
+        OnPropertyChanged(nameof(Explanation));
     }
 
     private void Lock()

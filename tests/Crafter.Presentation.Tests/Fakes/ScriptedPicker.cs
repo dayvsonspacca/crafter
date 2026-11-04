@@ -2,7 +2,7 @@ using Crafter.Presentation.Folders;
 
 namespace Crafter.Presentation.Tests.Fakes;
 
-internal sealed class ImagePicker(string? chosen) : IFolderPicker
+internal sealed class ScriptedPicker(string? chosen) : IFolderPicker
 {
     public Task<string?> Pick(string title, string start) => Task.FromResult<string?>(null);
 

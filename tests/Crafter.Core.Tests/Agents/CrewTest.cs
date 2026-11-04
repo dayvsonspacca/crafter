@@ -5,9 +5,9 @@ namespace Crafter.Core.Tests.Agents;
 
 public sealed class CrewTest
 {
-    private static readonly StandInAgent Claude = new("claude-code");
+    private static readonly ScriptedAgent Claude = new("claude-code");
 
-    private static readonly StandInAgent Codex = new("codex");
+    private static readonly ScriptedAgent Codex = new("codex");
 
     [Fact]
     public void StartsHiringWithNobodyHired()

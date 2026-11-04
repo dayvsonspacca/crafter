@@ -131,7 +131,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         }
 
         Save();
-        Notify();
+        NotifyDerived();
     }
 
     public void CloseSelected()
@@ -190,7 +190,7 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         screen.PropertyChanged += Follow;
         screen.Concluded += Keep;
         Chats.Add(screen);
-        Notify();
+        NotifyDerived();
 
         return screen;
     }
@@ -199,13 +199,13 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
     {
         if (changed.PropertyName == nameof(ConversationScreen.State))
         {
-            Notify();
+            NotifyDerived();
         }
     }
 
     private void Keep(object? sender, EventArgs e) => Save();
 
-    private void Notify()
+    private void NotifyDerived()
     {
         OnPropertyChanged(nameof(Count));
         OnPropertyChanged(nameof(IsCrafting));

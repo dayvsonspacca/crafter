@@ -11,7 +11,7 @@ public sealed class ProjectNamerTest : IDisposable
     [Fact]
     public async Task PreviewsTheChosenIconBeforeSaving()
     {
-        var namer = new ProjectNamer(new ImagePicker("/home/hero/Pictures/anvil.png"));
+        var namer = new ProjectNamer(new ScriptedPicker("/home/hero/Pictures/anvil.png"));
 
         var naming = namer.Add(folder, new ProjectName("crafter"));
         await namer.ChooseIconCommand.ExecuteAsync(null);
@@ -30,7 +30,7 @@ public sealed class ProjectNamerTest : IDisposable
         var icon = Path.Combine(folder, ".crafter", "icon.png");
         Directory.CreateDirectory(Path.GetDirectoryName(icon)!);
         File.WriteAllBytes(icon, [0]);
-        var namer = new ProjectNamer(new ImagePicker(null));
+        var namer = new ProjectNamer(new ScriptedPicker(null));
 
         _ = namer.Edit(new Project(folder, new ProjectName("crafter"), ".crafter/icon.png"));
 
@@ -40,7 +40,7 @@ public sealed class ProjectNamerTest : IDisposable
     [Fact]
     public void ShowsTheLetterWhenTheIconIsGone()
     {
-        var namer = new ProjectNamer(new ImagePicker(null));
+        var namer = new ProjectNamer(new ScriptedPicker(null));
 
         _ = namer.Edit(new Project(folder, new ProjectName("crafter"), ".crafter/icon.png"));
 
@@ -51,7 +51,7 @@ public sealed class ProjectNamerTest : IDisposable
     [Fact]
     public async Task DropsTheIconWhenRemoved()
     {
-        var namer = new ProjectNamer(new ImagePicker(null));
+        var namer = new ProjectNamer(new ScriptedPicker(null));
 
         var naming = namer.Edit(new Project(folder, new ProjectName("crafter")));
         namer.RemoveIconCommand.Execute(null);

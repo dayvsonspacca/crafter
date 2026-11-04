@@ -21,7 +21,7 @@ public sealed class ProjectDeskTest
     [Fact]
     public async Task SaysHowLongAgoAResumedChatWasActive()
     {
-        var agent = new StandInAgent { Replays = [new Asked(new Prompt("oi")), new Answered("Olá", new Finished())] };
+        var agent = new ScriptedAgent { Replays = [new Asked(new Prompt("oi")), new Answered("Olá", new Finished())] };
         var desk = Desk(agent);
 
         await desk.Resume(agent, new PastChat("s-1", ChatTitle.Of("oi"), Noon.AddHours(-2)));
@@ -33,7 +33,7 @@ public sealed class ProjectDeskTest
     public void KeepsANewChatInTheArchive()
     {
         var store = new ChatsInMemory();
-        var desk = Desk(new StandInAgent(), store);
+        var desk = Desk(new ScriptedAgent(), store);
 
         desk.NewChat();
 
@@ -46,7 +46,7 @@ public sealed class ProjectDeskTest
         var store = new ChatsInMemory();
         store.Save(Crafter, [new ChatRecord(ChatId.New(), new AgentId("stand-in"), ChatTitle.Of("oi"), null, []) { Adjustments = Configuration.Empty.With("tools", "plan") }]);
 
-        var desk = Desk(new StandInAgent(), store);
+        var desk = Desk(new ScriptedAgent(), store);
 
         Assert.Equal("plan", desk.Chats.Single().Record().Adjustments["tools"]);
     }

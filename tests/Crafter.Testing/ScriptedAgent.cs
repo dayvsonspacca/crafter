@@ -6,7 +6,7 @@ using Crafter.Core.Projects;
 
 namespace Crafter.Testing;
 
-public sealed class StandInAgent(string id = "stand-in") : IAgent, IKeepsHistory
+public sealed class ScriptedAgent(string id = "stand-in") : IAgent, IKeepsHistory
 {
     public AgentId Id { get; } = new(id);
 

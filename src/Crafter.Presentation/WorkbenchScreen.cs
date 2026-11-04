@@ -254,12 +254,17 @@ public sealed partial class WorkbenchScreen : ObservableObject, IShelfKeeper
     {
         if (changed.PropertyName is nameof(PreferencesScreen.IsOpen) or nameof(SetupScreen.NeedsSetup))
         {
-            OnPropertyChanged(nameof(IsShowingPreferences));
-            OnPropertyChanged(nameof(ShowsConversation));
-            OnPropertyChanged(nameof(ShowsHint));
-            OnPropertyChanged(nameof(ShowsSetup));
-            OnPropertyChanged(nameof(Heading));
+            NotifyDerived();
         }
+    }
+
+    private void NotifyDerived()
+    {
+        OnPropertyChanged(nameof(IsShowingPreferences));
+        OnPropertyChanged(nameof(ShowsConversation));
+        OnPropertyChanged(nameof(ShowsHint));
+        OnPropertyChanged(nameof(ShowsSetup));
+        OnPropertyChanged(nameof(Heading));
     }
 
     private void Restock()

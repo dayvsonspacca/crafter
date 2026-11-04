@@ -12,7 +12,7 @@ public sealed class AgentPanelTest
     public async Task CopiesTheRemedyOfABlockedAgent()
     {
         var clipboard = new ClipboardInMemory();
-        var agent = new StandInAgent { Readiness = new Blocked("Signed out", "Sign in from a terminal.", "claude auth login") };
+        var agent = new ScriptedAgent { Readiness = new Blocked("Signed out", "Sign in from a terminal.", "claude auth login") };
         var panel = new AgentPanel(agent, new PreferenceBook(new PreferencesInMemory(UserPreferences.Default("/home/hero"))), clipboard);
 
         await panel.CheckCommand.ExecuteAsync(null);
