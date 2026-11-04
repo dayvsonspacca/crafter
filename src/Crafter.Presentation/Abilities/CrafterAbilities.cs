@@ -8,7 +8,8 @@ using Crafter.Presentation.Library;
 namespace Crafter.Presentation.Abilities;
 
 // What Home's agent can do to Crafter: add, create, open and remove projects, rename them, change
-// their icons, and read and write the skills library. Answers are JSON for the agent to read.
+// their icons, set their axioms, and read and write the skills library. A project's agent can only
+// propose axioms for its own project. Answers are JSON for the agent to read.
 // A relative folder is read from the projects root set in Preferences.
 public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewModel library, IBranches branches)
 {
@@ -20,7 +21,45 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
         ["folder"] = project.Folder,
         ["branch"] = branches.Of(project),
         ["openChats"] = workbench.OpenChats(project),
+        ["axioms"] = new JsonArray([.. workbench.AxiomsOf(project).Select(axiom => (JsonNode)axiom)]),
     })]));
+
+    // Home names the project; a project's agent proposes for its own, and only for it.
+    public Told ProposeAxiom(string caller, string? folder, string? axiom)
+    {
+        var fromHome = caller == workbench.Home.Folder;
+        var project = fromHome ? Find(folder) : workbench.Projects.FirstOrDefault(each => each.Folder == caller);
+        if (project is null)
+        {
+            return Told.Failed(fromHome ? $"No project lives in {folder}; list_projects gives the folders." : "Your project is no longer in Crafter.");
+        }
+
+        if (!fromHome && Under(folder) is { } named && named != project.Folder)
+        {
+            return Told.Failed("A project's agent proposes axioms for its own project only.");
+        }
+
+        if (string.IsNullOrWhiteSpace(axiom))
+        {
+            return Told.Failed("An axiom needs its text.");
+        }
+
+        return workbench.Hold(project, axiom)
+            ? new Told($"{project.Name.Text} now holds the axiom \"{axiom.Trim()}\"; its chats follow it from their next session.")
+            : new Told($"{project.Name.Text} already holds that axiom.");
+    }
+
+    public Told RemoveAxiom(string? folder, string? axiom)
+    {
+        if (Find(folder) is not { } project)
+        {
+            return Told.Failed($"No project lives in {folder}; list_projects gives the folders.");
+        }
+
+        return !string.IsNullOrWhiteSpace(axiom) && workbench.Drop(project, axiom)
+            ? new Told($"{project.Name.Text} no longer holds the axiom \"{axiom.Trim()}\".")
+            : Told.Failed($"{project.Name.Text} holds no axiom \"{axiom}\"; list_projects gives its axioms.");
+    }
 
     public Told AddProject(string? folder, string? name)
     {

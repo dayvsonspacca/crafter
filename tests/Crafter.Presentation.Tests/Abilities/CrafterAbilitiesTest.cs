@@ -159,6 +159,35 @@ public sealed class CrafterAbilitiesTest : IDisposable
     }
 
     [Fact]
+    public void HomeProposesAndRemovesAxiomsForAnyProject()
+    {
+        var told = abilities.ProposeAxiom(workbench.Home.Folder, lorekeeper.Folder, " Always write tests ");
+
+        Assert.Equal("Lorekeeper now holds the axiom \"Always write tests\"; its chats follow it from their next session.", told.Text);
+        Assert.Equal(["Always write tests"], workbench.AxiomsOf(lorekeeper));
+        Assert.Equal("Lorekeeper already holds that axiom.", abilities.ProposeAxiom(workbench.Home.Folder, lorekeeper.Folder, "Always write tests").Text);
+        var listed = JsonNode.Parse(abilities.ListProjects().Text)!.AsArray();
+        Assert.Equal(["Always write tests"], listed[1]!["axioms"]!.AsArray().Select(axiom => axiom!.GetValue<string>()));
+
+        Assert.False(abilities.RemoveAxiom(lorekeeper.Folder, "Always write tests").IsError);
+        Assert.Empty(workbench.AxiomsOf(lorekeeper));
+        Assert.True(abilities.RemoveAxiom(lorekeeper.Folder, "Always write tests").IsError);
+    }
+
+    [Fact]
+    public void AProjectsAgentProposesAxiomsForItsOwnProjectOnly()
+    {
+        Assert.False(abilities.ProposeAxiom(crafter.Folder, null, "Never add comments").IsError);
+        Assert.False(abilities.ProposeAxiom(crafter.Folder, crafter.Folder, "Always write tests").IsError);
+        Assert.Equal(["Never add comments", "Always write tests"], workbench.AxiomsOf(crafter));
+
+        Assert.True(abilities.ProposeAxiom(crafter.Folder, lorekeeper.Folder, "Never add comments").IsError);
+        Assert.True(abilities.ProposeAxiom(crafter.Folder, null, " ").IsError);
+        Assert.True(abilities.ProposeAxiom(workbench.Home.Folder, "/nowhere", "Never add comments").IsError);
+        Assert.Empty(workbench.AxiomsOf(lorekeeper));
+    }
+
+    [Fact]
     public void RenamesAProjectWhereverItShows()
     {
         var told = abilities.RenameProject(lorekeeper.Folder, "Lorekeeper · desktop");

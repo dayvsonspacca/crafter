@@ -19,7 +19,18 @@ public sealed class McpServerTest : IDisposable
             new("echo", "Repeats a word.", Schema("word"), ReadOnly: false, call => Task.FromResult(new McpResult(call.Text("word") ?? "nothing"))),
             new("broken", "Always fails.", Schema(), ReadOnly: false, _ => throw new InvalidOperationException("it broke")),
         ];
-        server = new McpServer("crafter", "1.0", tools, token => token == "secret" ? "/home/hero/crafter" : null);
+        server = new McpServer(
+            "crafter",
+            "1.0",
+            tools,
+            token => token switch
+            {
+                "secret" => "/home/hero/crafter",
+                "guest" => "/home/hero/beacon",
+                _ => null,
+            },
+            caller => caller == "/home/hero/beacon" ? "You may only ask who you are." : null,
+            (caller, tool) => caller != "/home/hero/beacon" || tool == "whoami");
         server.Start();
     }
 
@@ -28,6 +39,21 @@ public sealed class McpServerTest : IDisposable
     {
         Assert.Equal(HttpStatusCode.Unauthorized, (await Post(Request(1, "ping"), token: null)).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await Post(Request(1, "ping"), token: "guess")).StatusCode);
+    }
+
+    [Fact]
+    public async Task ShowsEachCallerOnlyTheToolsItReachesWithItsOwnInstructions()
+    {
+        var listed = await Answer(await Post(Request(1, "tools/list"), "guest"));
+        Assert.Equal(["whoami"], listed["result"]!["tools"]!.AsArray().Select(tool => tool!["name"]!.GetValue<string>()));
+
+        var echoed = await Answer(await Post(Call(2, "echo", new JsonObject { ["word"] = "hi" }), "guest"));
+        Assert.True(echoed["result"]!["isError"]!.GetValue<bool>());
+        Assert.Equal("There is no tool called echo.", Text(echoed));
+
+        var introduced = await Answer(await Post(Request(3, "initialize", new JsonObject { ["protocolVersion"] = "2025-06-18" }), "guest"));
+        Assert.Equal("You may only ask who you are.", introduced["result"]!["instructions"]!.GetValue<string>());
+        Assert.Equal(3, (await Ask(Request(4, "tools/list")))["result"]!["tools"]!.AsArray().Count);
     }
 
     [Fact]
@@ -97,9 +123,10 @@ public sealed class McpServerTest : IDisposable
         server.Dispose();
     }
 
-    private async Task<JsonNode> Ask(JsonObject request)
+    private async Task<JsonNode> Ask(JsonObject request) => await Answer(await Post(request, "secret"));
+
+    private static async Task<JsonNode> Answer(HttpResponseMessage response)
     {
-        var response = await Post(request, "secret");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         return JsonNode.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken))!;

@@ -8,9 +8,16 @@ namespace Crafter.Mcp;
 
 // A Model Context Protocol server over HTTP for agents on this machine: JSON-RPC posted to
 // /mcp, answered as JSON. It listens on loopback only, wants a bearer token that names the
-// caller, and turns away browsers, which send an Origin. Instructions, when given, tell the
-// agent what the server is for as it connects.
-public sealed class McpServer(string name, string version, IReadOnlyList<McpTool> tools, Func<string, string?> callerOf, string? instructions = null) : IDisposable
+// caller, and turns away browsers, which send an Origin. Instructions, when given, tell each caller
+// what the server is for as it connects, and reaches says which tools a caller sees and may call;
+// without it, every caller has them all.
+public sealed class McpServer(
+    string name,
+    string version,
+    IReadOnlyList<McpTool> tools,
+    Func<string, string?> callerOf,
+    Func<string, string?>? instructions = null,
+    Func<string, string, bool>? reaches = null) : IDisposable
 {
     private static readonly string[] Versions = ["2025-06-18", "2025-03-26", "2024-11-05"];
 
@@ -168,15 +175,17 @@ public sealed class McpServer(string name, string version, IReadOnlyList<McpTool
 
         return method switch
         {
-            "initialize" => Result(id, Initialize(parameters)),
+            "initialize" => Result(id, Initialize(parameters, caller)),
             "ping" => Result(id, new JsonObject()),
-            "tools/list" => Result(id, new JsonObject { ["tools"] = new JsonArray([.. tools.Select(Describe)]) }),
+            "tools/list" => Result(id, new JsonObject { ["tools"] = new JsonArray([.. tools.Where(tool => Reaches(caller, tool)).Select(Describe)]) }),
             "tools/call" => Result(id, await Call(parameters, caller)),
             _ => Error(id, -32601, $"Method not found: {method}"),
         };
     }
 
-    private JsonObject Initialize(JsonObject? parameters)
+    private bool Reaches(string caller, McpTool tool) => reaches?.Invoke(caller, tool.Name) ?? true;
+
+    private JsonObject Initialize(JsonObject? parameters, string caller)
     {
         var asked = parameters?["protocolVersion"]?.GetValue<string>();
         var result = new JsonObject
@@ -186,9 +195,9 @@ public sealed class McpServer(string name, string version, IReadOnlyList<McpTool
             ["serverInfo"] = new JsonObject { ["name"] = name, ["version"] = version },
         };
 
-        if (instructions is not null)
+        if (instructions?.Invoke(caller) is { } told)
         {
-            result["instructions"] = instructions;
+            result["instructions"] = told;
         }
 
         return result;
@@ -207,7 +216,7 @@ public sealed class McpServer(string name, string version, IReadOnlyList<McpTool
         var wanted = parameters?["name"]?.GetValue<string>();
         McpResult result;
 
-        if (tools.FirstOrDefault(tool => tool.Name == wanted) is not { } tool)
+        if (tools.FirstOrDefault(tool => tool.Name == wanted && Reaches(caller, tool)) is not { } tool)
         {
             result = McpResult.Failed($"There is no tool called {wanted}.");
         }

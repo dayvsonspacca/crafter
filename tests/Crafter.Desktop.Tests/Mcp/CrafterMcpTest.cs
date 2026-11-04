@@ -36,14 +36,12 @@ public sealed class CrafterMcpTest : IDisposable
             mcp.Start();
             using var http = new HttpClient();
 
-            Assert.Empty(mcp.ServersFor(crafter));
-            Assert.Empty(mcp.ServersFor(lorekeeper));
             var server = Assert.Single(mcp.ServersFor(workbench.Home));
             Assert.Equal(["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill"], server.FreeTools);
 
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
             Assert.Equal(
-                ["list_projects", "add_project", "create_project", "open_project", "remove_project", "rename_project", "set_project_icon", "library_status", "sync_library", "list_skills", "read_skill", "save_skill"],
+                ["list_projects", "add_project", "create_project", "open_project", "remove_project", "rename_project", "set_project_icon", "propose_axiom", "remove_axiom", "library_status", "sync_library", "list_skills", "read_skill", "save_skill"],
                 tools.Select(tool => tool!["name"]!.GetValue<string>()));
 
             var listed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "list_projects", ["arguments"] = new JsonObject() });
@@ -51,6 +49,39 @@ public sealed class CrafterMcpTest : IDisposable
             Assert.Equal(["Crafter", "Lorekeeper"], projects.Select(project => project!["name"]!.GetValue<string>()));
 
             Assert.Equal(HttpStatusCode.Unauthorized, (await Post(http, server with { Token = "forged" }, "tools/list")).StatusCode);
+        });
+    }
+
+    [Fact]
+    public async Task AProjectsAgentOnlyProposesAxiomsForItsOwnProject()
+    {
+        await TestApp.RunAsync(async () =>
+        {
+            var (workbench, crafter, lorekeeper) = Workbench();
+            using var mcp = new CrafterMcp(workbench, new CrafterAbilities(workbench, Library(), new NoBranches()));
+            mcp.Start();
+            using var http = new HttpClient();
+
+            var server = Assert.Single(mcp.ServersFor(crafter));
+            Assert.Empty(server.FreeTools);
+            Assert.NotEqual(mcp.ServersFor(workbench.Home)[0].Token, server.Token);
+            Assert.NotEqual(mcp.ServersFor(lorekeeper)[0].Token, server.Token);
+
+            var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
+            Assert.Equal(["propose_axiom"], tools.Select(tool => tool!["name"]!.GetValue<string>()));
+            var initialized = await Ask(http, server, "initialize", new JsonObject { ["protocolVersion"] = "2025-06-18" });
+            Assert.Equal(CrafterMcp.ProjectInstructions, initialized["result"]!["instructions"]!.GetValue<string>());
+
+            var proposed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "propose_axiom", ["arguments"] = new JsonObject { ["axiom"] = "Never add comments" } });
+            Assert.False(proposed["result"]!["isError"]!.GetValue<bool>());
+            Assert.Equal(["Never add comments"], workbench.AxiomsOf(crafter));
+
+            var renamed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "rename_project", ["arguments"] = new JsonObject { ["folder"] = crafter.Folder, ["name"] = "Mine" } });
+            Assert.True(renamed["result"]!["isError"]!.GetValue<bool>());
+
+            workbench.Remove(crafter);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await Post(http, server, "tools/list")).StatusCode);
+            Assert.Empty(mcp.ServersFor(crafter));
         });
     }
 

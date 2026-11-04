@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -11,9 +12,9 @@ using Crafter.Presentation.Abilities;
 
 namespace Crafter.Desktop.Mcp;
 
-// Crafter as a tool server for Home's agent, the one place Crafter is managed from: no project's
-// agent gets it. Tools run on the UI thread, so the sidebar and the library show what they did
-// right away.
+// Crafter as a tool server. Home's agent, the one place Crafter is managed from, gets every tool;
+// a project's agent gets its own token and only propose_axiom, for its own project. Tools run on the
+// UI thread, so the sidebar, the library and the axioms show what they did right away.
 public sealed class CrafterMcp : IDisposable
 {
     public const string Name = "crafter";
@@ -21,7 +22,16 @@ public sealed class CrafterMcp : IDisposable
     public const string Instructions =
         "You are Home, the chat the user runs Crafter from. Crafter is the desktop app this session runs in: "
             + "it keeps a list of projects, each a folder with its own chats and agents, and a library of skills in a git repository. "
-            + "When the user asks about their projects or the skills library, use these tools; Crafter's own files are not yours to edit.";
+            + "Each project also holds axioms, the rules its agent follows in every chat. "
+            + "When the user asks about their projects, their axioms or the skills library, use these tools; Crafter's own files are not yours to edit.";
+
+    public const string ProjectInstructions =
+        "Crafter, the app this session runs in, keeps this project's axioms: the rules its agent follows in every chat, listed in your system prompt. "
+            + "When the user corrects you or settles how something must always be done here, propose it as an axiom with propose_axiom, "
+            + "short and in the imperative, like \"Never add comments\". The user approves or declines it in the chat. "
+            + "Don't propose what is already an axiom, nor what only holds for the task at hand.";
+
+    private const string Proposing = "propose_axiom";
 
     private static readonly string[] Free = ["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill"];
 
@@ -31,32 +41,75 @@ public sealed class CrafterMcp : IDisposable
 
     private readonly byte[] token = Encoding.ASCII.GetBytes(Convert.ToHexString(RandomNumberGenerator.GetBytes(24)));
 
+    private readonly ConcurrentDictionary<string, string> projectTokens = new();
+
     private readonly McpServer server;
 
     public CrafterMcp(WorkbenchViewModel workbench, CrafterAbilities abilities)
     {
         this.workbench = workbench;
         this.abilities = abilities;
-        server = new McpServer(Name, "1.0", Tools(), CallerOf, Instructions);
+        server = new McpServer(Name, "1.0", Tools(), CallerOf, InstructionsFor, Reaches);
     }
 
     public void Start() => server.Start();
 
-    public IReadOnlyList<ToolServer> ServersFor(Project project) =>
-        server.Endpoint is { } endpoint && project == workbench.Home
-            ? [new ToolServer(Name, endpoint, Encoding.ASCII.GetString(token), Free)]
-            : [];
+    // Nothing a project's agent can call runs unasked: proposing an axiom waits for the user.
+    public IReadOnlyList<ToolServer> ServersFor(Project project)
+    {
+        if (server.Endpoint is not { } endpoint)
+        {
+            return [];
+        }
+
+        if (project == workbench.Home)
+        {
+            return [new ToolServer(Name, endpoint, Encoding.ASCII.GetString(token), Free)];
+        }
+
+        return OnUi(() => Shelved(project.Folder)) ? [new ToolServer(Name, endpoint, TokenFor(project), [])] : [];
+    }
 
     public void Dispose() => server.Dispose();
 
-    private string? CallerOf(string offered) =>
-        CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(offered), token) ? workbench.Home.Folder : null;
+    private string TokenFor(Project project)
+    {
+        foreach (var (issued, folder) in projectTokens)
+        {
+            if (folder == project.Folder)
+            {
+                return issued;
+            }
+        }
+
+        var fresh = Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
+        projectTokens[fresh] = project.Folder;
+
+        return fresh;
+    }
+
+    // A project's token stops working once the project leaves the sidebar.
+    private string? CallerOf(string offered)
+    {
+        if (CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(offered), token))
+        {
+            return workbench.Home.Folder;
+        }
+
+        return projectTokens.TryGetValue(offered, out var folder) && OnUi(() => Shelved(folder)) ? folder : null;
+    }
+
+    private bool Shelved(string folder) => workbench.Projects.Any(project => project.Folder == folder);
+
+    private bool Reaches(string caller, string tool) => caller == workbench.Home.Folder || tool == Proposing;
+
+    private string InstructionsFor(string caller) => caller == workbench.Home.Folder ? Instructions : ProjectInstructions;
 
     private McpTool[] Tools() =>
     [
         new(
             "list_projects",
-            "Lists the projects in Crafter's sidebar: name, folder, git branch and open chats.",
+            "Lists the projects in Crafter's sidebar: name, folder, git branch, open chats and axioms.",
             Schema(),
             ReadOnly: true,
             _ => Run(abilities.ListProjects)),
@@ -105,6 +158,23 @@ public sealed class CrafterMcp : IDisposable
             ReadOnly: false,
             call => Run(() => abilities.SetProjectIcon(call.Caller, call.Text("folder"), call.Text("image")))),
         new(
+            Proposing,
+            "Proposes an axiom: a rule a project's agent follows in every chat, short and in the imperative, like \"Never add comments\". "
+                + "The user approves it in the chat before Crafter keeps it, and chats follow it from their next session.",
+            Schema(
+                ("axiom", "The rule, in one sentence.", true),
+                ("folder", "Home only: the project's folder, as list_projects gives it. A project's agent leaves it out and proposes for its own project.", false)),
+            ReadOnly: false,
+            call => Run(() => abilities.ProposeAxiom(call.Caller, call.Text("folder"), call.Text("axiom")))),
+        new(
+            "remove_axiom",
+            "Removes an axiom from a project; its chats stop following it from their next session.",
+            Schema(
+                ("folder", "The project's folder, as list_projects gives it.", true),
+                ("axiom", "The axiom, word for word as list_projects gives it.", true)),
+            ReadOnly: false,
+            call => Run(() => abilities.RemoveAxiom(call.Text("folder"), call.Text("axiom")))),
+        new(
             "library_status",
             "The skills library: its repository, when it last synced and at which commit, how many skills it holds and the folders it could not read.",
             Schema(),
@@ -146,6 +216,8 @@ public sealed class CrafterMcp : IDisposable
                 call.Text("whenToUse"),
                 call.Text("instructions") ?? string.Empty)))),
     ];
+
+    private static T OnUi<T>(Func<T> read) => Dispatcher.UIThread.CheckAccess() ? read() : Dispatcher.UIThread.Invoke(read);
 
     private static Task<McpResult> Run(Func<Told> act) => Run(() => Task.FromResult(act()));
 
