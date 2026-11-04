@@ -1,0 +1,86 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ResourceDictionary.MergedDictionaries>
+    <ColorPaletteResources Accent="#9C4C24"
+                           AltHigh="#F6F4EF"
+                           AltLow="#F6F4EF"
+                           AltMedium="#F6F4EF"
+                           AltMediumHigh="#F6F4EF"
+                           AltMediumLow="#F6F4EF"
+                           BaseHigh="#1A1E1C"
+                           BaseLow="#D2CDC2"
+                           BaseMedium="#5A625D"
+                           BaseMediumHigh="#3A403C"
+                           BaseMediumLow="#969890"
+                           ChromeAltLow="#3A403C"
+                           ChromeBlackHigh="#000000"
+                           ChromeBlackLow="#3A403C"
+                           ChromeBlackMedium="#1A1E1C"
+                           ChromeBlackMediumLow="#1A1E1C"
+                           ChromeDisabledHigh="#D2CDC2"
+                           ChromeDisabledLow="#5A625D"
+                           ChromeGray="#969890"
+                           ChromeHigh="#969890"
+                           ChromeLow="#ECE8E0"
+                           ChromeMedium="#E0DBD1"
+                           ChromeMediumLow="#ECE8E0"
+                           ChromeWhite="#FFFFFF"
+                           ListLow="#ECE8E0"
+                           ListMedium="#D2CDC2"
+                           RegionColor="#F6F4EF" />
+  </ResourceDictionary.MergedDictionaries>
+
+  <Color x:Key="BackgroundColor">#F6F4EF</Color>
+  <Color x:Key="SurfaceColor">#ECE8E0</Color>
+  <Color x:Key="BorderColor">#D2CDC2</Color>
+  <Color x:Key="HoverColor">#E0DBD1</Color>
+  <Color x:Key="ForegroundColor">#1A1E1C</Color>
+  <Color x:Key="ForegroundMutedColor">#5A625D</Color>
+  <Color x:Key="AccentColor">#9C4C24</Color>
+  <Color x:Key="AccentSecondaryColor">#2A705C</Color>
+  <Color x:Key="OnAccentColor">#FFFFFF</Color>
+  <Color x:Key="AddedColor">#2A705C</Color>
+  <Color x:Key="RemovedColor">#A8402F</Color>
+  <Color x:Key="ScrimColor">#661A1E1C</Color>
+  <Color x:Key="SelectedColor">#E1D2C6</Color>
+  <Color x:Key="AccentTextColor">#9C4C24</Color>
+  <Color x:Key="IdleColor">#5A625D</Color>
+  <Color x:Key="CloseHoverColor">#C42B1C</Color>
+  <Color x:Key="OnCloseHoverColor">#FFFFFF</Color>
+
+  <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+  <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+  <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
+  <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource ForegroundMutedColor}" />
+  <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+  <SolidColorBrush x:Key="AccentSecondaryBrush" Color="{StaticResource AccentSecondaryColor}" />
+  <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" />
+  <SolidColorBrush x:Key="AddedBrush" Color="{StaticResource AddedColor}" />
+  <SolidColorBrush x:Key="RemovedBrush" Color="{StaticResource RemovedColor}" />
+  <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource ScrimColor}" />
+  <SolidColorBrush x:Key="SelectedBrush" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="AccentTextBrush" Color="{StaticResource AccentTextColor}" />
+  <SolidColorBrush x:Key="IdleBrush" Color="{StaticResource IdleColor}" />
+  <SolidColorBrush x:Key="CloseHoverBrush" Color="{StaticResource CloseHoverColor}" />
+  <SolidColorBrush x:Key="OnCloseHoverBrush" Color="{StaticResource OnCloseHoverColor}" />
+
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource SurfaceColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutSeparatorBackground" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="{StaticResource SurfaceColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource HoverColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPressed" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="{StaticResource ForegroundColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver" Color="{StaticResource ForegroundColor}" />
+</ResourceDictionary>

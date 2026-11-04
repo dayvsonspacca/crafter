@@ -16,7 +16,8 @@ public sealed class AppearanceGroupViewModel : PreferenceGroupViewModel
         this.themes = themes;
 
         var current = Theme.Named(preferences.Current.Theme);
-        Themes = [.. Theme.All.Select(theme => new ThemeChoiceViewModel(theme, theme == current, Choose))];
+        Themes = [.. Theme.All.Select(theme => new ThemeChoiceViewModel(theme, theme == current, themes.Appearance, Choose))];
+        themes.AppearanceChanged += Follow;
         themes.Apply(current);
     }
 
@@ -31,5 +32,13 @@ public sealed class AppearanceGroupViewModel : PreferenceGroupViewModel
 
         themes.Apply(chosen.Theme);
         preferences.ChooseTheme(chosen.Theme.Id);
+    }
+
+    private void Follow(object? sender, EventArgs e)
+    {
+        foreach (var choice in Themes)
+        {
+            choice.Appearance = themes.Appearance;
+        }
     }
 }

@@ -173,7 +173,7 @@
                 <Border Classes="setting" BorderThickness="0">
                   <StackPanel Spacing="8">
                     <TextBlock Classes="title" Text="Theme" />
-                    <TextBlock Classes="about" Text="Colors for the whole app." />
+                    <TextBlock Classes="about" Text="Colors for the whole app. Light or dark follows your system setting." />
                     <ItemsControl Margin="0,4,-12,0" ItemsSource="{Binding Themes}">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -187,21 +187,21 @@
                                   Command="{Binding ChooseCommand}"
                                   AutomationProperties.Name="{Binding Theme.Name}">
                             <StackPanel Spacing="10">
-                              <Border Height="96" CornerRadius="6" ClipToBounds="True" Background="{Binding Theme.Background, Converter={x:Static themes:HexBrushConverter.Instance}}">
+                              <Border Height="96" CornerRadius="6" ClipToBounds="True" Background="{Binding Palette.Background, Converter={x:Static themes:HexBrushConverter.Instance}}">
                                 <DockPanel>
                                   <Border DockPanel.Dock="Top"
                                           Height="12"
-                                          Background="{Binding Theme.Surface, Converter={x:Static themes:HexBrushConverter.Instance}}"
-                                          BorderBrush="{Binding Theme.Line, Converter={x:Static themes:HexBrushConverter.Instance}}"
+                                          Background="{Binding Palette.Surface, Converter={x:Static themes:HexBrushConverter.Instance}}"
+                                          BorderBrush="{Binding Palette.Line, Converter={x:Static themes:HexBrushConverter.Instance}}"
                                           BorderThickness="0,0,0,1">
-                                    <Border Width="28" Height="4" CornerRadius="2" Background="{Binding Theme.Muted, Converter={x:Static themes:HexBrushConverter.Instance}}" />
+                                    <Border Width="28" Height="4" CornerRadius="2" Background="{Binding Palette.Muted, Converter={x:Static themes:HexBrushConverter.Instance}}" />
                                   </Border>
                                   <Grid ColumnDefinitions="34*,66*">
-                                    <Border Background="{Binding Theme.Surface, Converter={x:Static themes:HexBrushConverter.Instance}}" BorderBrush="{Binding Theme.Line, Converter={x:Static themes:HexBrushConverter.Instance}}" BorderThickness="0,0,1,0" Padding="6,7">
+                                    <Border Background="{Binding Palette.Surface, Converter={x:Static themes:HexBrushConverter.Instance}}" BorderBrush="{Binding Palette.Line, Converter={x:Static themes:HexBrushConverter.Instance}}" BorderThickness="0,0,1,0" Padding="6,7">
                                       <StackPanel Spacing="5">
-                                        <Border Height="5" CornerRadius="3" Background="{Binding Theme.Line, Converter={x:Static themes:HexBrushConverter.Instance}}" />
-                                        <Border Height="5" CornerRadius="3" Margin="0,0,14,0" Background="{Binding Theme.Muted, Converter={x:Static themes:HexBrushConverter.Instance}}" />
-                                        <Border Height="5" CornerRadius="3" Margin="0,0,8,0" Background="{Binding Theme.Muted, Converter={x:Static themes:HexBrushConverter.Instance}}" />
+                                        <Border Height="5" CornerRadius="3" Background="{Binding Palette.Line, Converter={x:Static themes:HexBrushConverter.Instance}}" />
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,14,0" Background="{Binding Palette.Muted, Converter={x:Static themes:HexBrushConverter.Instance}}" />
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,8,0" Background="{Binding Palette.Muted, Converter={x:Static themes:HexBrushConverter.Instance}}" />
                                       </StackPanel>
                                     </Border>
                                     <DockPanel Grid.Column="1" Margin="8">
@@ -210,11 +210,11 @@
                                               Height="10"
                                               CornerRadius="3"
                                               HorizontalAlignment="Right"
-                                              Background="{Binding Theme.Accent, Converter={x:Static themes:HexBrushConverter.Instance}}" />
+                                              Background="{Binding Palette.Accent, Converter={x:Static themes:HexBrushConverter.Instance}}" />
                                       <StackPanel Spacing="6">
-                                        <Border Height="5" CornerRadius="3" Margin="0,0,40,0" Background="{Binding Theme.Foreground, Converter={x:Static themes:HexBrushConverter.Instance}}" />
-                                        <Border Height="5" CornerRadius="3" Margin="0,0,12,0" Background="{Binding Theme.Muted, Converter={x:Static themes:HexBrushConverter.Instance}}" />
-                                        <Border Height="5" CornerRadius="3" Margin="0,0,60,0" Background="{Binding Theme.AccentSecondary, Converter={x:Static themes:HexBrushConverter.Instance}}" />
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,40,0" Background="{Binding Palette.Foreground, Converter={x:Static themes:HexBrushConverter.Instance}}" />
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,12,0" Background="{Binding Palette.Muted, Converter={x:Static themes:HexBrushConverter.Instance}}" />
+                                        <Border Height="5" CornerRadius="3" Margin="0,0,60,0" Background="{Binding Palette.AccentSecondary, Converter={x:Static themes:HexBrushConverter.Instance}}" />
                                       </StackPanel>
                                     </DockPanel>
                                   </Grid>

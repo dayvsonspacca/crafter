@@ -11,6 +11,11 @@
         <ResourceInclude x:Key="{x:Static themes:ThemeVariants.Nether}" Source="/Themes/Nether.axaml" />
         <ResourceInclude x:Key="{x:Static themes:ThemeVariants.Warped}" Source="/Themes/Warped.axaml" />
         <ResourceInclude x:Key="{x:Static themes:ThemeVariants.Copper}" Source="/Themes/Copper.axaml" />
+        <ResourceInclude x:Key="{x:Static themes:ThemeVariants.RedstoneLight}" Source="/Themes/RedstoneLight.axaml" />
+        <ResourceInclude x:Key="{x:Static themes:ThemeVariants.DeepslateLight}" Source="/Themes/DeepslateLight.axaml" />
+        <ResourceInclude x:Key="{x:Static themes:ThemeVariants.NetherLight}" Source="/Themes/NetherLight.axaml" />
+        <ResourceInclude x:Key="{x:Static themes:ThemeVariants.WarpedLight}" Source="/Themes/WarpedLight.axaml" />
+        <ResourceInclude x:Key="{x:Static themes:ThemeVariants.CopperLight}" Source="/Themes/CopperLight.axaml" />
       </ResourceDictionary.ThemeDictionaries>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="/Themes/Tokens.axaml" />
