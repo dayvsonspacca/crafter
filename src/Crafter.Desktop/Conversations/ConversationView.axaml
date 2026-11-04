@@ -616,11 +616,11 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <TextBox x:Name="PromptBox"
-                   Classes="prompt"
-                   Text="{Binding Draft}"
-                   PlaceholderText="Describe the recipe…"
-                   AutomationProperties.Name="Message" />
+          <controls:PromptBox x:Name="PromptBox"
+                              Classes="prompt"
+                              Text="{Binding Draft}"
+                              PlaceholderText="Describe the recipe…"
+                              AutomationProperties.Name="Message" />
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource Space2}">
             <TextBlock Classes="hint" Text="Enter to craft · Shift+Enter for a new line" />
             <Panel Grid.Column="1">
