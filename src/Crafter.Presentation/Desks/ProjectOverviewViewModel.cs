@@ -32,8 +32,10 @@ public sealed partial class ProjectOverviewViewModel : ObservableObject
 
     public ObservableCollection<RecentChatViewModel> Recent { get; } = [];
 
-    // Home has nothing to edit.
-    public bool CanEdit => edit is not null;
+    // Home is the one desk with nothing to edit; it shows a house instead of an icon or letter.
+    public bool IsHome => edit is null;
+
+    public bool ShowsLetter => !HasIcon && !IsHome;
 
     [ObservableProperty]
     public partial string Name { get; set; }
@@ -42,7 +44,7 @@ public sealed partial class ProjectOverviewViewModel : ObservableObject
     public partial string Letter { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasIcon))]
+    [NotifyPropertyChangedFor(nameof(HasIcon), nameof(ShowsLetter))]
     public partial string? IconFile { get; set; }
 
     public bool HasIcon => IconFile is not null;

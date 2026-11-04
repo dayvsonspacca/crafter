@@ -73,10 +73,7 @@
     <DockPanel>
       <Button DockPanel.Dock="Top"
               Classes="project"
-              Height="{StaticResource HeaderHeight}"
-              Margin="8,0"
-              Padding="8,0"
-              VerticalContentAlignment="Center"
+              Margin="8,8,8,0"
               DataContext="{Binding HomeItem}"
               x:DataType="projects:ShelfItemViewModel"
               Classes.current="{Binding IsCurrent}"

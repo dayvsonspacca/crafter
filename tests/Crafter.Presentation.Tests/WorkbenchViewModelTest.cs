@@ -26,7 +26,8 @@ public sealed class WorkbenchViewModelTest : IDisposable
         Assert.Equal(workbench.Home, workbench.Current);
         Assert.True(workbench.HomeItem.IsCurrent);
         Assert.True(workbench.Desk!.ShowsOverview);
-        Assert.False(workbench.Desk.Overview.CanEdit);
+        Assert.True(workbench.Desk.Overview.IsHome);
+        Assert.False(workbench.Desk.Overview.ShowsLetter);
     }
 
     [Fact]
@@ -105,6 +106,8 @@ public sealed class WorkbenchViewModelTest : IDisposable
         workbench.Open(Project("crafter"));
 
         Assert.True(workbench.Desk!.ShowsOverview);
+        Assert.False(workbench.Desk.Overview.IsHome);
+        Assert.True(workbench.Desk.Overview.ShowsLetter);
     }
 
     [Fact]
