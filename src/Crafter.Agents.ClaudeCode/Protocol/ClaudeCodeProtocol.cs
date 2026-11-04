@@ -13,10 +13,15 @@ public static class ClaudeCodeProtocol
 
     private const string Silence = "The user chose not to answer. Carry on with your best judgment or ask in plain text.";
 
-    public static string Asking(Prompt prompt) =>
+    public static string Asking(Prompt prompt, string? id = null) =>
         Json(writer =>
         {
             writer.WriteString("type", "user");
+            if (id is not null)
+            {
+                writer.WriteString("uuid", id);
+            }
+
             writer.WriteStartObject("message");
             writer.WriteString("role", "user");
             if (prompt.Pictures.Count == 0)
@@ -28,6 +33,27 @@ public static class ClaudeCodeProtocol
                 Shown(writer, prompt);
             }
 
+            writer.WriteEndObject();
+        });
+
+    public static string Interrupting(string request) =>
+        Json(writer =>
+        {
+            writer.WriteString("type", "control_request");
+            writer.WriteString("request_id", request);
+            writer.WriteStartObject("request");
+            writer.WriteString("subtype", "interrupt");
+            writer.WriteEndObject();
+        });
+
+    public static string Stopping(string request, string job) =>
+        Json(writer =>
+        {
+            writer.WriteString("type", "control_request");
+            writer.WriteString("request_id", request);
+            writer.WriteStartObject("request");
+            writer.WriteString("subtype", "stop_task");
+            writer.WriteString("task_id", job);
             writer.WriteEndObject();
         });
 

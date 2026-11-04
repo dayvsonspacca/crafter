@@ -6,6 +6,7 @@
              xmlns:conversations="using:Crafter.Presentation.Conversations"
              xmlns:messages="using:Crafter.Presentation.Conversations.Messages"
              xmlns:composing="using:Crafter.Presentation.Conversations.Composing"
+             xmlns:background="using:Crafter.Presentation.Conversations.Background"
              xmlns:folders="using:Crafter.Presentation.Folders"
              xmlns:core="using:Crafter.Core.Conversations"
              xmlns:conversationViews="using:Crafter.Desktop.Conversations"
@@ -36,26 +37,6 @@
     </Style>
     <Style Selector="Border.pill.crafting TextBlock">
       <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-    </Style>
-
-    <Style Selector="Button.chooser">
-      <Setter Property="Height" Value="24" />
-      <Setter Property="Padding" Value="10,0,8,0" />
-      <Setter Property="CornerRadius" Value="99" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>
-    <Style Selector="Button.chooser:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.chooser:pressed /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-    </Style>
-    <Style Selector="Button.chooser.changed /template/ ContentPresenter#PART_ContentPresenter, Button.chooser.changed:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentSecondaryBrush}" />
-    </Style>
-    <Style Selector="Button.chooser.changed TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
     </Style>
 
     <Style Selector="Border.pill.waiting">
@@ -392,6 +373,51 @@
       <Setter Property="BorderBrush" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
     </Style>
+    <Style Selector="Border.sidebar">
+      <Setter Property="Width" Value="340" />
+      <Setter Property="BorderThickness" Value="1,0,0,0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="TextBlock.heading">
+      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
+      <Setter Property="FontSize" Value="10.5" />
+      <Setter Property="LetterSpacing" Value="1.1" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.empty">
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Button.tool.on">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Button.job">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="MinHeight" Value="28" />
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.job:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.job:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    </Style>
+    <Style Selector="Button.job TextBlock.what">
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Path.glyph">
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="StrokeThickness" Value="1.2" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Stroke" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
     <Style Selector="Border.mentions">
       <Setter Property="MaxWidth" Value="780" />
       <Setter Property="Margin" Value="24,0,24,6" />
@@ -544,37 +570,56 @@
           <Border Classes="pill" IsVisible="{Binding HasModel}">
             <TextBlock Classes="mono" Text="{Binding Model}" />
           </Border>
-          <ItemsControl ItemsSource="{Binding Choosers}">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <StackPanel Orientation="Horizontal" Spacing="6" />
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="conversations:ChatChooserViewModel">
-                <Button Classes="chooser" Classes.changed="{Binding IsChanged}" AutomationProperties.Name="{Binding Title}">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Classes="mono" Text="{Binding Label}" />
-                    <TextBlock Classes="mono" FontSize="8" Opacity="0.7" Text="▼" />
-                  </StackPanel>
-                  <Button.Flyout>
-                    <MenuFlyout Placement="BottomEdgeAlignedRight" ItemsSource="{Binding Options}">
-                      <MenuFlyout.ItemContainerTheme>
-                        <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="conversations:ChooserOptionViewModel">
-                          <Setter Property="Header" Value="{Binding Label}" />
-                          <Setter Property="Command" Value="{Binding ChooseCommand}" />
-                          <Setter Property="ToggleType" Value="Radio" />
-                          <Setter Property="IsChecked" Value="{Binding IsChosen}" />
-                        </ControlTheme>
-                      </MenuFlyout.ItemContainerTheme>
-                    </MenuFlyout>
-                  </Button.Flyout>
-                </Button>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+          <Button Classes="tool" Classes.on="{Binding IsPanelOpen}" Height="24" Content="Panel" Command="{Binding TogglePanelCommand}" ToolTip.Tip="Show or hide the panel (Ctrl+J)" />
         </StackPanel>
       </Grid>
+    </Border>
+
+    <Border DockPanel.Dock="Right" Classes="sidebar" IsVisible="{Binding IsPanelOpen}">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="14,16,14,16" Spacing="22">
+          <TextBlock Classes="empty" Text="Nothing running. Background jobs show up here." IsVisible="{Binding IsPanelEmpty}" />
+
+          <StackPanel Spacing="6" IsVisible="{Binding HasJobs}">
+            <TextBlock Classes="heading" Text="BACKGROUND" />
+            <ItemsControl ItemsSource="{Binding Jobs}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="background:JobViewModel">
+                  <StackPanel>
+                    <Grid ColumnDefinitions="*,Auto">
+                      <Button Classes="job" Command="{Binding ToggleCommand}" AutomationProperties.Name="{Binding Description}">
+                        <Grid ColumnDefinitions="8,16,*,Auto" ColumnSpacing="8">
+                          <Ellipse Classes="pulse" Width="7" Height="7" VerticalAlignment="Center" Fill="{DynamicResource AccentBrush}" />
+                          <Path Grid.Column="1" Classes="glyph" Data="M2.5,3.5 H13.5 V12.5 H2.5 Z M4.5,6 L6.5,8 L4.5,10 M8,10 H11" IsVisible="{Binding IsShell}" />
+                          <Path Grid.Column="1" Classes="glyph" Data="M1.5,8 H4.5 L6,4.5 L8.5,11.5 L10,8 H14.5" IsVisible="{Binding IsMonitor}" />
+                          <Path Grid.Column="1" Classes="glyph" Data="M8,2 L9.5,6.5 L14,8 L9.5,9.5 L8,14 L6.5,9.5 L2,8 L6.5,6.5 Z" IsVisible="{Binding IsAgent}" />
+                          <TextBlock Grid.Column="2" Classes="what" TextTrimming="CharacterEllipsis" Text="{Binding Description}" ToolTip.Tip="{Binding Kind}" />
+                          <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Elapsed}" />
+                        </Grid>
+                      </Button>
+                      <Button Grid.Column="1"
+                              Classes="tool"
+                              Margin="4,0,0,0"
+                              Content="Stop"
+                              Command="{Binding StopCommand}"
+                              IsEnabled="{Binding !IsStopping}"
+                              AutomationProperties.Name="Stop this job" />
+                    </Grid>
+                    <Border Classes="output" IsVisible="{Binding IsOpen}">
+                      <SelectableTextBlock FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                           FontSize="12"
+                                           LineHeight="19"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource ForegroundMutedBrush}"
+                                           Text="{Binding Output}" />
+                    </Border>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
     </Border>
 
     <Border DockPanel.Dock="Bottom" Padding="24,12,24,18">
@@ -603,8 +648,8 @@
                    PlaceholderText="Describe the recipe…"
                    AutomationProperties.Name="Message" />
           <Panel HorizontalAlignment="Right">
-            <Button Classes="craft" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsCrafting}" />
-            <Button Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsCrafting}" />
+            <Button Classes="craft" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsAsking}" />
+            <Button Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsAsking}" />
           </Panel>
         </StackPanel>
       </Border>
@@ -688,6 +733,7 @@
                     <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
                   </DockPanel>
                   <StackPanel Grid.Column="1" Margin="0,0,0,30" Spacing="10">
+                    <TextBlock Classes="mono" Margin="8,3,0,0" Text="woke up · a background job reported" IsVisible="{Binding IsWoken}" />
                     <ItemsControl ItemsSource="{Binding Items}">
                       <ItemsControl.DataTemplates>
                         <DataTemplate DataType="messages:TextSegmentViewModel">

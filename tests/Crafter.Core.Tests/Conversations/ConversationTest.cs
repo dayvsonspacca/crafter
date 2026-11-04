@@ -32,17 +32,6 @@ public sealed class ConversationTest
     }
 
     [Fact]
-    public async Task AsksWithItsAdjustmentsOverThePreferred()
-    {
-        var agent = new ScriptedSession(new Finished());
-        var conversation = new Conversation(agent, [], Configuration.Empty.With("tools", "plan"));
-
-        await conversation.Ask(new Prompt("oi"), Configuration.Empty.With("model", "opus").With("tools", "chat"), Stop).ToListAsync(Stop);
-
-        Assert.Equal([Configuration.Empty.With("model", "opus").With("tools", "plan")], agent.Configurations);
-    }
-
-    [Fact]
     public async Task AsksWithThePreferencesOfTheMoment()
     {
         var agent = new ScriptedSession(new Finished());
@@ -52,14 +41,6 @@ public sealed class ConversationTest
         await conversation.Ask(new Prompt("e agora?"), Configuration.Empty.With("model", "sonnet"), Stop).ToListAsync(Stop);
 
         Assert.Equal([Configuration.Empty.With("model", "opus"), Configuration.Empty.With("model", "sonnet")], agent.Configurations);
-    }
-
-    [Fact]
-    public void StartsWithTheAdjustmentsItWasGiven()
-    {
-        var conversation = new Conversation(new ScriptedSession(), [], Configuration.Empty.With("tools", "plan"));
-
-        Assert.Equal("plan", conversation.Adjustments["tools"]);
     }
 
     [Fact]

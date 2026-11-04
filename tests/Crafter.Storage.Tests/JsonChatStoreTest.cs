@@ -1,5 +1,4 @@
 using Crafter.Core.Agents;
-using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Projects;
@@ -41,7 +40,7 @@ public sealed class JsonChatStoreTest : IDisposable
                 new Asked(new Prompt("Broken")),
                 new Answered(string.Empty, new Failed("Not logged in")),
             ]),
-            new(ChatId.New(), Codex, ChatTitle.Untitled, null, []) { Adjustments = Configuration.Empty.With("tools", "plan") },
+            new(ChatId.New(), Codex, ChatTitle.Untitled, null, []),
         ];
 
         new JsonChatStore(folder).Save(Crafter, chats);
@@ -55,7 +54,6 @@ public sealed class JsonChatStoreTest : IDisposable
             Assert.Equal(chats[at].Title, loaded[at].Title);
             Assert.Equal(chats[at].SessionId, loaded[at].SessionId);
             Assert.Equal(chats[at].Turns, loaded[at].Turns);
-            Assert.Equal(chats[at].Adjustments, loaded[at].Adjustments);
         }
     }
 

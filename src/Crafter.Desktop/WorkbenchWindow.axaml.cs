@@ -39,7 +39,7 @@ public sealed partial class WorkbenchWindow : Window
     {
         base.OnClosing(e);
 
-        if (leaving || DataContext is not WorkbenchViewModel { IsCrafting: true } viewModel)
+        if (leaving || DataContext is not WorkbenchViewModel { IsBusy: true } viewModel)
         {
             return;
         }
@@ -61,6 +61,7 @@ public sealed partial class WorkbenchWindow : Window
         shortcuts.On(ChatShortcuts.Close, () => viewModel.CloseChatCommand.Execute(null));
         shortcuts.On(ChatShortcuts.Next, () => viewModel.NextChatCommand.Execute(null));
         shortcuts.On(ChatShortcuts.Previous, () => viewModel.PreviousChatCommand.Execute(null));
+        shortcuts.On(ChatShortcuts.TogglePanel, () => viewModel.TogglePanelCommand.Execute(null));
 
         for (var place = 0; place < ProjectShortcuts.Slots; place++)
         {

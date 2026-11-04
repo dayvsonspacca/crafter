@@ -1,17 +1,39 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Crafter.Agents.ClaudeCode.Cli;
+using Crafter.Core.Agents.Background;
 using Crafter.Core.Conversations.Replies;
 using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode.Protocol;
 
-public sealed class ClaudeCodeTranscript(string? folder = null)
+public sealed partial class ClaudeCodeTranscript(string? folder = null)
 {
     private const string AsksTheUser = "AskUserQuestion";
 
+    private const string Watches = "Monitor";
+
+    private static readonly string[] Over = ["completed", "failed", "killed", "stopped"];
+
     private readonly Dictionary<string, Request> requests = [];
 
+    private readonly Dictionary<string, string> tools = [];
+
+    private readonly Dictionary<string, string> outputs = [];
+
+    private readonly Dictionary<string, string> owners = [];
+
+    private readonly List<Job> jobs = [];
+
     public string? SessionId { get; private set; }
+
+    public IReadOnlyList<Job> Jobs => jobs;
+
+    public bool Opened { get; private set; }
+
+    public string? Started { get; private set; }
+
+    public bool JobsMoved { get; private set; }
 
     public string InputOf(string request) => requests.GetValueOrDefault(request)?.Input ?? "{}";
 
@@ -49,6 +71,10 @@ public sealed class ClaudeCodeTranscript(string? folder = null)
             return [];
         }
 
+        Opened = false;
+        Started = null;
+        JobsMoved = false;
+
         using (document)
         {
             var root = document.RootElement;
@@ -62,6 +88,8 @@ public sealed class ClaudeCodeTranscript(string? folder = null)
             return Text(root, "type") switch
             {
                 "system" when Text(root, "subtype") == "init" => Introduction(root),
+                "system" => Background(root),
+                "command_lifecycle" => Lifecycle(root),
                 "stream_event" => Fragment(root),
                 "assistant" => Actions(root),
                 "user" => Results(root),
@@ -73,8 +101,89 @@ public sealed class ClaudeCodeTranscript(string? folder = null)
         }
     }
 
-    private static IReadOnlyList<Reply> Introduction(JsonElement root) =>
-        Text(root, "model") is { } model ? [new Began(ClaudeCodeModel.NameOf(model))] : [];
+    private IReadOnlyList<Reply> Introduction(JsonElement root)
+    {
+        Opened = true;
+
+        return Text(root, "model") is { } model ? [new Began(ClaudeCodeModel.NameOf(model))] : [];
+    }
+
+    private IReadOnlyList<Reply> Lifecycle(JsonElement root)
+    {
+        if (Text(root, "state") == "started")
+        {
+            Started = Text(root, "command_uuid");
+        }
+
+        return [];
+    }
+
+    private IReadOnlyList<Reply> Background(JsonElement root)
+    {
+        switch (Text(root, "subtype"))
+        {
+            case "task_started" when Text(root, "task_id") is { } id:
+                Track(id, Text(root, "task_type"), Text(root, "tool_use_id"), Text(root, "description"));
+                break;
+            case "task_updated" when Text(root, "task_id") is { } id && root.TryGetProperty("patch", out var patch) && Over.Contains(Text(patch, "status")):
+                Forget(id);
+                break;
+            case "task_notification" when Text(root, "task_id") is { } id && Over.Contains(Text(root, "status")):
+                Forget(id);
+                break;
+            case "background_tasks_changed" when root.TryGetProperty("tasks", out var tasks) && tasks.ValueKind == JsonValueKind.Array:
+                var listed = tasks.EnumerateArray().Where(task => Text(task, "task_id") is not null).ToList();
+                foreach (var gone in jobs.Where(job => listed.All(task => Text(task, "task_id") != job.Id)).ToList())
+                {
+                    Forget(gone.Id);
+                }
+
+                foreach (var task in listed)
+                {
+                    Track(Text(task, "task_id")!, Text(task, "task_type"), Text(task, "tool_use_id"), Text(task, "description"));
+                }
+
+                break;
+        }
+
+        return [];
+    }
+
+    private void Track(string id, string? type, string? tool, string? description)
+    {
+        var at = jobs.FindIndex(job => job.Id == id);
+        if (tool is not null)
+        {
+            owners[id] = tool;
+        }
+
+        var owner = owners.GetValueOrDefault(id);
+        var kind = type switch
+        {
+            "local_bash" when owner is not null && tools.GetValueOrDefault(owner) == Watches => JobKind.Monitor,
+            "local_bash" => JobKind.Shell,
+            null when at >= 0 => jobs[at].Kind,
+            _ => JobKind.Agent,
+        };
+        var job = new Job(
+            id,
+            kind,
+            description is { Length: > 0 } said ? said : at >= 0 ? jobs[at].Description : id,
+            owner is not null ? outputs.GetValueOrDefault(owner) : null);
+
+        if (at < 0)
+        {
+            jobs.Add(job);
+            JobsMoved = true;
+        }
+        else if (jobs[at] != job)
+        {
+            jobs[at] = job;
+            JobsMoved = true;
+        }
+    }
+
+    private void Forget(string id) => JobsMoved |= jobs.RemoveAll(job => job.Id == id) > 0;
 
     private static IReadOnlyList<Reply> Fragment(JsonElement root)
     {
@@ -96,15 +205,27 @@ public sealed class ClaudeCodeTranscript(string? folder = null)
                 .Select(block => Acting(Text(block, "id")!, Text(block, "name")!, Input(block))),
         ];
 
-    private static IReadOnlyList<Reply> Results(JsonElement root) =>
+    private IReadOnlyList<Reply> Results(JsonElement root) =>
         [
             .. Blocks(root)
                 .Where(block => Text(block, "type") == "tool_result" && Text(block, "tool_use_id") is not null)
-                .Select(block => new Acted(
-                    Text(block, "tool_use_id")!,
-                    block.TryGetProperty("is_error", out var error) && error.ValueKind == JsonValueKind.True,
-                    Said(block))),
+                .Select(block => Result(Text(block, "tool_use_id")!, block)),
         ];
+
+    private Acted Result(string tool, JsonElement block)
+    {
+        var said = Said(block);
+        if (Written().Match(said) is { Success: true } written)
+        {
+            outputs[tool] = written.Groups[1].Value;
+            foreach (var (job, owner) in owners.Where(each => each.Value == tool && jobs.Any(listed => listed.Id == each.Key)).ToList())
+            {
+                Track(job, null, owner, null);
+            }
+        }
+
+        return new Acted(tool, block.TryGetProperty("is_error", out var error) && error.ValueKind == JsonValueKind.True, said);
+    }
 
     private IReadOnlyList<Reply> Approval(JsonElement root)
     {
@@ -171,6 +292,7 @@ public sealed class ClaudeCodeTranscript(string? folder = null)
 
     private Acting Acting(string id, string tool, JsonElement input)
     {
+        tools[id] = tool;
         var (summary, stat) = ClaudeCodeTools.Describe(tool, input, folder);
 
         return new Acting(id, tool, summary, stat);
@@ -216,5 +338,8 @@ public sealed class ClaudeCodeTranscript(string? folder = null)
         root.TryGetProperty("stop_details", out var details) && details.ValueKind == JsonValueKind.Object
             ? Text(details, "category")
             : null;
+    [GeneratedRegex(@"written to: (\S+\.output)")]
+    private static partial Regex Written();
+
     private sealed record Request(string Input, string? Suggestions);
 }

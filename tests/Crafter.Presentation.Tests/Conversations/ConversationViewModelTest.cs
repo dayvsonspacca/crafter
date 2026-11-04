@@ -1,4 +1,5 @@
 using Crafter.Core.Agents;
+using Crafter.Core.Agents.Background;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
@@ -16,6 +17,8 @@ public sealed class ConversationViewModelTest
     private readonly FakeTimeProvider time = new();
 
     private readonly ClipboardInMemory clipboard = new();
+
+    private readonly KeeperInMemory keeper = new();
 
     private readonly PreferenceBook preferences = new(new PreferencesInMemory(UserPreferences.Default("/home/hero")));
 
@@ -184,6 +187,92 @@ public sealed class ConversationViewModelTest
         Assert.Equal("@/tmp/shot.png ", viewModel.Mention("/tmp/shot.png"));
     }
 
+    [Fact]
+    public async Task ShowsTheJobsLeftRunning()
+    {
+        var session = new ScriptedSession(new Finished());
+        var viewModel = ViewModel(session);
+
+        await Ask(viewModel, "start the server");
+        session.Run(new Job("b-1", JobKind.Shell, "Dev server"), new Job("b-2", JobKind.Monitor, "Watch the log"));
+        time.Advance(TimeSpan.FromSeconds(75));
+
+        Assert.True(viewModel.HasJobs);
+        Assert.Equal(["shell", "monitor"], viewModel.Jobs.Select(job => job.Kind));
+        Assert.Equal("1m 15s", viewModel.Jobs[0].Elapsed);
+        Assert.False(viewModel.IsAsking);
+
+        session.Run();
+
+        Assert.False(viewModel.HasJobs);
+    }
+
+    [Fact]
+    public async Task AsksWhileAJobRuns()
+    {
+        var session = new ScriptedSession(new Finished());
+        var viewModel = ViewModel(session);
+
+        await Ask(viewModel, "start the server");
+        session.Run(new Job("b-1", JobKind.Shell, "Dev server"));
+        await Ask(viewModel, "and the tests?");
+
+        Assert.Equal(2, session.Heard.Count);
+    }
+
+    [Fact]
+    public void StopsAJobWhenAsked()
+    {
+        var session = new ScriptedSession();
+        var viewModel = ViewModel(session);
+
+        session.Run(new Job("b-1", JobKind.Shell, "Dev server"));
+        viewModel.Jobs.Single().StopCommand.Execute(null);
+
+        Assert.Equal(["b-1"], session.StoppedJobs);
+        Assert.True(viewModel.Jobs.Single().IsStopping);
+    }
+
+    [Fact]
+    public async Task ShowsWhatTheAgentSaysWhenItWakes()
+    {
+        var session = new ScriptedSession();
+        var viewModel = ViewModel(session);
+        var concluded = new TaskCompletionSource();
+        viewModel.Concluded += (_, _) => concluded.TrySetResult();
+
+        session.Wake(new Wrote("The server is up."), new Finished());
+        await concluded.Task.WaitAsync(TestContext.Current.CancellationToken);
+
+        var woken = Assert.IsType<CrafterMessageViewModel>(Assert.Single(viewModel.Messages));
+        Assert.True(woken.IsWoken);
+        Assert.Equal("The server is up.", woken.Text);
+        Assert.Equal(ChatState.Unread, viewModel.State);
+    }
+
+    [Fact]
+    public void LetsTheJobsGoWhenLeft()
+    {
+        var session = new ScriptedSession();
+
+        ViewModel(session).Leave();
+
+        Assert.True(session.IsDismissed);
+    }
+
+    [Fact]
+    public void StartsWithAnEmptyPanelOpen()
+    {
+        var viewModel = ViewModel(new ScriptedSession());
+
+        Assert.True(viewModel.IsPanelOpen);
+        Assert.True(viewModel.IsPanelEmpty);
+
+        viewModel.TogglePanelCommand.Execute(null);
+
+        Assert.Equal(1, keeper.PanelToggles);
+    }
+
     private static Task Ask(ConversationViewModel viewModel, string prompt)
     {
         viewModel.Draft = prompt;
@@ -196,6 +285,6 @@ public sealed class ConversationViewModelTest
         var agent = new ScriptedAgent { Sessions = () => session };
         var chat = new Chat(ChatId.New(), agent.Id, ChatTitle.Untitled, new Conversation(session));
 
-        return new ConversationViewModel(chat, agent, preferences, "crafter", new KeeperInMemory(), clipboard, new FilesInMemory("README.md", "src/", "src/Prompt.cs"), time);
+        return new ConversationViewModel(chat, agent, preferences, "crafter", keeper, clipboard, new FilesInMemory("README.md", "src/", "src/Prompt.cs"), time);
     }
 }

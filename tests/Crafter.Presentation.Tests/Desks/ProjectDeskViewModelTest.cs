@@ -1,5 +1,4 @@
 using Crafter.Core.Agents;
-using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Preferences;
@@ -41,14 +40,15 @@ public sealed class ProjectDeskViewModelTest
     }
 
     [Fact]
-    public void RestoresTheAdjustmentsOfASavedChat()
+    public void TogglesThePanelOfEveryChatAndRemembersItForTheNext()
     {
-        var store = new ChatsInMemory();
-        store.Save(Crafter, [new ChatRecord(ChatId.New(), new AgentId("stand-in"), ChatTitle.Of("oi"), null, []) { Adjustments = Configuration.Empty.With("tools", "plan") }]);
+        var desk = Desk(new ScriptedAgent());
+        desk.NewChat();
 
-        var desk = Desk(new ScriptedAgent(), store);
+        desk.TogglePanel();
+        desk.NewChat();
 
-        Assert.Equal("plan", desk.Chats.Single().Record().Adjustments["tools"]);
+        Assert.All(desk.Chats, chat => Assert.False(chat.IsPanelOpen));
     }
 
     private static ProjectDeskViewModel Desk(IAgent agent, ChatsInMemory? store = null)

@@ -83,6 +83,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public bool IsCrafting => desks.Values.Any(desk => desk.IsCrafting);
 
+    public bool IsBusy => desks.Values.Any(desk => desk.IsCrafting || desk.HasJobs);
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Hint))]
     public partial bool HasProjects { get; set; }
@@ -246,6 +248,9 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     [RelayCommand]
     private void NextChat() => Desk?.Next(1);
+
+    [RelayCommand]
+    private void TogglePanel() => Desk?.TogglePanel();
 
     [RelayCommand]
     private void PreviousChat() => Desk?.Next(-1);

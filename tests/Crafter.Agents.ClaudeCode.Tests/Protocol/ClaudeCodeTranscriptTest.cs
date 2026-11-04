@@ -1,4 +1,5 @@
 using Crafter.Agents.ClaudeCode.Protocol;
+using Crafter.Core.Agents.Background;
 using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Agents.ClaudeCode.Tests.Protocol;
@@ -244,5 +245,61 @@ public sealed class ClaudeCodeTranscriptTest
         Assert.Equal("r-1", ClaudeCodeTranscript.Withdraws(line));
         Assert.Null(ClaudeCodeTranscript.Withdraws("""{"type":"control_request","request_id":"r-1"}"""));
         Assert.Null(ClaudeCodeTranscript.Withdraws("control_cancel_request"));
+    }
+
+    [Fact]
+    public void TracksAShellLeftRunning()
+    {
+        var transcript = new ClaudeCodeTranscript();
+
+        transcript.Hear("""{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t-1","name":"Bash","input":{"command":"npm run dev","run_in_background":true}}]}}""");
+        transcript.Hear("""{"type":"system","subtype":"task_started","task_id":"b-1","tool_use_id":"t-1","description":"Dev server","task_type":"local_bash"}""");
+
+        Assert.True(transcript.JobsMoved);
+
+        transcript.Hear("""{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t-1","content":"Command running in background with ID: b-1. Output is being written to: /tmp/tasks/b-1.output. You will be notified."}]}}""");
+
+        Assert.Equal([new Job("b-1", JobKind.Shell, "Dev server", "/tmp/tasks/b-1.output")], transcript.Jobs);
+    }
+
+    [Fact]
+    public void KnowsAMonitorByItsTool()
+    {
+        var transcript = new ClaudeCodeTranscript();
+
+        transcript.Hear("""{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t-1","name":"Monitor","input":{"command":"tail -f log"}}]}}""");
+        transcript.Hear("""{"type":"system","subtype":"background_tasks_changed","tasks":[{"task_id":"b-1","task_type":"local_bash","description":"Watch the log"}]}""");
+        transcript.Hear("""{"type":"system","subtype":"task_started","task_id":"b-1","tool_use_id":"t-1","description":"Watch the log","task_type":"local_bash"}""");
+
+        Assert.Equal(JobKind.Monitor, Assert.Single(transcript.Jobs).Kind);
+    }
+
+    [Theory]
+    [InlineData("""{"type":"system","subtype":"task_notification","task_id":"b-1","status":"completed"}""")]
+    [InlineData("""{"type":"system","subtype":"task_updated","task_id":"b-1","patch":{"status":"killed"}}""")]
+    [InlineData("""{"type":"system","subtype":"background_tasks_changed","tasks":[]}""")]
+    public void ForgetsAJobOnceItSettles(string settled)
+    {
+        var transcript = new ClaudeCodeTranscript();
+        transcript.Hear("""{"type":"system","subtype":"task_started","task_id":"b-1","description":"Tests","task_type":"local_agent"}""");
+
+        transcript.Hear(settled);
+
+        Assert.True(transcript.JobsMoved);
+        Assert.Empty(transcript.Jobs);
+    }
+
+    [Fact]
+    public void HearsWhichPromptStarted()
+    {
+        var transcript = new ClaudeCodeTranscript();
+
+        transcript.Hear("""{"type":"command_lifecycle","command_uuid":"u-1","state":"queued"}""");
+
+        Assert.Null(transcript.Started);
+
+        transcript.Hear("""{"type":"command_lifecycle","command_uuid":"u-1","state":"started"}""");
+
+        Assert.Equal("u-1", transcript.Started);
     }
 }

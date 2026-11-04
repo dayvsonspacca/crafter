@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Crafter.Core.Agents;
+using Crafter.Core.Agents.Background;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Decisions;
@@ -7,8 +8,30 @@ using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Testing;
 
-public sealed class ScriptedSession(params Reply[] replies) : IAgentSession
+public sealed class ScriptedSession(params Reply[] replies) : IAgentSession, IWorksInBackground
 {
+    public event EventHandler<IReadOnlyList<Job>>? JobsChanged;
+
+    public event EventHandler<IAsyncEnumerable<Reply>>? Woke;
+
+    public IReadOnlyList<Job> Jobs { get; private set; } = [];
+
+    public List<string> StoppedJobs { get; } = [];
+
+    public bool IsDismissed { get; private set; }
+
+    public void Stop(string job) => StoppedJobs.Add(job);
+
+    public void Dismiss() => IsDismissed = true;
+
+    public void Run(params Job[] jobs)
+    {
+        Jobs = jobs;
+        JobsChanged?.Invoke(this, jobs);
+    }
+
+    public void Wake(params Reply[] said) => Woke?.Invoke(this, said.ToAsyncEnumerable());
+
     public List<Prompt> Heard { get; } = [];
 
     public string? SessionId { get; set; }

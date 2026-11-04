@@ -1,4 +1,5 @@
 using Crafter.Core.Agents;
+using Crafter.Core.Agents.Background;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations.Decisions;
 using Crafter.Core.Conversations.Replies;
@@ -17,11 +18,25 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
 
     public string? SessionId => conversation.SessionId;
 
-    public Configuration Adjustments => conversation.Adjustments;
+    public event EventHandler<IReadOnlyList<Job>>? JobsChanged
+    {
+        add => conversation.JobsChanged += value;
+        remove => conversation.JobsChanged -= value;
+    }
 
-    public void Adjust(Configuration adjustments) => conversation.Adjust(adjustments);
+    public event EventHandler<IAsyncEnumerable<Reply>>? Woke
+    {
+        add => conversation.Woke += value;
+        remove => conversation.Woke -= value;
+    }
+
+    public IReadOnlyList<Job> Jobs => conversation.Jobs;
 
     public void Decide(string request, Decision decision) => conversation.Decide(request, decision);
+
+    public void Stop(string job) => conversation.Stop(job);
+
+    public void Dismiss() => conversation.Dismiss();
 
     public IAsyncEnumerable<Reply> Ask(Prompt prompt, Configuration preferred, CancellationToken stop = default)
     {
@@ -33,5 +48,5 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
         return conversation.Ask(prompt, preferred, stop);
     }
 
-    public ChatRecord Record() => new(Id, Agent, Title, conversation.SessionId, [.. conversation.Turns]) { Adjustments = conversation.Adjustments };
+    public ChatRecord Record() => new(Id, Agent, Title, conversation.SessionId, [.. conversation.Turns]);
 }

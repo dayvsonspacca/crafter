@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Crafter.Agents.ClaudeCode.Cli;
 using Crafter.Agents.ClaudeCode.Protocol;
 using Crafter.Core.Agents;
+using Crafter.Core.Agents.Background;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Decisions;
@@ -10,13 +10,17 @@ using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Agents.ClaudeCode;
 
-public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuration, ClaudeCodeOptions> options, string? resumeFrom = null) : IAgentSession
+public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuration, ClaudeCodeOptions> options, string? resumeFrom = null) : IAgentSession, IWorksInBackground
 {
     private readonly List<string> allowed = [];
 
     private readonly List<string> directories = [];
 
-    private readonly Dictionary<string, TaskCompletionSource<Decision>> waiting = [];
+    private readonly HashSet<string> questions = [];
+
+    private readonly Lock gate = new();
+
+    private ClaudeCodeRun? run;
 
     private string? sessionId = resumeFrom;
 
@@ -25,137 +29,121 @@ public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuratio
     {
     }
 
+    public event EventHandler<IReadOnlyList<Job>>? JobsChanged;
+
+    public event EventHandler<IAsyncEnumerable<Reply>>? Woke;
+
     public string? SessionId => sessionId;
+
+    public IReadOnlyList<Job> Jobs => run?.Jobs ?? [];
 
     public void Decide(string request, Decision decision)
     {
-        if (waiting.Remove(request, out var decided))
+        if (run is not { } live)
         {
-            decided.TrySetResult(decision);
-        }
-    }
-
-    public async IAsyncEnumerable<Reply> Answer(Prompt prompt, Configuration configuration, [EnumeratorCancellation] CancellationToken stop = default)
-    {
-        var now = options(configuration);
-        var process = ClaudeCodeProcess.Start(now.Executable, workingDirectory, [.. now.Arguments(sessionId), .. Granted()]);
-        if (process is null)
-        {
-            yield return new Failed($"Could not start '{now.Executable}'. Is Claude Code installed and on the PATH?");
-
-            yield break;
+            return;
         }
 
-        using (process)
+        bool asked;
+        lock (gate)
         {
-            var complaints = process.StandardError.ReadToEndAsync(CancellationToken.None);
-            await Send(process, ClaudeCodeProtocol.Asking(prompt));
-
-            var transcript = new ClaudeCodeTranscript(workingDirectory);
-            var output = new Output(process, stop);
-            var ended = false;
-            var heardEverything = false;
-
-            try
-            {
-                while (!stop.IsCancellationRequested && await output.Next() is { } line)
-                {
-                    var replies = transcript.Hear(line);
-                    sessionId = transcript.SessionId ?? sessionId;
-
-                    foreach (var reply in replies)
-                    {
-                        if (RequestOf(reply) is { } request)
-                        {
-                            var decided = Waiting(request);
-
-                            yield return reply;
-
-                            var (decision, withdrawn) = await output.Await(decided, request);
-                            waiting.Remove(request);
-                            if (withdrawn)
-                            {
-                                yield return new Withdrawn(request);
-
-                                continue;
-                            }
-
-                            if (decision is null)
-                            {
-                                break;
-                            }
-
-                            await Respond(process, transcript, request, decision, asked: reply is NeedsAnswers);
-
-                            continue;
-                        }
-
-                        if (reply is Ending)
-                        {
-                            ended = true;
-                            Close(process);
-                        }
-
-                        yield return reply;
-                    }
-                }
-
-                heardEverything = !stop.IsCancellationRequested;
-            }
-            finally
-            {
-                waiting.Clear();
-                if (!heardEverything)
-                {
-                    ClaudeCodeProcess.Kill(process);
-                }
-            }
-
-            if (ended)
-            {
-                yield break;
-            }
-
-            if (stop.IsCancellationRequested)
-            {
-                yield return new Stopped();
-
-                yield break;
-            }
-
-            Close(process);
-            await process.WaitForExitAsync(CancellationToken.None);
-            var complaint = (await complaints).Trim();
-
-            yield return new Failed(
-                complaint.Length > 0 ? complaint : $"Claude Code exited with code {process.ExitCode} without an answer.");
+            asked = questions.Remove(request);
         }
-    }
 
-    private static string? RequestOf(Reply reply) => reply switch
-    {
-        NeedsApproval approval => approval.Id,
-        NeedsAnswers asked => asked.Id,
-        _ => null,
-    };
-
-    private Task<Decision> Waiting(string request)
-    {
-        var decided = new TaskCompletionSource<Decision>(TaskCreationOptions.RunContinuationsAsynchronously);
-        waiting[request] = decided;
-
-        return decided.Task;
-    }
-
-    private Task Respond(Process process, ClaudeCodeTranscript transcript, string request, Decision decision, bool asked)
-    {
-        var suggestions = transcript.SuggestionsOf(request);
+        var suggestions = live.Respond(request, decision, asked);
         if (decision is AlwaysAllow)
         {
             Grant(suggestions);
         }
+    }
 
-        return Send(process, ClaudeCodeProtocol.Answering(request, decision, transcript.InputOf(request), suggestions, asked));
+    public void Stop(string job) => run?.Stop(job);
+
+    public void Dismiss() => run?.Kill();
+
+    public async IAsyncEnumerable<Reply> Answer(Prompt prompt, Configuration configuration, [EnumeratorCancellation] CancellationToken stop = default)
+    {
+        if (await Running(options(configuration)) is not { } live)
+        {
+            yield return new Failed($"Could not start '{options(configuration).Executable}'. Is Claude Code installed and on the PATH?");
+
+            yield break;
+        }
+
+        var turn = live.Ask(prompt);
+        await foreach (var reply in Heard(turn, stop))
+        {
+            yield return reply;
+        }
+
+        if (stop.IsCancellationRequested && !turn.Done.IsCompleted)
+        {
+            await live.Halt(turn);
+
+            yield return new Stopped();
+        }
+    }
+
+    private async IAsyncEnumerable<Reply> Heard(ClaudeCodeRun.Turn turn, [EnumeratorCancellation] CancellationToken stop = default)
+    {
+        while (true)
+        {
+            try
+            {
+                if (!await turn.Replies.WaitToReadAsync(stop))
+                {
+                    yield break;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                yield break;
+            }
+
+            while (turn.Replies.TryRead(out var reply))
+            {
+                if (reply is NeedsAnswers asked)
+                {
+                    lock (gate)
+                    {
+                        questions.Add(asked.Id);
+                    }
+                }
+
+                yield return reply;
+            }
+        }
+    }
+
+    private async Task<ClaudeCodeRun?> Running(ClaudeCodeOptions wanted)
+    {
+        if (run is { IsOpen: true } live && (live.Options == wanted || live.Jobs.Count > 0))
+        {
+            return live;
+        }
+
+        if (run is { } previous)
+        {
+            if (previous.IsOpen)
+            {
+                previous.Kill();
+            }
+
+            await previous.Finish();
+        }
+
+        var started = ClaudeCodeRun.Start(wanted, workingDirectory, [.. wanted.Arguments(sessionId), .. Granted()]);
+        if (started is null)
+        {
+            return null;
+        }
+
+        started.Known += session => sessionId = session;
+        started.JobsChanged += jobs => JobsChanged?.Invoke(this, jobs);
+        started.Woke += turn => Woke?.Invoke(this, Heard(turn));
+        started.Begin();
+
+        return run = started;
     }
 
     private IEnumerable<string> Granted()
@@ -184,98 +172,5 @@ public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuratio
         var (rules, folders) = ClaudeCodePermissions.Granted(suggestions);
         allowed.AddRange(rules.Except(allowed));
         directories.AddRange(folders.Except(directories));
-    }
-
-    private static async Task Send(Process process, string line)
-    {
-        try
-        {
-            await process.StandardInput.WriteLineAsync(line);
-            await process.StandardInput.FlushAsync();
-        }
-        catch (Exception closed) when (closed is IOException or ObjectDisposedException)
-        {
-        }
-    }
-
-    private static void Close(Process process)
-    {
-        try
-        {
-            process.StandardInput.Close();
-        }
-        catch (IOException)
-        {
-        }
-    }
-
-    private sealed class Output(Process process, CancellationToken stop)
-    {
-        private readonly Queue<string> early = [];
-
-        private Task<string?>? reading;
-
-        public async Task<string?> Next() => early.TryDequeue(out var line) ? line : await Take();
-
-        public async Task<(Decision? Decision, bool Withdrawn)> Await(Task<Decision> decided, string request)
-        {
-            if (early.FirstOrDefault(line => ClaudeCodeTranscript.Withdraws(line) == request) is { } withdrawal)
-            {
-                Forget(withdrawal);
-
-                return (null, true);
-            }
-
-            while (true)
-            {
-                reading ??= Read();
-                if (await Task.WhenAny(decided, reading) == decided)
-                {
-                    return (await decided, false);
-                }
-
-                if (await Take() is not { } line)
-                {
-                    return (null, false);
-                }
-
-                if (ClaudeCodeTranscript.Withdraws(line) == request)
-                {
-                    return (null, true);
-                }
-
-                early.Enqueue(line);
-            }
-        }
-
-        private void Forget(string withdrawal)
-        {
-            var kept = early.Where(line => !ReferenceEquals(line, withdrawal)).ToList();
-            early.Clear();
-            foreach (var line in kept)
-            {
-                early.Enqueue(line);
-            }
-        }
-
-        private async Task<string?> Take()
-        {
-            var line = await (reading ?? Read());
-            reading = null;
-
-            return line;
-        }
-
-        private async Task<string?> Read()
-        {
-            try
-            {
-                return await process.StandardOutput.ReadLineAsync(stop);
-            }
-            catch (OperationCanceledException)
-            {
-                return null;
-            }
-        }
     }
 }

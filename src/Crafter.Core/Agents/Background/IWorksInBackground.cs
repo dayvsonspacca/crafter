@@ -1,0 +1,16 @@
+using Crafter.Core.Conversations.Replies;
+
+namespace Crafter.Core.Agents.Background;
+
+public interface IWorksInBackground
+{
+    event EventHandler<IReadOnlyList<Job>>? JobsChanged;
+
+    event EventHandler<IAsyncEnumerable<Reply>>? Woke;
+
+    IReadOnlyList<Job> Jobs { get; }
+
+    void Stop(string job);
+
+    void Dismiss();
+}

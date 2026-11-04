@@ -1,3 +1,4 @@
+using Crafter.Core.Agents.Background;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Decisions;
@@ -313,6 +314,90 @@ public sealed class ClaudeCodeSessionTest
 
         Assert.Null(session.SessionId);
     }
+
+    [Fact]
+    public async Task EndsTheTurnWhileAJobRunsAndWakesWhenItSettles()
+    {
+        using var claude = new FakeClaude(
+            "read -r line\n"
+            + FakeClaude.Init + "\n"
+            + Job("b-1") + "\n"
+            + FakeClaude.Writes("started") + "\n" + FakeClaude.Success + "\n"
+            + "sleep 0.3\n"
+            + "echo '{\"type\":\"system\",\"subtype\":\"task_notification\",\"task_id\":\"b-1\",\"status\":\"completed\"}'\n"
+            + FakeClaude.Init + "\n" + FakeClaude.Writes("it finished") + "\n" + FakeClaude.Success + "\n"
+            + "read -r line");
+        var session = claude.Session();
+        var woken = new TaskCompletionSource<IAsyncEnumerable<Reply>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        List<IReadOnlyList<Job>> changes = [];
+        session.Woke += (_, replies) => woken.TrySetResult(replies);
+        session.JobsChanged += (_, jobs) => changes.Add(jobs);
+
+        var replies = await session.Answer(new Prompt("start the server"), Configuration.Empty, Stop).ToListAsync(Stop);
+        var running = session.Jobs;
+        var later = await (await woken.Task.WaitAsync(Stop)).ToListAsync(Stop);
+
+        Assert.Equal([new Began("Opus 5.5"), new Wrote("started"), new Finished()], replies);
+        Assert.Equal([new Job("b-1", JobKind.Shell, "Dev server")], running);
+        Assert.Equal([new Began("Opus 5.5"), new Wrote("it finished"), new Finished()], later);
+        Assert.Empty(changes[^1]);
+    }
+
+    [Fact]
+    public async Task AsksAgainInTheSameRunWhileAJobRuns()
+    {
+        using var claude = new FakeClaude(
+            "read -r line\n"
+            + Starts() + "\n"
+            + Job("b-1") + "\n"
+            + FakeClaude.Writes("first") + "\n" + FakeClaude.Success + "\n"
+            + "read -r line\n"
+            + Starts() + "\n"
+            + FakeClaude.Writes("same run") + "\n" + FakeClaude.Success + "\n"
+            + "read -r line");
+        var session = claude.Session();
+
+        await session.Answer(new Prompt("start the server"), Configuration.Empty, Stop).ToListAsync(Stop);
+        var second = await session.Answer(new Prompt("and now?"), Configuration.Empty, Stop).ToListAsync(Stop);
+        session.Dismiss();
+
+        Assert.Equal([new Wrote("same run"), new Finished()], second);
+    }
+
+    [Fact]
+    public async Task AsksClaudeCodeToStopAJob()
+    {
+        using var claude = new FakeClaude(
+            "read -r line\n"
+            + Job("b-1") + "\n"
+            + FakeClaude.Success + "\n"
+            + "read -r line\n"
+            + "if [[ \"$line\" == *'\"subtype\":\"stop_task\"'*'\"task_id\":\"b-1\"'* ]]; then echo '{\"type\":\"system\",\"subtype\":\"background_tasks_changed\",\"tasks\":[]}'; fi\n"
+            + "read -r line");
+        var session = claude.Session();
+        var settled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        session.JobsChanged += (_, jobs) =>
+        {
+            if (jobs.Count == 0)
+            {
+                settled.TrySetResult();
+            }
+        };
+
+        await session.Answer(new Prompt("start the server"), Configuration.Empty, Stop).ToListAsync(Stop);
+        session.Stop("b-1");
+        await settled.Task.WaitAsync(Stop);
+        session.Dismiss();
+
+        Assert.Empty(session.Jobs);
+    }
+
+    private static string Job(string id) =>
+        "echo '{\"type\":\"system\",\"subtype\":\"task_started\",\"task_id\":\"" + id + "\",\"description\":\"Dev server\",\"task_type\":\"local_bash\"}'";
+
+    private static string Starts() =>
+        "id=$(sed -E 's/.*\"uuid\":\"([^\"]+)\".*/\\1/' <<< \"$line\")\n"
+        + "echo \"{\\\"type\\\":\\\"command_lifecycle\\\",\\\"state\\\":\\\"started\\\",\\\"command_uuid\\\":\\\"$id\\\"}\"";
 
     private const string Suggested = "[{\"type\":\"addRules\",\"rules\":[{\"toolName\":\"Bash\",\"ruleContent\":\"touch:*\"}],\"behavior\":\"allow\",\"destination\":\"session\"}]";
 

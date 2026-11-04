@@ -36,6 +36,8 @@ public sealed partial class CrafterMessageViewModel : MessageViewModel
 
     public ObservableCollection<object> Items { get; } = [];
 
+    public bool IsWoken { get; init; }
+
     [ObservableProperty]
     public partial string Text { get; set; }
 

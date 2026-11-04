@@ -2,10 +2,12 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
+using Crafter.Core.Agents.Background;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Preferences;
+using Crafter.Presentation.Conversations.Background;
 using Crafter.Presentation.Conversations.Composing;
 using Crafter.Presentation.Conversations.Messages;
 using Crafter.Presentation.Platform;
@@ -42,6 +44,8 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private DateTimeOffset started;
 
+    private int turning;
+
     public ConversationViewModel(Chat chat, IAgent agent, PreferenceBook preferences, string projectName, IChatKeeper keeper, IClipboard clipboard, IProjectFiles files, TimeProvider time, string? resumed = null)
     {
         this.chat = chat;
@@ -52,13 +56,16 @@ public sealed partial class ConversationViewModel : ObservableObject
         this.files = files;
         this.time = time;
         Mentions = new MentionsViewModel(files);
+        IsPanelOpen = true;
         AgentName = agent.Name;
         ProjectName = projectName;
         Draft = string.Empty;
         Elapsed = string.Empty;
-        Choosers = Choose();
         clock = time.CreateTimer(_ => OnUi(Tick), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         Restore(resumed);
+        Follow(chat.Jobs);
+        chat.JobsChanged += (_, jobs) => OnUi(() => Follow(jobs));
+        chat.Woke += (_, replies) => OnUi(() => _ = Wake(replies));
     }
 
     public event EventHandler? Concluded;
@@ -70,6 +77,15 @@ public sealed partial class ConversationViewModel : ObservableObject
     public MentionsViewModel Mentions { get; }
 
     public bool HasAttached => Attached.Count > 0;
+
+    public ObservableCollection<JobViewModel> Jobs { get; } = [];
+
+    public bool HasJobs => Jobs.Count > 0;
+
+    public bool IsPanelEmpty => !HasJobs;
+
+    [ObservableProperty]
+    public partial bool IsPanelOpen { get; set; }
 
     [ObservableProperty]
     public partial string ProjectName { get; set; }
@@ -98,22 +114,23 @@ public sealed partial class ConversationViewModel : ObservableObject
     public partial string? Model { get; set; }
 
     [ObservableProperty]
-    public partial IReadOnlyList<ChatChooserViewModel> Choosers { get; set; }
-
-    [ObservableProperty]
     public partial string Elapsed { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsClock))]
     public partial bool IsWaiting { get; set; }
 
-    public bool ShowsClock => IsCrafting && !IsWaiting;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsClock))]
+    public partial bool IsAsking { get; set; }
+
+    public bool ShowsClock => IsAsking && !IsWaiting;
 
     [ObservableProperty]
     public partial bool HasMessages { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCrafting), nameof(IsUnread), nameof(IsIdle), nameof(ShowsClock))]
+    [NotifyPropertyChangedFor(nameof(IsCrafting), nameof(IsUnread), nameof(IsIdle))]
     public partial ChatState State { get; set; }
 
     [ObservableProperty]
@@ -131,6 +148,8 @@ public sealed partial class ConversationViewModel : ObservableObject
         {
             CraftCommand.Cancel();
         }
+
+        chat.Dismiss();
     }
 
     public async Task LeaveAsync()
@@ -176,12 +195,14 @@ public sealed partial class ConversationViewModel : ObservableObject
             return;
         }
 
-        Choosers = Choose();
         if (State == ChatState.Unread)
         {
             State = ChatState.Idle;
         }
     }
+
+    [RelayCommand]
+    private void TogglePanel() => keeper.TogglePanel();
 
     [RelayCommand]
     private void Select() => keeper.Select(this);
@@ -207,20 +228,13 @@ public sealed partial class ConversationViewModel : ObservableObject
     [RelayCommand(IncludeCancelCommand = true)]
     private async Task Craft(YourMessageViewModel? again, CancellationToken stop)
     {
-        if (IsCrafting || (again is null ? attachments.Compose(Draft) : again.Prompt) is not { } prompt)
+        if (IsAsking || (again is null ? attachments.Compose(Draft) : again.Prompt) is not { } prompt)
         {
             return;
         }
 
         var asked = again is null ? new YourMessageViewModel(prompt, Draft.Trim()) : new YourMessageViewModel(prompt, again.Text);
-        var answer = new CrafterMessageViewModel(clipboard, Retry, AgentName, chat.Decide);
-        answer.PropertyChanged += (_, changed) =>
-        {
-            if (changed.PropertyName == nameof(CrafterMessageViewModel.IsWaiting))
-            {
-                IsWaiting = answer.IsWaiting;
-            }
-        };
+        var answer = Answer(woken: false);
 
         if (again is null)
         {
@@ -232,16 +246,42 @@ public sealed partial class ConversationViewModel : ObservableObject
         }
 
         Messages.Add(asked);
-        Messages.Add(answer);
-        Mark();
-        HasMessages = true;
-        State = ChatState.Crafting;
+        IsAsking = true;
         started = time.GetUtcNow();
-        Tick();
-        clock.Change(Second, Second);
 
         var replies = chat.Ask(prompt, Preferred, stop);
         OnPropertyChanged(nameof(Title));
+
+        await Hear(answer, replies);
+        IsAsking = false;
+        Clock();
+    }
+
+    private async Task Wake(IAsyncEnumerable<Reply> replies) => await Hear(Answer(woken: true), replies);
+
+    private CrafterMessageViewModel Answer(bool woken)
+    {
+        var answer = new CrafterMessageViewModel(clipboard, Retry, AgentName, chat.Decide) { IsWoken = woken };
+        answer.PropertyChanged += (_, changed) =>
+        {
+            if (changed.PropertyName == nameof(CrafterMessageViewModel.IsWaiting))
+            {
+                IsWaiting = Messages.OfType<CrafterMessageViewModel>().Any(each => each.IsWaiting);
+            }
+        };
+
+        return answer;
+    }
+
+    private async Task Hear(CrafterMessageViewModel answer, IAsyncEnumerable<Reply> replies)
+    {
+        Messages.Add(answer);
+        Mark();
+        HasMessages = true;
+        turning++;
+        State = ChatState.Crafting;
+        Clock();
+        Tick();
 
         await foreach (var reply in replies)
         {
@@ -253,26 +293,57 @@ public sealed partial class ConversationViewModel : ObservableObject
             answer.Hear(reply);
         }
 
-        clock.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        IsWaiting = false;
-        State = IsInView ? ChatState.Idle : ChatState.Unread;
+        turning--;
+        IsWaiting = Messages.OfType<CrafterMessageViewModel>().Any(each => each.IsWaiting);
+        if (turning == 0)
+        {
+            State = IsInView ? ChatState.Idle : ChatState.Unread;
+        }
+
         Concluded?.Invoke(this, EventArgs.Empty);
     }
 
-    private IReadOnlyList<ChatChooserViewModel> Choose() =>
-        [.. agent.Settings(Preferred).OfType<Choice>().Select(choice => new ChatChooserViewModel(choice, Preferred, chat.Adjustments, Adjust))];
-
-    private void Adjust(string key, string? value)
+    private void Follow(IReadOnlyList<Job> jobs)
     {
-        chat.Adjust(chat.Adjustments.With(key, value));
-        Choosers = Choose();
-        keeper.Keep(this);
+        foreach (var gone in Jobs.Where(shown => jobs.All(job => job.Id != shown.Id)).ToList())
+        {
+            Jobs.Remove(gone);
+        }
+
+        foreach (var job in jobs)
+        {
+            if (Jobs.FirstOrDefault(shown => shown.Id == job.Id) is { } shown)
+            {
+                shown.Update(job);
+            }
+            else
+            {
+                Jobs.Add(new JobViewModel(job, time.GetUtcNow(), chat.Stop));
+            }
+        }
+
+        OnPropertyChanged(nameof(HasJobs));
+        OnPropertyChanged(nameof(IsPanelEmpty));
+        Clock();
+        Tick();
+    }
+
+    private void Clock()
+    {
+        if (IsAsking || Jobs.Count > 0)
+        {
+            clock.Change(Second, Second);
+        }
+        else
+        {
+            clock.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        }
     }
 
     private void Retry(CrafterMessageViewModel answer)
     {
         var place = Messages.IndexOf(answer);
-        if (IsCrafting || place < 1 || Messages[place - 1] is not YourMessageViewModel asked)
+        if (IsAsking || place < 1 || Messages[place - 1] is not YourMessageViewModel asked)
         {
             return;
         }
@@ -289,7 +360,18 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private void Tick()
     {
-        var gone = time.GetUtcNow() - started;
+        var now = time.GetUtcNow();
+        foreach (var job in Jobs)
+        {
+            job.Tick(now);
+        }
+
+        if (!IsAsking)
+        {
+            return;
+        }
+
+        var gone = now - started;
         Elapsed = gone.TotalMinutes < 1 ? $"crafting · {(int)gone.TotalSeconds}s" : $"crafting · {(int)gone.TotalMinutes}m {gone.Seconds}s";
     }
 

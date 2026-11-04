@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Crafter.Core.Agents;
-using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Projects;
@@ -53,16 +52,10 @@ public sealed class JsonChatStore(string folder) : IChatStore
             new AgentId(entry.Agent),
             ChatTitle.Of(entry.Title),
             entry.SessionId,
-            [.. entry.Turns.Select(Turn)])
-        {
-            Adjustments = new Configuration(entry.Adjustments ?? []),
-        };
+            [.. entry.Turns.Select(Turn)]);
 
     private static ChatEntry Entry(ChatRecord record) =>
-        new(record.Id.Value, record.Agent.Value, record.Title.Text, record.SessionId, [.. record.Turns.Select(Entry)])
-        {
-            Adjustments = record.Adjustments.Values.Count > 0 ? new Dictionary<string, string>(record.Adjustments.Values) : null,
-        };
+        new(record.Id.Value, record.Agent.Value, record.Title.Text, record.SessionId, [.. record.Turns.Select(Entry)]);
 
     private static Turn Turn(TurnEntry entry) => entry.Kind switch
     {
@@ -103,11 +96,7 @@ public sealed class JsonChatStore(string folder) : IChatStore
     };
 }
 
-internal sealed record ChatEntry(Guid Id, string Agent, string Title, string? SessionId, List<TurnEntry> Turns)
-{
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string>? Adjustments { get; init; }
-}
+internal sealed record ChatEntry(Guid Id, string Agent, string Title, string? SessionId, List<TurnEntry> Turns);
 
 internal sealed record TurnEntry(string Kind, string Text, string? Ending, string? Detail);
 
