@@ -6,75 +6,80 @@ namespace Crafter.Agents.ClaudeCode.Tests.Cli;
 
 public sealed class ClaudeCodeSkillsTest : IDisposable
 {
-    private readonly string home = Directory.CreateTempSubdirectory("crafter-plugin-").FullName;
+    private readonly string home = Directory.CreateTempSubdirectory("crafter-shelf-").FullName;
 
-    private string Plugin => Path.Combine(home, "plugin");
-
-    [Fact]
-    public void WritesTheSkillsAsAClaudeCodePlugin()
-    {
-        var commit = Skill("commit", "Writes commits the way this team does.", "Committing changes", "Use conventional commits.");
-
-        Assert.Equal(Plugin, ClaudeCodeSkills.Write(Plugin, [commit]));
-
-        Assert.Contains("\"name\": \"crafter\"", File.ReadAllText(Path.Combine(Plugin, ".claude-plugin", "plugin.json")));
-        Assert.Equal(
-            "---\nname: commit\ndescription: \"Writes commits the way this team does. Use it when: Committing changes\"\n---\n\nUse conventional commits.\n",
-            File.ReadAllText(Path.Combine(Plugin, "skills", "commit", "SKILL.md")).ReplaceLineEndings("\n"));
-    }
+    private string Shelf => Path.Combine(home, "shelf");
 
     [Fact]
-    public void BringsTheSkillsOtherFilesButNotItsDescriptionOrHiddenOnes()
+    public void CopiesTheSkillsAsTheLibraryKeepsThemButNotHiddenFiles()
     {
         var review = Skill("pr-review", "Reviews a pull request.", null, "Run scripts/diff.sh.");
         Directory.CreateDirectory(Path.Combine(review.Folder, "scripts"));
         File.WriteAllText(Path.Combine(review.Folder, "scripts", "diff.sh"), "git diff");
         File.WriteAllText(Path.Combine(review.Folder, ".DS_Store"), "junk");
 
-        ClaudeCodeSkills.Write(Plugin, [review]);
+        var shelf = ClaudeCodeSkills.Write(Shelf, [review])!;
 
-        var place = Path.Combine(Plugin, "skills", "pr-review");
-        Assert.Equal(["SKILL.md", Path.Combine("scripts", "diff.sh")], Directory.EnumerateFiles(place, "*", SearchOption.AllDirectories).Select(file => Path.GetRelativePath(place, file)).Order(StringComparer.Ordinal));
+        var place = Path.Combine(Shelf, "pr-review");
+        Assert.Equal(
+            ["instructions.md", Path.Combine("scripts", "diff.sh"), "skill.json"],
+            Directory.EnumerateFiles(place, "*", SearchOption.AllDirectories).Select(file => Path.GetRelativePath(place, file)).Order(StringComparer.Ordinal));
+        Assert.Equal(Path.Combine(place, "instructions.md"), shelf.InstructionsOf("pr-review"));
     }
 
     [Fact]
-    public void KeepsADescriptionOnOneQuotedLine()
-    {
-        var tricky = Skill("tricky", "Says \"hi\": then\nleaves.", null, "Body.");
-
-        ClaudeCodeSkills.Write(Plugin, [tricky]);
-
-        Assert.Contains("description: \"Says \\\"hi\\\": then leaves.\"\n", File.ReadAllText(Path.Combine(Plugin, "skills", "tricky", "SKILL.md")));
-    }
-
-    [Fact]
-    public void DropsSkillsNoLongerGivenAndTheWholePluginWhenNoneAre()
+    public void KeepsOnlyTheSkillsGivenNowAndNothingWhenNoneAre()
     {
         var commit = Skill("commit", "Commits.", null, "Commit.");
         var review = Skill("pr-review", "Reviews.", null, "Review.");
-        ClaudeCodeSkills.Write(Plugin, [commit, review]);
+        ClaudeCodeSkills.Write(Shelf, [commit, review]);
 
-        ClaudeCodeSkills.Write(Plugin, [review]);
-        Assert.False(Directory.Exists(Path.Combine(Plugin, "skills", "commit")));
-        Assert.True(Directory.Exists(Path.Combine(Plugin, "skills", "pr-review")));
+        ClaudeCodeSkills.Write(Shelf, [review]);
+        Assert.False(Directory.Exists(Path.Combine(Shelf, "commit")));
+        Assert.True(Directory.Exists(Path.Combine(Shelf, "pr-review")));
 
-        Assert.Null(ClaudeCodeSkills.Write(Plugin, []));
-        Assert.False(Directory.Exists(Plugin));
+        Assert.Null(ClaudeCodeSkills.Write(Shelf, []));
+        Assert.False(Directory.Exists(Shelf));
     }
 
     [Fact]
-    public void CallsASkillByItsPluginsNameSoNoClaudeCodeCommandAnswers()
+    public void ListsTheSkillsForTheSystemPromptAsTheOnlyOnes()
     {
-        var prompt = new Prompt("/review the diff, then /commit") { Skills = ["review"] };
+        var shelf = ClaudeCodeSkills.Write(Shelf, [Skill("commit", "Writes commits\nthe team's way.", "Committing changes", "Commit.")])!;
 
-        Assert.Equal("/crafter:review the diff, then /commit", ClaudeCodeSkills.Calling(prompt));
+        var catalog = ClaudeCodeSkills.Catalog(shelf);
+
+        Assert.Contains("they are the only skills here", catalog);
+        Assert.Contains($"- commit (commit): Writes commits the team's way. Use it when: Committing changes Instructions: {shelf.InstructionsOf("commit")}", catalog);
+    }
+
+    [Fact]
+    public void PutsTheInstructionsOfACalledSkillAheadOfTheMessage()
+    {
+        var commit = Skill("commit", "Commits.", null, "Use conventional commits.");
+        var shelf = ClaudeCodeSkills.Write(Shelf, [commit]);
+
+        var sent = ClaudeCodeSkills.Calling(new Prompt("/commit the staged files") { Skills = [commit] }, shelf);
+
+        Assert.Equal(
+            $"<crafter-skill id=\"commit\" name=\"commit\" folder=\"{Path.Combine(Shelf, "commit")}\">\nUse conventional commits.\n</crafter-skill>\n\n/commit the staged files",
+            sent.Text);
+        Assert.Equal([commit], sent.Skills);
+    }
+
+    [Fact]
+    public void SendsAMessageThatCallsNoSkillAsItIs()
+    {
+        var prompt = new Prompt("/home/hero/notes.md says what?");
+
+        Assert.Same(prompt, ClaudeCodeSkills.Calling(prompt, shelf: null));
     }
 
     [Fact]
     public void GivesEachProjectItsOwnFolder()
     {
-        Assert.NotEqual(ClaudeCodeSkills.FolderFor("/plugins", "/home/hero/crafter"), ClaudeCodeSkills.FolderFor("/plugins", "/home/hero/lorekeeper"));
-        Assert.Equal(ClaudeCodeSkills.FolderFor("/plugins", "/home/hero/crafter"), ClaudeCodeSkills.FolderFor("/plugins", "/home/hero/crafter"));
+        Assert.NotEqual(ClaudeCodeSkills.FolderFor("/shelves", "/home/hero/crafter"), ClaudeCodeSkills.FolderFor("/shelves", "/home/hero/lorekeeper"));
+        Assert.Equal(ClaudeCodeSkills.FolderFor("/shelves", "/home/hero/crafter"), ClaudeCodeSkills.FolderFor("/shelves", "/home/hero/crafter"));
     }
 
     public void Dispose() => Directory.Delete(home, recursive: true);

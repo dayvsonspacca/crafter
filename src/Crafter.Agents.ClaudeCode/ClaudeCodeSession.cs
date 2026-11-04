@@ -15,7 +15,7 @@ public sealed class ClaudeCodeSession(
     Func<Configuration, ClaudeCodeOptions> options,
     string? resumeFrom = null,
     Func<IReadOnlyList<ToolServer>>? servers = null,
-    Func<string?>? skills = null) : IAgentSession, IWorksInBackground
+    Func<ClaudeCodeSkillShelf?>? skills = null) : IAgentSession, IWorksInBackground
 {
     private readonly List<string> allowed = [];
 
@@ -26,6 +26,9 @@ public sealed class ClaudeCodeSession(
     private readonly Lock gate = new();
 
     private ClaudeCodeRun? run;
+
+    // The skills the running session was started with.
+    private ClaudeCodeSkillShelf? shelf;
 
     private string? sessionId = resumeFrom;
 
@@ -75,7 +78,7 @@ public sealed class ClaudeCodeSession(
             yield break;
         }
 
-        var turn = live.Ask(prompt);
+        var turn = live.Ask(ClaudeCodeSkills.Calling(prompt, shelf));
         await foreach (var reply in Heard(turn, stop))
         {
             yield return reply;
@@ -137,6 +140,7 @@ public sealed class ClaudeCodeSession(
             await previous.Finish();
         }
 
+        shelf = skills?.Invoke();
         var started = ClaudeCodeRun.Start(wanted, workingDirectory, [.. wanted.Arguments(sessionId), .. Granted()]);
         if (started is null)
         {
@@ -152,12 +156,14 @@ public sealed class ClaudeCodeSession(
     }
 
     // Asked for again on every start, so a server or a skill granted or revoked since takes effect then.
+    // Claude Code's own skills and slash commands stay off: Crafter's skills are the only ones.
     private IEnumerable<string> Granted()
     {
-        if (skills?.Invoke() is { } plugin)
+        yield return "--disable-slash-commands";
+        if (shelf is { } given)
         {
-            yield return "--plugin-dir";
-            yield return plugin;
+            yield return "--append-system-prompt";
+            yield return ClaudeCodeSkills.Catalog(given);
         }
 
         var connected = servers?.Invoke() ?? [];
@@ -177,10 +183,11 @@ public sealed class ClaudeCodeSession(
             }
         }
 
-        if (directories.Count > 0)
+        string[] reachable = [.. directories, .. shelf is { } copied ? [copied.Folder] : Array.Empty<string>()];
+        if (reachable.Length > 0)
         {
             yield return "--add-dir";
-            foreach (var directory in directories)
+            foreach (var directory in reachable)
             {
                 yield return directory;
             }

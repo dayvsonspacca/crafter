@@ -152,7 +152,8 @@ public sealed class ClaudeCodeHistoryTest : IDisposable
             User("[Request interrupted by user for tool use]"),
             User("<system-reminder>Be brief.</system-reminder>\nAnd now?"),
             User("<system-reminder>Only a reminder.</system-reminder>"),
-            Assistant("Now this."));
+            Assistant("Now this."),
+            User("<crafter-skill id=\"commit\" name=\"Commit\" folder=\"/shelf/commit\">\nUse conventional commits.\n</crafter-skill>\n\n/commit it"));
 
         var turns = await new ClaudeCodeHistory(home).Replay(Crafter, "s-1", Stop);
 
@@ -165,6 +166,7 @@ public sealed class ClaudeCodeHistoryTest : IDisposable
                 new Asked(new Prompt("! ls")),
                 new Asked(new Prompt("And now?")),
                 new Answered("Now this.", new Finished()),
+                new Asked(new Prompt("/commit it")),
             ],
             turns);
     }

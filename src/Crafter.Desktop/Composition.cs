@@ -41,7 +41,7 @@ public static class Composition
         var crew = new Crew([new ClaudeCode(
             servers: project => mcp?.ServersFor(project) ?? [],
             skills: project => workbench is { } shown ? OnUi(() => shown.SkillsFor(project)) : [],
-            plugins: Path.Combine(Data, "claude-code", "plugins"))]);
+            shelves: Path.Combine(Data, "claude-code", "skills"))]);
         var preferences = new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), UserPreferences.Default(Home)));
         var bookshelf = new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), time.GetLocalNow);
         var picker = new FolderPickerViewModel(preferences, bookshelf);

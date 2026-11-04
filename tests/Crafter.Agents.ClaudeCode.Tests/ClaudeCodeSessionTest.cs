@@ -5,6 +5,7 @@ using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Decisions;
 using Crafter.Core.Conversations.Replies;
+using Crafter.Core.Library;
 
 namespace Crafter.Agents.ClaudeCode.Tests;
 
@@ -40,15 +41,24 @@ public sealed class ClaudeCodeSessionTest
     }
 
     [Fact]
-    public async Task HandsTheProjectsSkillsOverAsAPlugin()
+    public async Task HandsOverCraftersSkillsAndCallsThemInTheMessage()
     {
-        using var claude = new FakeClaude($"printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");
-        var session = new ClaudeCodeSession(claude.Folder, _ => new ClaudeCodeOptions(claude.Executable), skills: () => "/plugins/crafter");
+        using var claude = new FakeClaude($"printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments\"\nread -r line\nprintf '%s' \"$line\" > \"$(dirname \"$0\")/asked\"\n{FakeClaude.Init}\n{FakeClaude.Success}");
+        var library = Directory.CreateDirectory(Path.Combine(claude.Folder, "library", "commit")).FullName;
+        File.WriteAllText(Path.Combine(library, "instructions.md"), "Use conventional commits.");
+        var commit = new Skill("commit", "Commit", "Writes commits.", null, library);
+        var shelf = ClaudeCodeSkills.Write(Path.Combine(claude.Folder, "shelf"), [commit]);
+        var session = new ClaudeCodeSession(claude.Folder, _ => new ClaudeCodeOptions(claude.Executable), skills: () => shelf);
 
-        await session.Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
+        await session.Answer(new Prompt("/commit it") { Skills = [commit] }, Configuration.Empty, Stop).ToListAsync(Stop);
 
         var arguments = File.ReadAllLines(Path.Combine(claude.Folder, "arguments"));
-        Assert.Equal("/plugins/crafter", arguments[Array.IndexOf(arguments, "--plugin-dir") + 1]);
+        Assert.Contains("--disable-slash-commands", arguments);
+        Assert.Contains("--append-system-prompt", arguments);
+        Assert.Equal(shelf!.Folder, arguments[Array.IndexOf(arguments, "--add-dir") + 1]);
+        var asked = File.ReadAllText(Path.Combine(claude.Folder, "asked"));
+        Assert.Contains("crafter-skill id=", asked);
+        Assert.Contains("Use conventional commits.", asked);
     }
 
     [Fact]
@@ -59,7 +69,8 @@ public sealed class ClaudeCodeSessionTest
         await claude.Session().Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
 
         Assert.DoesNotContain("--mcp-config", File.ReadAllLines(Path.Combine(claude.Folder, "arguments")));
-        Assert.DoesNotContain("--plugin-dir", File.ReadAllLines(Path.Combine(claude.Folder, "arguments")));
+        Assert.DoesNotContain("--append-system-prompt", File.ReadAllLines(Path.Combine(claude.Folder, "arguments")));
+        Assert.Contains("--disable-slash-commands", File.ReadAllLines(Path.Combine(claude.Folder, "arguments")));
     }
 
     [Fact]

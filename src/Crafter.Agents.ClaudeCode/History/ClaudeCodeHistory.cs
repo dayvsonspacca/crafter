@@ -108,7 +108,7 @@ public sealed partial class ClaudeCodeHistory(string home)
 
     private static string? Typed(string said, bool commands)
     {
-        var text = Reminders().Replace(said, string.Empty).Trim();
+        var text = CalledSkills().Replace(Reminders().Replace(said, string.Empty), string.Empty).Trim();
         if (text.Length == 0 || text.StartsWith("Caveat:", StringComparison.Ordinal) || text.StartsWith("[Request interrupted by user", StringComparison.Ordinal))
         {
             return null;
@@ -250,6 +250,10 @@ public sealed partial class ClaudeCodeHistory(string home)
 
     [GeneratedRegex("<system-reminder>.*?</system-reminder>", RegexOptions.Singleline)]
     private static partial Regex Reminders();
+
+    // The instructions of a skill the user called ride ahead of what they typed; they are not theirs.
+    [GeneratedRegex("<crafter-skill\\b[^>]*>.*?</crafter-skill>\\s*", RegexOptions.Singleline)]
+    private static partial Regex CalledSkills();
 
     [GeneratedRegex("^<(local-command-stdout|local-command-stderr|local-command-caveat|bash-stdout|bash-stderr|task-notification)>")]
     private static partial Regex Injected();

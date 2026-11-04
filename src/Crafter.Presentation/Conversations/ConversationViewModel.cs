@@ -304,7 +304,8 @@ public sealed partial class ConversationViewModel : ObservableObject
             return;
         }
 
-        var known = skills().Select(skill => skill.Id).ToList();
+        var given = skills();
+        var known = given.Select(skill => skill.Id).ToList();
         if (again is null && SkillCalls.Stranger(Draft, known) is { } stranger)
         {
             Refusal = $"/{stranger} is not a Crafter skill";
@@ -312,7 +313,8 @@ public sealed partial class ConversationViewModel : ObservableObject
             return;
         }
 
-        var prompt = again is null ? composed with { Skills = SkillCalls.In(composed.Text, known) } : composed;
+        var called = SkillCalls.In(composed.Text, known);
+        var prompt = again is null ? composed with { Skills = [.. given.Where(skill => called.Contains(skill.Id))] } : composed;
 
         var asked = again is null
             ? new YourMessageViewModel(prompt, Draft.Trim(), [.. Attached.Where(each => each.IsFile).Select(each => each.Name)])

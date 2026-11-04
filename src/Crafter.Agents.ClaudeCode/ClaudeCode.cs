@@ -12,13 +12,13 @@ using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 namespace Crafter.Agents.ClaudeCode;
 
 // Servers says which tool servers a project's sessions connect to and skills which library skills
-// they get; none unless Crafter grants them. Plugins is where the skills are written for Claude Code.
+// they get; none unless Crafter grants them. Shelves is where the skills are copied for Claude Code.
 public sealed class ClaudeCode(
     string executable = "claude",
     string? home = null,
     Func<Project, IReadOnlyList<ToolServer>>? servers = null,
     Func<Project, IReadOnlyList<Skill>>? skills = null,
-    string? plugins = null) : IAgent, IKeepsHistory
+    string? shelves = null) : IAgent, IKeepsHistory
 {
     public const string Install = "curl -fsSL https://claude.ai/install.sh | bash";
 
@@ -199,17 +199,17 @@ public sealed class ClaudeCode(
     private static string Said(Answer answer, string otherwise) =>
         answer.Complaints.Trim() is { Length: > 0 } complaint ? complaint : otherwise;
 
-    // A plugin that cannot be written leaves the session without skills rather than without a start.
-    private string? Skills(Project project)
+    // Skills that cannot be copied leave the session without them rather than without a start.
+    private ClaudeCodeSkillShelf? Skills(Project project)
     {
-        if (skills is null || plugins is null)
+        if (skills is null || shelves is null)
         {
             return null;
         }
 
         try
         {
-            return ClaudeCodeSkills.Write(ClaudeCodeSkills.FolderFor(plugins, project.Folder), skills(project));
+            return ClaudeCodeSkills.Write(ClaudeCodeSkills.FolderFor(shelves, project.Folder), skills(project));
         }
         catch (Exception unwritable) when (unwritable is IOException or UnauthorizedAccessException)
         {

@@ -5,110 +5,110 @@ using Crafter.Core.Library;
 
 namespace Crafter.Agents.ClaudeCode.Cli;
 
-// Crafter's skills, written the way Claude Code reads them: a plugin folder for each project, made
-// again from the library every time a session starts and handed over with --plugin-dir. Nothing
-// lands in the project. Claude Code knows each skill by its description and reads the rest when
-// it needs it, as /crafter:<id>.
+// How Claude Code gets Crafter's skills, and only those: its own skills and slash commands are
+// turned off, the project's skills are copied to a folder of Crafter's each time a session starts,
+// the system prompt lists them, and a skill the user calls comes with the message itself.
 public static class ClaudeCodeSkills
 {
-    public const string Plugin = "crafter";
+    public const string Instructions = "instructions.md";
 
-    private const int Longest = 1024;
+    // The folder that holds the skills of the project in that folder.
+    public static string FolderFor(string shelves, string project) =>
+        Path.Combine(shelves, Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(project)))[..16]);
 
-    private static readonly HashSet<string> Described = new(StringComparer.Ordinal) { "skill.json", "instructions.md" };
-
-    // The folder that holds the plugin of the project in that folder.
-    public static string FolderFor(string plugins, string project) =>
-        Path.Combine(plugins, Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(project)))[..16]);
-
-    // Writes the plugin and says where it is; with no skills there is no plugin.
-    public static string? Write(string folder, IReadOnlyList<Skill> skills)
+    // Copies the skills, each a folder as the library keeps it; with none there is nothing to hand over.
+    public static ClaudeCodeSkillShelf? Write(string folder, IReadOnlyList<Skill> skills)
     {
-        if (skills.Count == 0)
+        if (Directory.Exists(folder))
         {
-            if (Directory.Exists(folder))
-            {
-                Directory.Delete(folder, recursive: true);
-            }
-
-            return null;
+            Directory.Delete(folder, recursive: true);
         }
 
-        var manifest = Path.Combine(folder, ".claude-plugin", "plugin.json");
-        Directory.CreateDirectory(Path.GetDirectoryName(manifest)!);
-        File.WriteAllText(manifest, $$"""
-            {
-              "name": "{{Plugin}}",
-              "version": "1.0.0",
-              "description": "The skills Crafter gives this project from its library."
-            }
-
-            """);
-
-        var home = Path.Combine(folder, "skills");
-        Directory.CreateDirectory(home);
-        foreach (var gone in Directory.GetDirectories(home).Where(place => skills.All(skill => skill.Id != Path.GetFileName(place))))
+        if (skills.Count == 0)
         {
-            Directory.Delete(gone, recursive: true);
+            return null;
         }
 
         foreach (var skill in skills)
         {
-            Place(skill, Path.Combine(home, skill.Id));
+            Copy(skill.Folder, Path.Combine(folder, skill.Id));
         }
 
-        return folder;
+        return new ClaudeCodeSkillShelf(folder, skills);
     }
 
-    // A skill the user calls goes by its plugin's name, so it never reaches a Claude Code command
-    // that happens to share the id, like /review.
-    public static string Calling(Prompt prompt) => SkillCalls.Rewrite(prompt.Text, prompt.Skills, id => $"/{Plugin}:{id}");
-
-    // What Claude Code reads: the description decides when, the instructions say how.
-    public static string Markdown(Skill skill, string instructions) =>
-        $"""
-        ---
-        name: {skill.Id}
-        description: {Quoted(Description(skill))}
-        ---
-
-        {instructions.Trim()}
-
-        """;
-
-    private static void Place(Skill skill, string place)
+    // What the system prompt says about the skills: what each is for and where to read it.
+    public static string Catalog(ClaudeCodeSkillShelf shelf)
     {
-        if (Directory.Exists(place))
+        var text = new StringBuilder("""
+            # Skills
+
+            Crafter, the app this session runs in, gives this project the skills below, and they are the only skills here: Claude Code's own skills and slash commands are turned off. When a task fits a skill, read its instructions before starting and follow them. When a message carries a <crafter-skill> block, the user called that skill: follow it for that message.
+
+            """);
+
+        foreach (var skill in shelf.Skills)
         {
-            Directory.Delete(place, recursive: true);
+            text.Append($"\n- {skill.Id} ({skill.Name}): {Flat(skill.Description)}");
+            if (skill.WhenToUse is { } when)
+            {
+                text.Append($" Use it when: {Flat(when)}");
+            }
+
+            text.Append($" Instructions: {shelf.InstructionsOf(skill.Id)}");
         }
 
-        Directory.CreateDirectory(place);
-        var instructions = File.Exists(skill.Instructions) ? File.ReadAllText(skill.Instructions) : string.Empty;
-        File.WriteAllText(Path.Combine(place, "SKILL.md"), Markdown(skill, instructions));
+        return text.Append('\n').ToString();
+    }
 
-        // Scripts, templates and references the instructions point to come along as they are.
-        foreach (var file in Directory.EnumerateFiles(skill.Folder, "*", SearchOption.AllDirectories))
+    // A message that calls skills carries their instructions ahead of what the user wrote, so it
+    // never opens with a slash and the agent has them at hand.
+    public static Prompt Calling(Prompt prompt, ClaudeCodeSkillShelf? shelf)
+    {
+        if (prompt.Skills.Count == 0)
         {
-            var relative = Path.GetRelativePath(skill.Folder, file);
-            if (Described.Contains(relative) || relative.Split(Path.DirectorySeparatorChar).Any(part => part.StartsWith('.')))
+            return prompt;
+        }
+
+        var text = new StringBuilder();
+        foreach (var skill in prompt.Skills.Where(skill => File.Exists(skill.Instructions)))
+        {
+            var folder = shelf?.Skills.Any(each => each.Id == skill.Id) == true ? Path.Combine(shelf.Folder, skill.Id) : skill.Folder;
+            text.Append($"<crafter-skill id=\"{skill.Id}\" name=\"{skill.Name}\" folder=\"{folder}\">\n")
+                .Append(File.ReadAllText(skill.Instructions).Trim())
+                .Append("\n</crafter-skill>\n\n");
+        }
+
+        return text.Length == 0 ? prompt : new Prompt(text.Append(prompt.Text).ToString(), prompt.Pictures) { Skills = prompt.Skills };
+    }
+
+    private static void Copy(string from, string to)
+    {
+        Directory.CreateDirectory(to);
+        if (!Directory.Exists(from))
+        {
+            return;
+        }
+
+        foreach (var file in Directory.EnumerateFiles(from, "*", SearchOption.AllDirectories))
+        {
+            var relative = Path.GetRelativePath(from, file);
+            if (relative.Split(Path.DirectorySeparatorChar).Any(part => part.StartsWith('.')))
             {
                 continue;
             }
 
-            var copy = Path.Combine(place, relative);
+            var copy = Path.Combine(to, relative);
             Directory.CreateDirectory(Path.GetDirectoryName(copy)!);
             File.Copy(file, copy, overwrite: true);
         }
     }
 
-    private static string Description(Skill skill)
-    {
-        var about = skill.WhenToUse is { } when ? $"{skill.Description.TrimEnd()} Use it when: {when}" : skill.Description;
-        var flat = string.Join(' ', about.Split((char[])['\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries)).Trim();
+    private static string Flat(string text) => string.Join(' ', text.Split((char[])['\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries)).Trim();
+}
 
-        return flat.Length > Longest ? flat[..(Longest - 1)] + "…" : flat;
-    }
-
-    private static string Quoted(string text) => $"\"{text.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
+// The skills one session was given and the folder they were copied to.
+public sealed record ClaudeCodeSkillShelf(string Folder, IReadOnlyList<Skill> Skills)
+{
+    public string InstructionsOf(string id) => Path.Combine(Folder, id, ClaudeCodeSkills.Instructions);
 }

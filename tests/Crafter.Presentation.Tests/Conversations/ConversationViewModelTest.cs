@@ -405,7 +405,7 @@ public sealed class ConversationViewModelTest
         Assert.False(viewModel.IsRefused);
 
         await viewModel.CraftCommand.ExecuteAsync(null);
-        Assert.Equal(["commit"], session.Heard.Single().Skills);
+        Assert.Equal(["commit"], session.Heard.Single().Skills.Select(skill => skill.Id));
     }
 
     private static Task Ask(ConversationViewModel viewModel, string prompt)
