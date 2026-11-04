@@ -13,6 +13,7 @@
         <ResourceInclude x:Key="{x:Static themes:ThemeVariants.Copper}" Source="/Themes/Copper.axaml" />
       </ResourceDictionary.ThemeDictionaries>
       <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Themes/Tokens.axaml" />
         <ResourceInclude Source="/Controls/Modal.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
