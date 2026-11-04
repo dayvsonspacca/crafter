@@ -441,6 +441,29 @@
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
       <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
     </Style>
+    <!-- A file sent along: its name on a card, the agent gets it as an @ reference. -->
+    <Style Selector="Border.file">
+      <Setter Property="Height" Value="40" />
+      <Setter Property="MaxWidth" Value="240" />
+      <Setter Property="Padding" Value="10,0,12,0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="Border.file Path">
+      <Setter Property="Margin" Value="0,0,8,0" />
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="StrokeThickness" Value="1.1" />
+      <Setter Property="Stroke" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.file TextBlock">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
     <Style Selector="Border.picture.sent">
       <Setter Property="Width" Value="120" />
       <Setter Property="Height" Value="90" />
@@ -607,11 +630,17 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="composing:AttachmentViewModel">
-                <Panel>
-                  <Border Classes="picture">
+                <Panel VerticalAlignment="Center">
+                  <Border Classes="picture" IsVisible="{Binding IsPicture}">
                     <Image Source="{Binding Picture, Converter={x:Static conversationViews:PictureConverter.Instance}}" Stretch="UniformToFill" />
                   </Border>
-                  <Button Classes="unattach" Content="×" Command="{Binding RemoveCommand}" AutomationProperties.Name="Remove picture" />
+                  <Border Classes="file" IsVisible="{Binding IsFile}" ToolTip.Tip="{Binding File}">
+                    <DockPanel>
+                      <Path DockPanel.Dock="Left" Data="M4.5,1.5 H9.5 L12.5,4.5 V14.5 H4.5 Z M9.5,1.5 V4.5 H12.5" />
+                      <TextBlock Text="{Binding Name}" />
+                    </DockPanel>
+                  </Border>
+                  <Button Classes="unattach" Content="×" Command="{Binding RemoveCommand}" AutomationProperties.Name="{Binding Name, StringFormat='Remove {0}'}" />
                 </Panel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -621,9 +650,12 @@
                               Text="{Binding Draft}"
                               PlaceholderText="Describe the recipe…"
                               AutomationProperties.Name="Message" />
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource Space2}">
-            <TextBlock Classes="hint" Text="Enter to craft · Shift+Enter for a new line" />
-            <Panel Grid.Column="1">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource Space2}">
+            <Button Classes="icon" Click="Browse" ToolTip.Tip="Attach files" AutomationProperties.Name="Attach files">
+              <Path Data="M13,7.6 L8.1,12.5 A3,3 0 0 1 3.9,8.3 L9.3,2.9 A2,2 0 0 1 12.1,5.7 L6.8,11 A1,1 0 0 1 5.4,9.6 L10.2,4.8" />
+            </Button>
+            <TextBlock Grid.Column="1" Classes="hint" Text="Enter to craft · Shift+Enter for a new line" />
+            <Panel Grid.Column="2">
               <Button Classes="primary" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsAsking}" />
               <Button Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsAsking}" />
             </Panel>
@@ -681,6 +713,23 @@
                           <DataTemplate DataType="core:Picture">
                             <Border Classes="picture sent">
                               <Image Source="{Binding, Converter={x:Static conversationViews:PictureConverter.Instance}}" Stretch="UniformToFill" />
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                      <ItemsControl ItemsSource="{Binding Files}" IsVisible="{Binding HasFiles}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel ItemSpacing="8" LineSpacing="8" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="x:String">
+                            <Border Classes="file">
+                              <DockPanel>
+                                <Path DockPanel.Dock="Left" Data="M4.5,1.5 H9.5 L12.5,4.5 V14.5 H4.5 Z M9.5,1.5 V4.5 H12.5" />
+                                <TextBlock Text="{Binding}" />
+                              </DockPanel>
                             </Border>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>

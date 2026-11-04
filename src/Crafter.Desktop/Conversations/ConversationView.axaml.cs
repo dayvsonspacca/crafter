@@ -134,7 +134,7 @@ public sealed partial class ConversationView : UserControl
 
         if (await clipboard.TryGetFilesAsync() is { Length: > 0 } items)
         {
-            Insert(Dropped(viewModel, items));
+            Dropped(viewModel, items);
         }
         else if (await clipboard.TryGetTextAsync() is { Length: > 0 } text)
         {
@@ -164,13 +164,13 @@ public sealed partial class ConversationView : UserControl
         {
             e.Handled = true;
             PromptBox.Focus();
-            Insert(Dropped(viewModel, items));
+            Dropped(viewModel, items);
         }
     }
 
-    private static string Dropped(ConversationViewModel viewModel, IEnumerable<IStorageItem> items)
+    // Pictures attach as images; any other file or folder attaches as a reference the agent reads.
+    private static void Dropped(ConversationViewModel viewModel, IEnumerable<IStorageItem> items)
     {
-        var mentioned = string.Empty;
         foreach (var path in items.Select(item => item.TryGetLocalPath()).OfType<string>())
         {
             if (Pictures.IsPicture(path) && Pictures.Of(path) is { } picture)
@@ -179,11 +179,21 @@ public sealed partial class ConversationView : UserControl
             }
             else
             {
-                mentioned += viewModel.Mention(path);
+                viewModel.AttachFile(path);
             }
         }
+    }
 
-        return mentioned;
+    private async void Browse(object? sender, RoutedEventArgs e)
+    {
+        if (Conversation is not { } viewModel || TopLevel.GetTopLevel(this)?.StorageProvider is not { CanOpen: true } storage)
+        {
+            return;
+        }
+
+        var picked = await storage.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Attach files", AllowMultiple = true });
+        Dropped(viewModel, picked);
+        PromptBox.Focus();
     }
 
     private void Insert(string text)
