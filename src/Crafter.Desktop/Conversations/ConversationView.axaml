@@ -701,6 +701,31 @@
                                         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
                                         <Setter Property="MonospaceFontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
                                       </Style>
+                                      <!-- Tables read like the code blocks: one quiet frame, row dividers only, no zebra. -->
+                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Border.Table">
+                                        <Setter Property="Margin" Value="0,4,0,12" />
+                                        <Setter Property="CornerRadius" Value="9" />
+                                        <Setter Property="ClipToBounds" Value="True" />
+                                        <Setter Property="BorderThickness" Value="1" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                                        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+                                      </Style>
+                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Grid.Table > Border">
+                                        <Setter Property="Padding" Value="12,8" />
+                                        <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                                        <Setter Property="Background" Value="Transparent" />
+                                      </Style>
+                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Grid.Table > Border.LastTableRow">
+                                        <Setter Property="BorderThickness" Value="0" />
+                                      </Style>
+                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Grid.Table > Border.TableHeader">
+                                        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+                                      </Style>
+                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Border.TableHeader ctxt|CTextBlock">
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                        <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+                                      </Style>
                                     </Styles>
                                   </md:MarkdownScrollViewer.MarkdownStyle>
                                 </md:MarkdownScrollViewer>
