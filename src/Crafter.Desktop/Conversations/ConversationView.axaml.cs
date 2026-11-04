@@ -6,6 +6,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using ColorTextBlock.Avalonia;
 using Crafter.Presentation.Conversations;
 using Crafter.Presentation.Conversations.Composing;
 
@@ -21,6 +22,19 @@ public sealed partial class ConversationView : UserControl
     private ConversationViewModel? shown;
 
     private bool following = true;
+
+    static ConversationView()
+    {
+        // A markdown link puts the arrow back on its paragraph when the pointer leaves it;
+        // clearing that lets the paragraph inherit the text cursor again.
+        CursorProperty.Changed.AddClassHandler<CTextBlock>((block, e) =>
+        {
+            if (ReferenceEquals(e.NewValue, Cursor.Default))
+            {
+                block.ClearValue(CursorProperty);
+            }
+        });
+    }
 
     public ConversationView()
     {

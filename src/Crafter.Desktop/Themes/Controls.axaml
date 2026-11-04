@@ -103,4 +103,16 @@
       </Animation>
     </Style.Animations>
   </Style>
+
+  <!-- Anything you click shows a hand; anything you can select shows a text cursor. -->
+  <Style Selector="Button, ToggleButton, CheckBox, ComboBox, ComboBoxItem, ListBoxItem, MenuItem">
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button:disabled, ToggleButton:disabled, CheckBox:disabled, ComboBox:disabled, ComboBoxItem:disabled, ListBoxItem:disabled, MenuItem:disabled">
+    <Setter Property="Cursor" Value="Arrow" />
+  </Style>
+  <Style Selector="SelectableTextBlock">
+    <Setter Property="Cursor" Value="IBeam" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource TextSelectionBrush}" />
+  </Style>
 </Styles>

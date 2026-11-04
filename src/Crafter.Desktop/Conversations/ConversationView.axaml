@@ -692,7 +692,10 @@
                           <ItemsControl ItemsSource="{Binding Pieces}" Classes.aside="{Binding FollowsActivity}">
                             <ItemsControl.DataTemplates>
                               <DataTemplate DataType="messages:ProseViewModel">
-                                <md:MarkdownScrollViewer Markdown="{Binding Text}">
+                                <md:MarkdownScrollViewer Markdown="{Binding Text}"
+                                                         SelectionEnabled="True"
+                                                         SelectionBrush="{DynamicResource TextSelectionBrush}"
+                                                         Cursor="IBeam">
                                   <md:MarkdownScrollViewer.MarkdownStyle>
                                     <Styles>
                                       <mdc:MarkdownStyleFluentTheme />
