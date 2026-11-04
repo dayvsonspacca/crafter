@@ -271,7 +271,16 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public string? SummaryOf(Project project) => bookshelf.SummaryOf(project);
 
     // A new summary reaches the project's chats when their sessions start again.
-    public bool Summarize(Project project, string summary) => bookshelf.Summarize(project, summary);
+    public bool Summarize(Project project, string summary)
+    {
+        var changed = bookshelf.Summarize(project, summary);
+        if (changed && Brief.IsOpen && Brief.Project == project)
+        {
+            Brief.RecallSummary();
+        }
+
+        return changed;
+    }
 
     // A new axiom reaches the project's chats when their sessions start again.
     public bool Hold(Project project, string axiom) => Changed(project, bookshelf.Hold(project, axiom));

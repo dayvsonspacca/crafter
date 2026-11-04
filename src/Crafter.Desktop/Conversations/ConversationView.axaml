@@ -652,6 +652,48 @@
                               </StackPanel>
                             </Border>
                           </DataTemplate>
+                          <DataTemplate DataType="messages:SummaryProposalItemViewModel">
+                            <Border Classes="approval" Classes.open="{Binding IsOpen}">
+                              <StackPanel Spacing="10">
+                                <TextBlock FontSize="{StaticResource FontSizeBody}" Text="{Binding Asking}" />
+                                <Border Padding="12,9"
+                                        CornerRadius="7"
+                                        BorderThickness="1"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        Background="{DynamicResource BackgroundBrush}">
+                                  <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+                                    <ItemsControl ItemsSource="{Binding Lines}">
+                                      <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="messages:SummaryLine">
+                                          <TextBlock FontFamily="{StaticResource MonoFont}"
+                                                               FontSize="{StaticResource FontSizeCallout}"
+                                                               TextWrapping="Wrap"
+                                                               Foreground="{DynamicResource ForegroundBrush}"
+                                                               Classes.added="{Binding IsAdded}"
+                                                               Classes.removed="{Binding IsRemoved}"
+                                                               Text="{Binding Marked}">
+                                            <TextBlock.Styles>
+                                              <Style Selector="TextBlock.added">
+                                                <Setter Property="Foreground" Value="{DynamicResource AddedBrush}" />
+                                              </Style>
+                                              <Style Selector="TextBlock.removed">
+                                                <Setter Property="Foreground" Value="{DynamicResource RemovedBrush}" />
+                                              </Style>
+                                            </TextBlock.Styles>
+                                          </TextBlock>
+                                        </DataTemplate>
+                                      </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                  </ScrollViewer>
+                                </Border>
+                                <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8" IsVisible="{Binding IsOpen}">
+                                  <Button Classes="primary" Content="Approve" Command="{Binding ApproveCommand}" />
+                                  <Button Classes="ghost" Content="Decline" Command="{Binding DeclineCommand}" />
+                                </WrapPanel>
+                                <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
+                              </StackPanel>
+                            </Border>
+                          </DataTemplate>
                           <DataTemplate DataType="messages:QuestionItemViewModel">
                             <Border Classes="approval" Classes.open="{Binding IsOpen}">
                               <StackPanel Spacing="14">

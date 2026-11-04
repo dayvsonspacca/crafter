@@ -110,6 +110,23 @@ public sealed partial class ProjectBriefViewModel(
         HasAxioms = Axioms.Count > 0;
     }
 
+    // Shows the summary again after it changed from elsewhere, like an agent's proposal, unless the
+    // window holds an edit of its own the user has not saved.
+    public void RecallSummary()
+    {
+        if (project is not { } shown)
+        {
+            return;
+        }
+
+        var unsaved = Summary.Trim() != SavedSummary;
+        SavedSummary = summaryOf(shown) ?? string.Empty;
+        if (!unsaved)
+        {
+            Summary = SavedSummary;
+        }
+    }
+
     [RelayCommand]
     public void Close() => IsOpen = false;
 
@@ -127,9 +144,9 @@ public sealed partial class ProjectBriefViewModel(
     {
         if (project is { } shown)
         {
+            Summary = Summary.Trim();
             summarize(shown, Summary);
             SavedSummary = summaryOf(shown) ?? string.Empty;
-            Summary = SavedSummary;
         }
     }
 

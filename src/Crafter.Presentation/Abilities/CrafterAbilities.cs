@@ -8,8 +8,8 @@ using Crafter.Presentation.Library;
 namespace Crafter.Presentation.Abilities;
 
 // What Home's agent can do to Crafter: add, create, open and remove projects, rename them, change
-// their icons, set their axioms, and read and write the skills library. A project's agent can only
-// propose axioms for its own project. Answers are JSON for the agent to read.
+// their icons, set their axioms and summaries, and read and write the skills library. A project's
+// agent can only propose axioms and a summary for its own project. Answers are JSON for the agent to read.
 // A relative folder is read from the projects root set in Preferences.
 public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewModel library, IBranches branches)
 {
@@ -21,6 +21,7 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
         ["folder"] = project.Folder,
         ["branch"] = branches.Of(project),
         ["openChats"] = workbench.OpenChats(project),
+        ["summary"] = workbench.SummaryOf(project),
         ["axioms"] = new JsonArray([.. workbench.AxiomsOf(project).Select(axiom => (JsonNode)axiom)]),
     })]));
 
@@ -28,16 +29,9 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
     // approves every axiom, whatever the chat's mode: approve asks them in the chat that proposed it.
     public async Task<Told> ProposeAxiom(string caller, string? folder, string? axiom, Func<Project, string, Task<bool>> approve)
     {
-        var fromHome = caller == workbench.Home.Folder;
-        var project = fromHome ? Find(folder) : workbench.Projects.FirstOrDefault(each => each.Folder == caller);
-        if (project is null)
+        if (Proposer(caller, folder) is not { } project)
         {
-            return Told.Failed(fromHome ? $"No project lives in {folder}; list_projects gives the folders." : "Your project is no longer in Crafter.");
-        }
-
-        if (!fromHome && Under(folder) is { } named && named != project.Folder)
-        {
-            return Told.Failed("A project's agent proposes axioms for its own project only.");
+            return Refusal(caller, folder, "axioms");
         }
 
         if (string.IsNullOrWhiteSpace(axiom))
@@ -59,6 +53,37 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
         workbench.Hold(project, text);
 
         return new Told($"{project.Name.Text} now holds the axiom \"{text}\"; its chats follow it from their next session.");
+    }
+
+    // The whole summary, never a piece of it, so what the user approves is what the agent reads.
+    // Approve gets the summary it would replace, to show the change.
+    public async Task<Told> ProposeSummary(string caller, string? folder, string? summary, Func<Project, string?, string, Task<bool>> approve)
+    {
+        if (Proposer(caller, folder) is not { } project)
+        {
+            return Refusal(caller, folder, "a summary");
+        }
+
+        if (string.IsNullOrWhiteSpace(summary))
+        {
+            return Told.Failed("A summary needs its text.");
+        }
+
+        var text = summary.Trim();
+        var current = workbench.SummaryOf(project);
+        if (text == current)
+        {
+            return new Told($"{project.Name.Text} already has that summary.");
+        }
+
+        if (!await approve(project, current, text))
+        {
+            return new Told($"The user declined the summary; {project.Name.Text} keeps {(current is null ? "none" : "the one it had")}.");
+        }
+
+        workbench.Summarize(project, text);
+
+        return new Told($"{project.Name.Text} now has the summary; its chats read it from their next session.");
     }
 
     public Told RemoveAxiom(string? folder, string? axiom)
@@ -264,6 +289,24 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
     }
 
     private const string Unlinked = "No library repository is linked; link one in Preferences → Library.";
+
+    // Home names the project; a project's agent proposes for its own, and only for it.
+    private Project? Proposer(string caller, string? folder)
+    {
+        if (caller == workbench.Home.Folder)
+        {
+            return Find(folder);
+        }
+
+        var own = workbench.Projects.FirstOrDefault(each => each.Folder == caller);
+
+        return own is not null && (Under(folder) is not { } named || named == own.Folder) ? own : null;
+    }
+
+    private Told Refusal(string caller, string? folder, string what) =>
+        caller == workbench.Home.Folder ? Told.Failed($"No project lives in {folder}; list_projects gives the folders.")
+        : workbench.Projects.Any(each => each.Folder == caller) ? Told.Failed($"A project's agent proposes {what} for its own project only.")
+        : Told.Failed("Your project is no longer in Crafter.");
 
     private Project? Find(string? folder) =>
         Under(folder) is { } full ? workbench.Projects.FirstOrDefault(project => project.Folder == Path.TrimEndingDirectorySeparator(full)) : null;

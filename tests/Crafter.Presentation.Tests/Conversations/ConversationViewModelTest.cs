@@ -499,6 +499,25 @@ public sealed class ConversationViewModelTest
         viewModel.CraftCancelCommand.Execute(null);
     }
 
+    [Fact]
+    public async Task AsksAboutASummaryInTheAnswerUnderWay()
+    {
+        var viewModel = ViewModel(new ScriptedSession { Hangs = true });
+        viewModel.Draft = "Learn the project";
+        _ = viewModel.CraftCommand.ExecuteAsync(null);
+        var asking = viewModel.ProposeSummary("crafter", "Crafter is my IDE.", "Crafter is my IDE, in C#.");
+
+        var card = Assert.Single(viewModel.Messages.OfType<CrafterMessageViewModel>().Last().Items.OfType<SummaryProposalItemViewModel>());
+        Assert.Equal("stand-in proposes a new summary for crafter", card.Asking);
+        Assert.True(viewModel.IsWaiting);
+
+        card.DeclineCommand.Execute(null);
+
+        Assert.False(await asking);
+        Assert.False(viewModel.IsWaiting);
+        viewModel.CraftCancelCommand.Execute(null);
+    }
+
     private static Task Ask(ConversationViewModel viewModel, string prompt)
     {
         viewModel.Draft = prompt;

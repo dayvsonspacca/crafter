@@ -173,6 +173,11 @@ public sealed partial class ConversationViewModel : ObservableObject
             ? answering.Propose(project, axiom)
             : Task.FromResult(false);
 
+    public Task<bool> ProposeSummary(string project, string? current, string summary) =>
+        Messages.OfType<CrafterMessageViewModel>().LastOrDefault(answer => answer.IsCrafting) is { } answering
+            ? answering.ProposeSummary(project, current, summary)
+            : Task.FromResult(false);
+
     public void Leave()
     {
         if (CraftCommand.IsRunning)

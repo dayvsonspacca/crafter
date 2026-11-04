@@ -45,11 +45,11 @@ public sealed class CrafterMcpTest : IDisposable
             using var http = new HttpClient();
 
             var server = Assert.Single(mcp.ServersFor(workbench.Home, elsewhere));
-            Assert.Equal(["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill", "propose_axiom"], server.FreeTools);
+            Assert.Equal(["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill", "propose_axiom", "propose_summary"], server.FreeTools);
 
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
             Assert.Equal(
-                ["list_projects", "add_project", "create_project", "open_project", "remove_project", "rename_project", "set_project_icon", "propose_axiom", "remove_axiom", "library_status", "sync_library", "list_skills", "read_skill", "save_skill"],
+                ["list_projects", "add_project", "create_project", "open_project", "remove_project", "rename_project", "set_project_icon", "propose_axiom", "propose_summary", "remove_axiom", "library_status", "sync_library", "list_skills", "read_skill", "save_skill"],
                 tools.Select(tool => tool!["name"]!.GetValue<string>()));
 
             var listed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "list_projects", ["arguments"] = new JsonObject() });
@@ -75,11 +75,11 @@ public sealed class CrafterMcpTest : IDisposable
             _ = chat.CraftCommand.ExecuteAsync(null);
 
             var server = Assert.Single(mcp.ServersFor(crafter, begun[^1]));
-            Assert.Equal(["propose_axiom"], server.FreeTools);
+            Assert.Equal(["propose_axiom", "propose_summary"], server.FreeTools);
             Assert.Equal(TimeSpan.FromMinutes(30), server.Patience);
             Assert.NotEqual(mcp.ServersFor(crafter, elsewhere)[0].Token, server.Token);
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
-            Assert.Equal(["propose_axiom"], tools.Select(tool => tool!["name"]!.GetValue<string>()));
+            Assert.Equal(["propose_axiom", "propose_summary"], tools.Select(tool => tool!["name"]!.GetValue<string>()));
             var initialized = await Ask(http, server, "initialize", new JsonObject { ["protocolVersion"] = "2025-06-18" });
             Assert.Equal(CrafterMcp.ProjectInstructions, initialized["result"]!["instructions"]!.GetValue<string>());
 
@@ -103,6 +103,38 @@ public sealed class CrafterMcpTest : IDisposable
             workbench.Remove(crafter);
             Assert.Equal(HttpStatusCode.Unauthorized, (await Post(http, server, "tools/list")).StatusCode);
             Assert.Empty(mcp.ServersFor(crafter, begun[^1]));
+        });
+    }
+
+    [Fact]
+    public async Task AProjectsAgentProposesASummaryTheUserApprovesInItsChat()
+    {
+        await TestApp.RunAsync(async () =>
+        {
+            var (workbench, crafter, _) = Workbench();
+            using var mcp = new CrafterMcp(workbench, new CrafterAbilities(workbench, Library(), new NoBranches()));
+            mcp.Start();
+            using var http = new HttpClient();
+            workbench.Summarize(crafter, "Crafter is my IDE.");
+            workbench.NewChatCommand.Execute(null);
+            var chat = workbench.Desk!.Selected!;
+            chat.Draft = "Learn the project";
+            _ = chat.CraftCommand.ExecuteAsync(null);
+            var server = Assert.Single(mcp.ServersFor(crafter, begun[^1]));
+
+            var approving = Ask(http, server, "tools/call", new JsonObject
+            {
+                ["name"] = "propose_summary",
+                ["arguments"] = new JsonObject { ["summary"] = "Crafter is my IDE.\nIts tests run with just test." },
+            });
+            var card = await SummaryCard(chat);
+            Assert.Equal("Crafter is my IDE.", workbench.SummaryOf(crafter));
+            Assert.Equal(["  Crafter is my IDE.", "+ Its tests run with just test."], card.Lines.Select(line => line.Marked));
+            card.ApproveCommand.Execute(null);
+
+            Assert.False((await approving)["result"]!["isError"]!.GetValue<bool>());
+            Assert.Equal("Crafter is my IDE.\nIts tests run with just test.", workbench.SummaryOf(crafter));
+            chat.CraftCancelCommand.Execute(null);
         });
     }
 
@@ -164,6 +196,21 @@ public sealed class CrafterMcpTest : IDisposable
 
     private static JsonObject Proposal(string axiom) =>
         new() { ["name"] = "propose_axiom", ["arguments"] = new JsonObject { ["axiom"] = axiom } };
+
+    private static async Task<SummaryProposalItemViewModel> SummaryCard(ConversationViewModel chat)
+    {
+        for (var look = 0; look < 500; look++)
+        {
+            if (chat.Messages.OfType<CrafterMessageViewModel>().SelectMany(answer => answer.Items.OfType<SummaryProposalItemViewModel>()).FirstOrDefault() is { } card)
+            {
+                return card;
+            }
+
+            await Task.Delay(10);
+        }
+
+        throw new TimeoutException("No summary card showed.");
+    }
 
     // The card shows on the UI thread while the call waits, so this looks again between turns of it.
     private static async Task<AxiomProposalItemViewModel> Card(ConversationViewModel chat, int count)

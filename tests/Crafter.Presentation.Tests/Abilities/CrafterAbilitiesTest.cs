@@ -207,6 +207,45 @@ public sealed class CrafterAbilitiesTest : IDisposable
     }
 
     [Fact]
+    public async Task KeepsASummaryOnlyOnceTheUserApprovesItAndShowsWhatItReplaces()
+    {
+        List<string?> replaced = [];
+        Task<bool> Approve(Project project, string? current, string summary)
+        {
+            replaced.Add(current);
+
+            return Task.FromResult(true);
+        }
+
+        Assert.False((await abilities.ProposeSummary(crafter.Folder, null, " Crafter is my IDE. ", Approve)).IsError);
+        Assert.False((await abilities.ProposeSummary(workbench.Home.Folder, crafter.Folder, "Crafter is my IDE, in C#.", Approve)).IsError);
+
+        Assert.Equal([null, "Crafter is my IDE."], replaced);
+        Assert.Equal("Crafter is my IDE, in C#.", workbench.SummaryOf(crafter));
+        Assert.Equal("Crafter already has that summary.", (await abilities.ProposeSummary(crafter.Folder, null, "Crafter is my IDE, in C#.", Approve)).Text);
+        Assert.Equal(2, replaced.Count);
+        var listed = JsonNode.Parse(abilities.ListProjects().Text)!.AsArray();
+        Assert.Equal("Crafter is my IDE, in C#.", listed[0]!["summary"]!.GetValue<string>());
+        Assert.Null(listed[1]!["summary"]);
+    }
+
+    [Fact]
+    public async Task KeepsNoSummaryTheUserDeclinesNorOneForAnotherProject()
+    {
+        static Task<bool> No(Project project, string? current, string summary) => Task.FromResult(false);
+        static Task<bool> Yes(Project project, string? current, string summary) => Task.FromResult(true);
+
+        var declined = await abilities.ProposeSummary(crafter.Folder, null, "Crafter is my IDE.", No);
+
+        Assert.False(declined.IsError);
+        Assert.Equal("The user declined the summary; Crafter keeps none.", declined.Text);
+        Assert.True((await abilities.ProposeSummary(crafter.Folder, lorekeeper.Folder, "Lorekeeper is a game.", Yes)).IsError);
+        Assert.True((await abilities.ProposeSummary(crafter.Folder, null, " ", Yes)).IsError);
+        Assert.Null(workbench.SummaryOf(crafter));
+        Assert.Null(workbench.SummaryOf(lorekeeper));
+    }
+
+    [Fact]
     public void RemovesAnAxiom()
     {
         workbench.Hold(lorekeeper, "Always write tests");
