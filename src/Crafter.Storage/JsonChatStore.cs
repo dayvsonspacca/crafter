@@ -10,7 +10,7 @@ using Crafter.Core.Projects;
 
 namespace Crafter.Storage;
 
-public sealed class JsonChatArchive(string folder) : IChatArchive
+public sealed class JsonChatStore(string folder) : IChatStore
 {
     public IReadOnlyList<ChatRecord> Load(Project project)
     {

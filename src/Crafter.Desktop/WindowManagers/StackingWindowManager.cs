@@ -1,6 +1,6 @@
 namespace Crafter.Desktop.WindowManagers;
 
-public sealed class Stacking : WindowManager
+public sealed class StackingWindowManager : WindowManager
 {
     public override bool Minimizes => true;
 

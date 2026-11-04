@@ -7,7 +7,7 @@ using Crafter.Storage;
 
 namespace Crafter.Storage.Tests;
 
-public sealed class JsonChatArchiveTest : IDisposable
+public sealed class JsonChatStoreTest : IDisposable
 {
     private static readonly AgentId Claude = new("claude-code");
 
@@ -20,7 +20,7 @@ public sealed class JsonChatArchiveTest : IDisposable
     [Fact]
     public void StartsEmptyWithoutAFile()
     {
-        Assert.Empty(new JsonChatArchive(folder).Load(Crafter));
+        Assert.Empty(new JsonChatStore(folder).Load(Crafter));
     }
 
     [Fact]
@@ -44,8 +44,8 @@ public sealed class JsonChatArchiveTest : IDisposable
             new(ChatId.New(), Codex, ChatTitle.Untitled, null, []) { Adjustments = Configuration.Empty.With("tools", "plan") },
         ];
 
-        new JsonChatArchive(folder).Save(Crafter, chats);
-        var loaded = new JsonChatArchive(folder).Load(Crafter);
+        new JsonChatStore(folder).Save(Crafter, chats);
+        var loaded = new JsonChatStore(folder).Load(Crafter);
 
         Assert.Equal(chats.Length, loaded.Count);
         for (var at = 0; at < chats.Length; at++)
@@ -62,25 +62,25 @@ public sealed class JsonChatArchiveTest : IDisposable
     [Fact]
     public void KeepsEachProjectApart()
     {
-        var archive = new JsonChatArchive(folder);
+        var store = new JsonChatStore(folder);
         var twin = new Project("/home/hero/elsewhere/crafter");
 
-        archive.Save(Crafter, [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Here"), null, [])]);
+        store.Save(Crafter, [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Here"), null, [])]);
 
-        Assert.Empty(archive.Load(twin));
+        Assert.Empty(store.Load(twin));
     }
 
     [Fact]
     public void ReadsAnUnknownEndingAsAFailure()
     {
-        var archive = new JsonChatArchive(folder);
-        archive.Save(Crafter, [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Odd"), null, [])]);
+        var store = new JsonChatStore(folder);
+        store.Save(Crafter, [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Odd"), null, [])]);
         var file = Directory.GetFiles(folder).Single();
         File.WriteAllText(
             file,
             """[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","agent":"claude-code","title":"Odd","sessionId":null,"turns":[{"kind":"answered","text":"?","ending":"vanished","detail":null}]}]""");
 
-        var turn = Assert.Single(Assert.Single(archive.Load(Crafter)).Turns);
+        var turn = Assert.Single(Assert.Single(store.Load(Crafter)).Turns);
 
         Assert.Equal(new Answered("?", new Failed("The answer could not be read back.")), turn);
     }
@@ -92,11 +92,11 @@ public sealed class JsonChatArchiveTest : IDisposable
     [InlineData("""[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","title":"No agent","sessionId":null,"turns":[]}]""")]
     public void StartsEmptyWhenTheFileIsUnreadable(string content)
     {
-        var archive = new JsonChatArchive(folder);
-        archive.Save(Crafter, []);
+        var store = new JsonChatStore(folder);
+        store.Save(Crafter, []);
         File.WriteAllText(Directory.GetFiles(folder).Single(), content);
 
-        Assert.Empty(archive.Load(Crafter));
+        Assert.Empty(store.Load(Crafter));
     }
 
     [Theory]
@@ -104,13 +104,13 @@ public sealed class JsonChatArchiveTest : IDisposable
     [InlineData("""[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","agent":"claude-code","title":" ","sessionId":null,"turns":[]}]""")]
     public void KeepsAnUnreadableFileAside(string content)
     {
-        var archive = new JsonChatArchive(folder);
-        archive.Save(Crafter, []);
+        var store = new JsonChatStore(folder);
+        store.Save(Crafter, []);
         var file = Directory.GetFiles(folder).Single();
         File.WriteAllText(file, content);
 
-        archive.Load(Crafter);
-        archive.Save(Crafter, []);
+        store.Load(Crafter);
+        store.Save(Crafter, []);
 
         Assert.Equal(content, File.ReadAllText(Aside.Of(file)));
     }

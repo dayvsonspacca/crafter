@@ -36,11 +36,11 @@ public sealed class JsonPreferencesStore(string file, UserPreferences defaults) 
 [JsonSourceGenerationOptions(
     WriteIndented = true,
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    Converters = [typeof(AgentIdJson), typeof(ConfigurationJson)])]
+    Converters = [typeof(AgentIdJsonConverter), typeof(ConfigurationJsonConverter)])]
 [JsonSerializable(typeof(UserPreferences))]
 internal sealed partial class PreferencesJson : JsonSerializerContext;
 
-internal sealed class AgentIdJson : JsonConverter<AgentId>
+internal sealed class AgentIdJsonConverter : JsonConverter<AgentId>
 {
     public override AgentId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
         new(reader.GetString()!);
@@ -55,7 +55,7 @@ internal sealed class AgentIdJson : JsonConverter<AgentId>
         writer.WritePropertyName(value.Value);
 }
 
-internal sealed class ConfigurationJson : JsonConverter<Configuration>
+internal sealed class ConfigurationJsonConverter : JsonConverter<Configuration>
 {
     public override Configuration Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

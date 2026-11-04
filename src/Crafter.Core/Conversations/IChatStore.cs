@@ -2,7 +2,7 @@ using Crafter.Core.Projects;
 
 namespace Crafter.Core.Conversations;
 
-public interface IChatArchive
+public interface IChatStore
 {
     IReadOnlyList<ChatRecord> Load(Project project);
 

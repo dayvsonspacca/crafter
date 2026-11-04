@@ -6,7 +6,7 @@ using Crafter.Presentation.Platform;
 
 namespace Crafter.Presentation.Desks;
 
-public sealed class DeskFactory(IChatArchive archive, Crew crew, PreferenceBook preferences, IClipboard clipboard, TimeProvider time)
+public sealed class DeskFactory(IChatStore store, Crew crew, PreferenceBook preferences, IClipboard clipboard, TimeProvider time)
 {
-    public ProjectDesk Make(Project project, Func<Project, Task> edit) => new(project, archive, crew, preferences, edit, clipboard, time);
+    public ProjectDesk Make(Project project, Func<Project, Task> edit) => new(project, store, crew, preferences, edit, clipboard, time);
 }

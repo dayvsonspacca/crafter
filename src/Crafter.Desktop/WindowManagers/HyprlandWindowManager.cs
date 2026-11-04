@@ -1,6 +1,6 @@
 namespace Crafter.Desktop.WindowManagers;
 
-public sealed class Hyprland : WindowManager
+public sealed class HyprlandWindowManager : WindowManager
 {
     public override bool Minimizes => false;
 

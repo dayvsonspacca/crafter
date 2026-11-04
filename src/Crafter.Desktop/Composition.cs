@@ -28,7 +28,7 @@ public static class Composition
     public static Workbench Workbench()
     {
         var time = TimeProvider.System;
-        var clipboard = new DesktopClipboard();
+        var clipboard = new AvaloniaClipboard();
         var crew = Crew();
         var preferences = new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), UserPreferences.Default(Home)));
         var bookshelf = new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), time.GetLocalNow);
@@ -41,8 +41,8 @@ public static class Composition
             picker,
             new ProjectNamer(picker),
             setup,
-            new PreferencesScreen(preferences, picker, setup, new ApplicationThemeSwitcher()),
-            new DeskFactory(new JsonChatArchive(Path.Combine(Data, "chats")), crew, preferences, clipboard, time),
+            new PreferencesScreen(preferences, picker, setup, new AvaloniaThemeSwitcher()),
+            new DeskFactory(new JsonChatStore(Path.Combine(Data, "chats")), crew, preferences, clipboard, time),
             clipboard);
 
         return new Workbench(WindowManager.Detect(), screen);

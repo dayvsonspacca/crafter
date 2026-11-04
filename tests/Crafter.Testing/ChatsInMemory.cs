@@ -3,7 +3,7 @@ using Crafter.Core.Projects;
 
 namespace Crafter.Testing;
 
-public sealed class ArchiveInMemory : IChatArchive
+public sealed class ChatsInMemory : IChatStore
 {
     public IReadOnlyList<ChatRecord> Saved { get; private set; } = [];
 

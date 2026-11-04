@@ -8,6 +8,6 @@ public abstract class WindowManager
 
     public static WindowManager Detect() =>
         string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE"))
-            ? new Stacking()
-            : new Hyprland();
+            ? new StackingWindowManager()
+            : new HyprlandWindowManager();
 }

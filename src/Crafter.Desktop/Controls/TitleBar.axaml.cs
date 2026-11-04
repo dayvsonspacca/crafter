@@ -8,7 +8,7 @@ namespace Crafter.Desktop.Controls;
 
 public sealed partial class TitleBar : UserControl
 {
-    private WindowManager windowManager = new Stacking();
+    private WindowManager windowManager = new StackingWindowManager();
 
     public TitleBar() => InitializeComponent();
 

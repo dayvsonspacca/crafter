@@ -13,7 +13,7 @@ namespace Crafter.Presentation.Desks;
 
 public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 {
-    private readonly IChatArchive archive;
+    private readonly IChatStore store;
 
     private readonly Crew crew;
 
@@ -23,16 +23,16 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
 
     private readonly TimeProvider time;
 
-    public ProjectDesk(Project project, IChatArchive archive, Crew crew, PreferenceBook preferences, Func<Project, Task> edit, IClipboard clipboard, TimeProvider time)
+    public ProjectDesk(Project project, IChatStore store, Crew crew, PreferenceBook preferences, Func<Project, Task> edit, IClipboard clipboard, TimeProvider time)
     {
         Project = project;
-        this.archive = archive;
+        this.store = store;
         this.crew = crew;
         this.preferences = preferences;
         this.clipboard = clipboard;
         this.time = time;
 
-        foreach (var record in archive.Load(project))
+        foreach (var record in store.Load(project))
         {
             var agent = crew.Find(record.Agent);
             var conversation = new Conversation(agent.Begin(project, record.SessionId), record.Turns, record.Adjustments);
@@ -212,5 +212,5 @@ public sealed partial class ProjectDesk : ObservableObject, IChatKeeper
         OnPropertyChanged(nameof(HasUnread));
     }
 
-    private void Save() => archive.Save(Project, [.. Chats.Select(chat => chat.Record())]);
+    private void Save() => store.Save(Project, [.. Chats.Select(chat => chat.Record())]);
 }

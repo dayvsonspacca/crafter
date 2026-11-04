@@ -32,30 +32,30 @@ public sealed class ProjectDeskTest
     [Fact]
     public void KeepsANewChatInTheArchive()
     {
-        var archive = new ArchiveInMemory();
-        var desk = Desk(new StandInAgent(), archive);
+        var store = new ChatsInMemory();
+        var desk = Desk(new StandInAgent(), store);
 
         desk.NewChat();
 
-        Assert.Single(archive.Saved);
+        Assert.Single(store.Saved);
     }
 
     [Fact]
     public void RestoresTheAdjustmentsOfASavedChat()
     {
-        var archive = new ArchiveInMemory();
-        archive.Save(Crafter, [new ChatRecord(ChatId.New(), new AgentId("stand-in"), ChatTitle.Of("oi"), null, []) { Adjustments = Configuration.Empty.With("tools", "plan") }]);
+        var store = new ChatsInMemory();
+        store.Save(Crafter, [new ChatRecord(ChatId.New(), new AgentId("stand-in"), ChatTitle.Of("oi"), null, []) { Adjustments = Configuration.Empty.With("tools", "plan") }]);
 
-        var desk = Desk(new StandInAgent(), archive);
+        var desk = Desk(new StandInAgent(), store);
 
         Assert.Equal("plan", desk.Chats.Single().Record().Adjustments["tools"]);
     }
 
-    private static ProjectDesk Desk(IAgent agent, ArchiveInMemory? archive = null)
+    private static ProjectDesk Desk(IAgent agent, ChatsInMemory? store = null)
     {
         var crew = new Crew([agent]);
         crew.Hire([agent.Id]);
 
-        return new DeskFactory(archive ?? new ArchiveInMemory(), crew, new PreferenceBook(new PreferencesInMemory(UserPreferences.Default("/home/hero"))), new ClipboardInMemory(), new FakeTimeProvider(Noon)).Make(Crafter, _ => Task.CompletedTask);
+        return new DeskFactory(store ?? new ChatsInMemory(), crew, new PreferenceBook(new PreferencesInMemory(UserPreferences.Default("/home/hero"))), new ClipboardInMemory(), new FakeTimeProvider(Noon)).Make(Crafter, _ => Task.CompletedTask);
     }
 }
