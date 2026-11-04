@@ -163,7 +163,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         bookshelf.Open(project);
         if (!desks.TryGetValue(project, out var desk))
         {
-            desk = deskFactory.Make(project, Edit);
+            desk = deskFactory.Make(project, Edit, () => SkillsFor(project));
             desks[project] = desk;
         }
 

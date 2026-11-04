@@ -6,6 +6,7 @@ using Crafter.Core.Agents.Background;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
+using Crafter.Core.Library;
 using Crafter.Core.Preferences;
 using Crafter.Presentation.Conversations.Background;
 using Crafter.Presentation.Conversations.Composing;
@@ -40,6 +41,8 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private readonly IProjectFiles files;
 
+    private readonly Func<IReadOnlyList<Skill>> skills;
+
     private readonly ITimer clock;
 
     private DateTimeOffset started;
@@ -53,8 +56,9 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private int turning;
 
-    public ConversationViewModel(Chat chat, IAgent agent, PreferenceBook preferences, string projectName, IChatKeeper keeper, IClipboard clipboard, IProjectFiles files, TimeProvider time, string? resumed = null)
+    public ConversationViewModel(Chat chat, IAgent agent, PreferenceBook preferences, string projectName, IChatKeeper keeper, IClipboard clipboard, IProjectFiles files, TimeProvider time, string? resumed = null, Func<IReadOnlyList<Skill>>? skills = null)
     {
+        this.skills = skills ?? (() => []);
         this.chat = chat;
         this.agent = agent;
         this.preferences = preferences;
@@ -62,7 +66,7 @@ public sealed partial class ConversationViewModel : ObservableObject
         this.clipboard = clipboard;
         this.files = files;
         this.time = time;
-        Mentions = new MentionsViewModel(files);
+        Mentions = new MentionsViewModel(files, this.skills);
         AgentName = agent.Name;
         ProjectName = projectName;
         Draft = string.Empty;
@@ -228,6 +232,13 @@ public sealed partial class ConversationViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsClearArmed { get; private set; }
 
+    // Why the draft was not sent: it opened with a command that is not one of Crafter's skills.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsRefused))]
+    public partial string? Refusal { get; private set; }
+
+    public bool IsRefused => Refusal is not null;
+
     public void DetachLast()
     {
         if (Attached.Count > 0)
@@ -288,10 +299,20 @@ public sealed partial class ConversationViewModel : ObservableObject
     [RelayCommand(IncludeCancelCommand = true)]
     private async Task Craft(YourMessageViewModel? again, CancellationToken stop)
     {
-        if (IsAsking || (again is null ? attachments.Compose(Draft) : again.Prompt) is not { } prompt)
+        if (IsAsking || (again is null ? attachments.Compose(Draft) : again.Prompt) is not { } composed)
         {
             return;
         }
+
+        var known = skills().Select(skill => skill.Id).ToList();
+        if (again is null && SkillCalls.Stranger(Draft, known) is { } stranger)
+        {
+            Refusal = $"/{stranger} is not a Crafter skill";
+
+            return;
+        }
+
+        var prompt = again is null ? composed with { Skills = SkillCalls.In(composed.Text, known) } : composed;
 
         var asked = again is null
             ? new YourMessageViewModel(prompt, Draft.Trim(), [.. Attached.Where(each => each.IsFile).Select(each => each.Name)])
@@ -404,7 +425,11 @@ public sealed partial class ConversationViewModel : ObservableObject
     }
 
     // Typing after the first Escape means the draft is wanted after all.
-    partial void OnDraftChanged(string value) => IsClearArmed = false;
+    partial void OnDraftChanged(string value)
+    {
+        IsClearArmed = false;
+        Refusal = null;
+    }
 
     private void Interrupt()
     {

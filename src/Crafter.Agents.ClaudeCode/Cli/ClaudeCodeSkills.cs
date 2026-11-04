@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Crafter.Core.Conversations;
 using Crafter.Core.Library;
 
 namespace Crafter.Agents.ClaudeCode.Cli;
@@ -58,6 +59,10 @@ public static class ClaudeCodeSkills
 
         return folder;
     }
+
+    // A skill the user calls goes by its plugin's name, so it never reaches a Claude Code command
+    // that happens to share the id, like /review.
+    public static string Calling(Prompt prompt) => SkillCalls.Rewrite(prompt.Text, prompt.Skills, id => $"/{Plugin}:{id}");
 
     // What Claude Code reads: the description decides when, the instructions say how.
     public static string Markdown(Skill skill, string instructions) =>

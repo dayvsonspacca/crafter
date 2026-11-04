@@ -12,76 +12,90 @@
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
-    <Style Selector="TextBlock.section">
-      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-    <Style Selector="Border.tool">
-      <Setter Property="Padding" Value="0,6" />
+    <Style Selector="Border.choice">
+      <Setter Property="Padding" Value="0,10" />
       <Setter Property="BorderThickness" Value="0,0,0,1" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Button.tab">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="4,0" />
+      <Setter Property="Height" Value="38" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="BorderThickness" Value="0,0,0,2" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    </Style>
+    <Style Selector="Button.tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.tab.chosen">
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
   </UserControl.Styles>
 
   <controls:Modal Title="{Binding Title}" IsCompact="True" Dismissed="Dismiss">
-    <StackPanel Margin="20,18,20,20" Spacing="18">
-      <ItemsControl ItemsSource="{Binding Choices}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="capabilities:CapabilityChoiceViewModel">
-            <StackPanel Spacing="12">
-              <CheckBox IsChecked="{Binding IsGranted}" AutomationProperties.Name="{Binding Info.Name}">
-                <StackPanel Spacing="2">
-                  <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Info.Name}" />
-                  <TextBlock Classes="about" Text="{Binding Info.Description}" />
-                </StackPanel>
-              </CheckBox>
-              <ItemsControl Margin="28,0,0,0" ItemsSource="{Binding Info.Tools}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="capabilities:ToolInfo">
-                    <Border Classes="tool">
-                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                        <StackPanel Spacing="1">
-                          <TextBlock Classes="mono" HorizontalAlignment="Left" Foreground="{DynamicResource ForegroundBrush}" Text="{Binding Name}" />
-                          <TextBlock Classes="about" Text="{Binding What}" />
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Top" Text="{Binding Approval}" />
-                      </Grid>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </StackPanel>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-
-      <StackPanel Spacing="10">
-        <StackPanel Spacing="2">
-          <TextBlock Classes="section" Text="Skills" />
-          <TextBlock Classes="about" Text="From the library. The defaults you set in Preferences → Library reach every project; tick others for this one." />
+    <DockPanel>
+      <Border DockPanel.Dock="Top" Padding="20,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}">
+        <StackPanel Orientation="Horizontal" Spacing="18">
+          <Button Classes="tab" Classes.chosen="{Binding ShowsCapabilities}" Content="Capabilities" Command="{Binding ShowCapabilitiesTabCommand}" />
+          <Button Classes="tab" Classes.chosen="{Binding ShowsSkills}" Content="Skills" Command="{Binding ShowSkillsTabCommand}" />
         </StackPanel>
-        <TextBlock Classes="about" Text="The library has no skills yet." IsVisible="{Binding !HasSkills}" />
-        <ItemsControl ItemsSource="{Binding Skills}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="capabilities:SkillChoiceViewModel">
-              <Border Classes="tool">
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                  <CheckBox IsChecked="{Binding IsGiven}" IsEnabled="{Binding CanChange}" AutomationProperties.Name="{Binding Skill.Name}">
-                    <StackPanel Spacing="1">
-                      <TextBlock Foreground="{DynamicResource ForegroundBrush}" FontWeight="SemiBold" Text="{Binding Skill.Name}" />
-                      <TextBlock Classes="about" Text="{Binding Skill.Description}" />
-                    </StackPanel>
-                  </CheckBox>
-                  <TextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Top" Text="default" IsVisible="{Binding IsDefault}" />
-                </Grid>
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </StackPanel>
+      </Border>
 
-      <TextBlock Classes="about"
-                 Text="Granted here in Crafter, never in the project's files. New chats get the change; an open chat gets it when its session starts again, and loses a capability at once." />
-    </StackPanel>
+      <!-- One height for both tabs, so the window does not jump when switching. -->
+      <Panel Height="440">
+        <ScrollViewer IsVisible="{Binding ShowsCapabilities}" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="20,8,20,20" Spacing="14">
+            <ItemsControl ItemsSource="{Binding Choices}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="capabilities:CapabilityChoiceViewModel">
+                  <Border Classes="choice">
+                    <CheckBox IsChecked="{Binding IsGranted}" AutomationProperties.Name="{Binding Info.Name}">
+                      <StackPanel Spacing="2">
+                        <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Info.Name}" />
+                        <TextBlock Classes="about" Text="{Binding Info.Description}" />
+                      </StackPanel>
+                    </CheckBox>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="about"
+                       Text="Granted here in Crafter, never in the project's files. New chats get a change; an open chat gets it when its session starts again, and loses a capability at once." />
+          </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer IsVisible="{Binding ShowsSkills}" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="20,8,20,20" Spacing="14">
+            <TextBlock Classes="about" Margin="0,8,0,0" Text="The library has no skills yet." IsVisible="{Binding !HasSkills}" />
+            <ItemsControl ItemsSource="{Binding Skills}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="capabilities:SkillChoiceViewModel">
+                  <Border Classes="choice">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                      <CheckBox IsChecked="{Binding IsGiven}" IsEnabled="{Binding CanChange}" AutomationProperties.Name="{Binding Skill.Name}">
+                        <StackPanel Spacing="2">
+                          <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Skill.Name}" />
+                          <TextBlock Classes="about" Text="{Binding Skill.Description}" />
+                        </StackPanel>
+                      </CheckBox>
+                      <TextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Top" Text="default" IsVisible="{Binding IsDefault}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="about"
+                       Text="Defaults come from Preferences → Library and reach every project; tick others for this one. Call a skill in a chat with /." />
+          </StackPanel>
+        </ScrollViewer>
+      </Panel>
+    </DockPanel>
   </controls:Modal>
 </UserControl>

@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Core.Library;
 using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
 using Crafter.Presentation.Conversations;
@@ -26,8 +27,19 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     private readonly IProjectFiles files;
 
-    public ProjectDeskViewModel(Project project, IChatStore store, Crew crew, PreferenceBook preferences, Func<Project, Task> edit, IClipboard clipboard, TimeProvider time)
+    private readonly Func<IReadOnlyList<Skill>>? skills;
+
+    public ProjectDeskViewModel(
+        Project project,
+        IChatStore store,
+        Crew crew,
+        PreferenceBook preferences,
+        Func<Project, Task> edit,
+        IClipboard clipboard,
+        TimeProvider time,
+        Func<IReadOnlyList<Skill>>? skills = null)
     {
+        this.skills = skills;
         Project = project;
         this.store = store;
         this.crew = crew;
@@ -201,7 +213,7 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     private ConversationViewModel Add(Chat chat, IAgent agent, string? resumed = null)
     {
-        var viewModel = new ConversationViewModel(chat, agent, preferences, Project.Name.Text, this, clipboard, files, time, resumed);
+        var viewModel = new ConversationViewModel(chat, agent, preferences, Project.Name.Text, this, clipboard, files, time, resumed, skills);
         viewModel.PropertyChanged += Follow;
         viewModel.Concluded += Keep;
         Chats.Add(viewModel);

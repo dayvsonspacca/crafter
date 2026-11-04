@@ -13,7 +13,11 @@ public sealed record Prompt
 
     public IReadOnlyList<Picture> Pictures { get; }
 
-    public bool Equals(Prompt? other) => other is not null && Text == other.Text && Pictures.SequenceEqual(other.Pictures);
+    // The library skills the text calls with /id, which each agent invokes its own way.
+    public IReadOnlyList<string> Skills { get; init; } = [];
+
+    public bool Equals(Prompt? other) =>
+        other is not null && Text == other.Text && Pictures.SequenceEqual(other.Pictures) && Skills.SequenceEqual(other.Skills);
 
     public override int GetHashCode() => HashCode.Combine(Text, Pictures.Count);
 }

@@ -17,6 +17,38 @@ public sealed class MentionsViewModelTest
     }
 
     [Fact]
+    public void OffersOnlyCraftersSkillsAfterASlash()
+    {
+        var skilled = new MentionsViewModel(
+            new FilesInMemory("README.md", "src/commit.cs"),
+            () => [new("commit", "Commit", "Writes commits.", null, "/library/skills/commit"), new("pr-review", "PR review", "Reviews a pull request.", null, "/library/skills/pr-review")]);
+
+        skilled.Look("/", 1);
+        Assert.Equal(["commit", "pr-review"], skilled.Choices.Select(choice => choice.Path));
+        Assert.All(skilled.Choices, choice => Assert.True(choice.IsSkill));
+
+        skilled.Look("/rev", 4);
+        Assert.Equal("pr-review", Assert.Single(skilled.Choices).Path);
+
+        var (draft, caret) = skilled.Accept("/rev")!.Value;
+        Assert.Equal("/pr-review ", draft);
+        Assert.Equal(11, caret);
+        Assert.False(skilled.IsOpen);
+    }
+
+    [Fact]
+    public void OffersNothingForAPathOrWithoutSkills()
+    {
+        var skilled = new MentionsViewModel(new FilesInMemory("README.md"), () => [new("commit", "Commit", "Writes commits.", null, "/library/skills/commit")]);
+
+        skilled.Look("/home/hero", 10);
+        Assert.False(skilled.IsOpen);
+
+        mentions.Look("/", 1);
+        Assert.False(mentions.IsOpen);
+    }
+
+    [Fact]
     public void StaysClosedForAnEmailAddress()
     {
         mentions.Look("mail hero@crafter.dev", 21);

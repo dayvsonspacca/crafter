@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Crafter.Agents.ClaudeCode.Cli;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Decisions;
 
@@ -26,7 +27,7 @@ public static class ClaudeCodeProtocol
             writer.WriteString("role", "user");
             if (prompt.Pictures.Count == 0)
             {
-                writer.WriteString("content", prompt.Text);
+                writer.WriteString("content", ClaudeCodeSkills.Calling(prompt));
             }
             else
             {
@@ -115,7 +116,7 @@ public static class ClaudeCodeProtocol
 
         writer.WriteStartObject();
         writer.WriteString("type", "text");
-        writer.WriteString("text", prompt.Text);
+        writer.WriteString("text", ClaudeCodeSkills.Calling(prompt));
         writer.WriteEndObject();
         writer.WriteEndArray();
     }

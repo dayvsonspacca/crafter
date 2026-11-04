@@ -25,6 +25,13 @@ public sealed partial class CapabilitiesViewModel(
     [ObservableProperty]
     public partial bool HasSkills { get; private set; }
 
+    // The window shows one tab at a time; it opens on the capabilities.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsCapabilities))]
+    public partial bool ShowsSkills { get; private set; }
+
+    public bool ShowsCapabilities => !ShowsSkills;
+
     public ObservableCollection<CapabilityChoiceViewModel> Choices { get; } = [];
 
     public ObservableCollection<SkillChoiceViewModel> Skills { get; } = [];
@@ -45,11 +52,18 @@ public sealed partial class CapabilitiesViewModel(
         }
 
         HasSkills = Skills.Count > 0;
+        ShowsSkills = false;
         IsOpen = true;
     }
 
     [RelayCommand]
     public void Close() => IsOpen = false;
+
+    [RelayCommand]
+    private void ShowCapabilitiesTab() => ShowsSkills = false;
+
+    [RelayCommand]
+    private void ShowSkillsTab() => ShowsSkills = true;
 }
 
 public sealed partial class CapabilityChoiceViewModel : ObservableObject

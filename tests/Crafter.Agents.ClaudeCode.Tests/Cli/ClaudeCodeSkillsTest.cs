@@ -1,4 +1,5 @@
 using Crafter.Agents.ClaudeCode.Cli;
+using Crafter.Core.Conversations;
 using Crafter.Core.Library;
 
 namespace Crafter.Agents.ClaudeCode.Tests.Cli;
@@ -59,6 +60,14 @@ public sealed class ClaudeCodeSkillsTest : IDisposable
 
         Assert.Null(ClaudeCodeSkills.Write(Plugin, []));
         Assert.False(Directory.Exists(Plugin));
+    }
+
+    [Fact]
+    public void CallsASkillByItsPluginsNameSoNoClaudeCodeCommandAnswers()
+    {
+        var prompt = new Prompt("/review the diff, then /commit") { Skills = ["review"] };
+
+        Assert.Equal("/crafter:review the diff, then /commit", ClaudeCodeSkills.Calling(prompt));
     }
 
     [Fact]

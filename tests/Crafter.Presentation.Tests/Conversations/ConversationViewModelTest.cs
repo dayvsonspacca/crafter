@@ -3,6 +3,7 @@ using Crafter.Core.Agents.Background;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
+using Crafter.Core.Library;
 using Crafter.Core.Preferences;
 using Crafter.Presentation.Conversations;
 using Crafter.Presentation.Conversations.Messages;
@@ -389,6 +390,24 @@ public sealed class ConversationViewModelTest
         Assert.False(viewModel.IsJobsOpen);
     }
 
+    [Fact]
+    public async Task CallsCraftersSkillsAndRefusesAnyOtherCommand()
+    {
+        var session = new ScriptedSession();
+        var viewModel = ViewModel(session, [new Skill("commit", "Commit", "Writes commits.", null, "/library/skills/commit")]);
+
+        await Ask(viewModel, "/init");
+        Assert.Empty(session.Heard);
+        Assert.Equal("/init is not a Crafter skill", viewModel.Refusal);
+        Assert.Equal("/init", viewModel.Draft);
+
+        viewModel.Draft = "/commit the staged files";
+        Assert.False(viewModel.IsRefused);
+
+        await viewModel.CraftCommand.ExecuteAsync(null);
+        Assert.Equal(["commit"], session.Heard.Single().Skills);
+    }
+
     private static Task Ask(ConversationViewModel viewModel, string prompt)
     {
         viewModel.Draft = prompt;
@@ -396,11 +415,11 @@ public sealed class ConversationViewModelTest
         return viewModel.CraftCommand.ExecuteAsync(null);
     }
 
-    private ConversationViewModel ViewModel(IAgentSession session)
+    private ConversationViewModel ViewModel(IAgentSession session, IReadOnlyList<Skill>? skills = null)
     {
         var agent = new ScriptedAgent { Sessions = () => session };
         var chat = new Chat(ChatId.New(), agent.Id, ChatTitle.Untitled, new Conversation(session));
 
-        return new ConversationViewModel(chat, agent, preferences, "crafter", keeper, clipboard, new FilesInMemory("README.md", "src/", "src/Prompt.cs"), time);
+        return new ConversationViewModel(chat, agent, preferences, "crafter", keeper, clipboard, new FilesInMemory("README.md", "src/", "src/Prompt.cs"), time, skills: () => skills ?? []);
     }
 }

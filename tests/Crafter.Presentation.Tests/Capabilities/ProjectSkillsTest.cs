@@ -82,6 +82,33 @@ public sealed class ProjectSkillsTest : IDisposable
     }
 
     [Fact]
+    public void TheCapabilitiesWindowOpensOnItsFirstTab()
+    {
+        workbench.Status.ShowCapabilitiesCommand.Execute(null);
+        Assert.True(workbench.Capabilities.ShowsCapabilities);
+
+        workbench.Capabilities.ShowSkillsTabCommand.Execute(null);
+        Assert.True(workbench.Capabilities.ShowsSkills);
+        Assert.False(workbench.Capabilities.ShowsCapabilities);
+
+        workbench.Capabilities.Close();
+        workbench.Status.ShowCapabilitiesCommand.Execute(null);
+        Assert.True(workbench.Capabilities.ShowsCapabilities);
+    }
+
+    [Fact]
+    public void ItsChatsOfferTheSkillsTheProjectGets()
+    {
+        library.MakeDefault(Commit, isDefault: true);
+        workbench.NewChatCommand.Execute(null);
+
+        var chat = workbench.Desk!.Selected!;
+        chat.Mentions.Look("/", 1);
+
+        Assert.Equal(["commit"], chat.Mentions.Choices.Select(choice => choice.Path));
+    }
+
+    [Fact]
     public void TheCapabilitiesWindowShowsADefaultTickedAndFixed()
     {
         library.MakeDefault(Commit, isDefault: true);

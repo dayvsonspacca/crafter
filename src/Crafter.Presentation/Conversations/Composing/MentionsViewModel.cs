@@ -1,10 +1,13 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Crafter.Core.Library;
 using Crafter.Presentation.Folders;
 
 namespace Crafter.Presentation.Conversations.Composing;
 
-public sealed partial class MentionsViewModel(IProjectFiles files) : ObservableObject
+// The suggestions under the composer: the project's files after @ and the skills Crafter gives
+// the project after /. The agent's own commands are never offered.
+public sealed partial class MentionsViewModel(IProjectFiles files, Func<IReadOnlyList<Skill>>? skills = null) : ObservableObject
 {
     public const int Shown = 8;
 
@@ -15,6 +18,8 @@ public sealed partial class MentionsViewModel(IProjectFiles files) : ObservableO
     private int? start;
 
     private string query = string.Empty;
+
+    private char mark = '@';
 
     public ObservableCollection<MentionViewModel> Choices { get; } = [];
 
@@ -46,10 +51,11 @@ public sealed partial class MentionsViewModel(IProjectFiles files) : ObservableO
             return;
         }
 
-        var opening = start is null;
+        var opening = start is null || mark != found.Mark;
         start = found.Start;
         query = found.Query;
-        if (opening)
+        mark = found.Mark;
+        if (opening && mark == '@')
         {
             _ = Load();
         }
@@ -81,7 +87,7 @@ public sealed partial class MentionsViewModel(IProjectFiles files) : ObservableO
             end++;
         }
 
-        var written = "@" + mention.Path + (mention.IsFolder ? string.Empty : " ");
+        var written = (mention.IsSkill ? "/" : "@") + mention.Path + (mention.IsFolder ? string.Empty : " ");
         if (!mention.IsFolder)
         {
             Close();
@@ -122,7 +128,7 @@ public sealed partial class MentionsViewModel(IProjectFiles files) : ObservableO
     private void Restock()
     {
         Choices.Clear();
-        foreach (var choice in Ranked(known ?? [], query))
+        foreach (var choice in mark == '/' ? Offered(skills?.Invoke() ?? [], query) : Ranked(known ?? [], query))
         {
             Choices.Add(choice);
         }
@@ -140,6 +146,36 @@ public sealed partial class MentionsViewModel(IProjectFiles files) : ObservableO
             .ThenBy(each => each.Path, StringComparer.Ordinal)
             .Take(Shown)
             .Select(each => new MentionViewModel(each.Path, each.Found!.Value.Hits));
+
+    private static IEnumerable<MentionViewModel> Offered(IReadOnlyList<Skill> skills, string query) =>
+        skills
+            .Select(skill => (Skill: skill, Found: Found(skill, query)))
+            .Where(each => each.Found is not null)
+            .OrderBy(each => each.Found!.Value.Rank)
+            .ThenBy(each => each.Skill.Id, StringComparer.Ordinal)
+            .Take(Shown)
+            .Select(each => new MentionViewModel(each.Skill, each.Found!.Value.Hits));
+
+    private static (int Rank, IReadOnlyList<int> Hits)? Found(Skill skill, string query)
+    {
+        if (query.Length == 0)
+        {
+            return (0, []);
+        }
+
+        var at = skill.Id.IndexOf(query, StringComparison.OrdinalIgnoreCase);
+        if (at >= 0)
+        {
+            return (at == 0 ? 0 : 1, Span(at, query.Length));
+        }
+
+        if (skill.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            return (2, []);
+        }
+
+        return FuzzyMatch.Hits(skill.Id, query) is { } fuzzy ? (3, fuzzy) : null;
+    }
 
     private static (int Rank, IReadOnlyList<int> Hits)? Found(string path, string query)
     {
@@ -179,7 +215,8 @@ public sealed partial class MentionsViewModel(IProjectFiles files) : ObservableO
 
     private static IReadOnlyList<int> Span(int from, int length) => [.. Enumerable.Range(from, length)];
 
-    private static (int Start, string Query)? Token(string draft, int caret)
+    // A skill is one word with no slash in it, so typing a path like /home/… offers nothing.
+    private static (int Start, string Query, char Mark)? Token(string draft, int caret)
     {
         if (caret < 1 || caret > draft.Length)
         {
@@ -192,6 +229,13 @@ public sealed partial class MentionsViewModel(IProjectFiles files) : ObservableO
             from--;
         }
 
-        return from < caret && draft[from] == '@' ?(from, draft[(from + 1)..caret]) : null;
+        if (from >= caret || draft[from] is not ('@' or '/'))
+        {
+            return null;
+        }
+
+        var typed = draft[(from + 1)..caret];
+
+        return draft[from] == '/' && typed.Contains('/') ? null : (from, typed, draft[from]);
     }
 }
