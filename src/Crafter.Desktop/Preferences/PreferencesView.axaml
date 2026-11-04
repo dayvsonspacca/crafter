@@ -10,29 +10,23 @@
              Focusable="True"
              IsVisible="{Binding IsOpen}">
   <UserControl.Styles>
-    <Style Selector="TextBlock.kicker">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="10.5" />
-      <Setter Property="LetterSpacing" Value="1.2" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-    </Style>
     <Style Selector="TextBlock.heading">
-      <Setter Property="FontSize" Value="22" />
-      <Setter Property="FontWeight" Value="Medium" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeTitle1}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="TextBlock.title">
-      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="TextBlock.about">
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
       <Setter Property="LineHeight" Value="19.5" />
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
     <Style Selector="TextBlock.status">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
@@ -55,23 +49,24 @@
       <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
     </Style>
     <Style Selector="Border.setting">
-      <Setter Property="Padding" Value="0,18" />
+      <Setter Property="Padding" Value="0,16" />
       <Setter Property="BorderThickness" Value="0,0,0,1" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
     </Style>
     <Style Selector="TextBox.path">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
     </Style>
 
     <Style Selector="Button.group">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-      <Setter Property="Padding" Value="10,8" />
-      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="MinHeight" Value="{StaticResource Control}" />
+      <Setter Property="Padding" Value="{StaticResource PadControl}" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
     </Style>
     <Style Selector="Button.group:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.group:pressed /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
@@ -90,7 +85,7 @@
       <Setter Property="HorizontalContentAlignment" Value="Stretch" />
       <Setter Property="Margin" Value="0,0,12,12" />
       <Setter Property="Padding" Value="10" />
-      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusContainer}" />
       <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Button.theme /template/ ContentPresenter#PART_ContentPresenter">
@@ -109,10 +104,10 @@
 
     <Style Selector="ComboBox.choice">
       <Setter Property="MinWidth" Value="260" />
-      <Setter Property="Height" Value="34" />
+      <Setter Property="Height" Value="{StaticResource ControlLarge}" />
       <Setter Property="Padding" Value="12,0,10,0" />
-      <Setter Property="CornerRadius" Value="6" />
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
       <Setter Property="MaxDropDownHeight" Value="260" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
@@ -125,10 +120,10 @@
   </UserControl.Styles>
 
   <controls:Modal Title="Preferences" Dismissed="Leave">
-    <Grid ColumnDefinitions="220,*">
-      <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0" Padding="8,14">
+    <Grid ColumnDefinitions="200,*">
+      <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0" Padding="8,12">
         <StackPanel Spacing="2">
-          <TextBlock Classes="kicker" Margin="10,4,10,6" Text="APP" />
+          <TextBlock Classes="group" Margin="8,4,8,4" Text="App" />
           <ItemsControl ItemsSource="{Binding AppGroups}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="preferences:PreferenceGroupViewModel">
@@ -142,7 +137,7 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
 
-          <TextBlock Classes="kicker" Margin="10,18,10,6" Text="AGENTS" />
+          <TextBlock Classes="group" Margin="8,16,8,4" Text="Agents" />
           <ItemsControl ItemsSource="{Binding AgentGroups}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="preferences:AgentGroupViewModel">
@@ -165,7 +160,7 @@
       </Border>
 
       <ScrollViewer Grid.Column="1">
-        <ContentControl Margin="32,26,32,20" Content="{Binding Shown}">
+        <ContentControl Margin="32,24" Content="{Binding Shown}">
           <ContentControl.DataTemplates>
             <DataTemplate DataType="preferences:AppearanceGroupViewModel">
               <StackPanel>
@@ -221,7 +216,7 @@
                                 </DockPanel>
                               </Border>
                               <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" Text="{Binding Theme.Name}" />
+                                <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" VerticalAlignment="Center" Text="{Binding Theme.Name}" />
                                 <Border Grid.Column="1"
                                         Width="16"
                                         Height="16"
@@ -257,7 +252,7 @@
                       <TextBox Classes="path" Text="{Binding Root}" AutomationProperties.Name="Projects root" />
                       <Button Grid.Column="1" Classes="ghost" Content="Browse…" Command="{Binding BrowseCommand}" />
                     </Grid>
-                    <TextBlock FontSize="12"
+                    <TextBlock FontSize="{StaticResource FontSizeCallout}"
                                Foreground="{DynamicResource RemovedBrush}"
                                Text="This folder does not exist."
                                IsVisible="{Binding IsRootMissing}" />
@@ -294,8 +289,8 @@
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <SelectableTextBlock VerticalAlignment="Center"
                                          TextWrapping="Wrap"
-                                         FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                         FontSize="13"
+                                         FontFamily="{StaticResource MonoFont}"
+                                         FontSize="{StaticResource FontSizeBody}"
                                          Text="{Binding Remedy}" />
                     <Button Grid.Column="1" Classes="chip" Content="Copy" Command="{Binding CopyRemedyCommand}" />
                   </Grid>

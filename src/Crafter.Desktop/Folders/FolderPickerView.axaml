@@ -14,24 +14,18 @@
       <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
-    <Style Selector="TextBlock.heading">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="10.5" />
-      <Setter Property="LetterSpacing" Value="1.1" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-    </Style>
 
     <Style Selector="Border.field">
-      <Setter Property="Height" Value="36" />
+      <Setter Property="Height" Value="{StaticResource BarHeight}" />
       <Setter Property="Padding" Value="12,0" />
-      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
     </Style>
     <Style Selector="TextBox.filter">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="MinHeight" Value="0" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -87,7 +81,7 @@
                DoubleTapped="Chosen">
         <ListBox.DataTemplates>
           <DataTemplate DataType="folders:HeadingEntryViewModel">
-            <TextBlock Classes="heading" Margin="0,4,0,0" Text="{Binding Text}" />
+            <TextBlock Classes="group" Margin="0,8,0,0" Text="{Binding Text}" />
           </DataTemplate>
           <DataTemplate DataType="folders:FolderEntryViewModel">
             <Grid ColumnDefinitions="16,*,Auto" ColumnSpacing="10">
@@ -114,7 +108,7 @@
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="folders:NamePart">
-                      <TextBlock FontSize="13.5" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
+                      <TextBlock FontSize="{StaticResource FontSizeBody}" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -124,7 +118,7 @@
                       BorderThickness="1"
                       BorderBrush="{DynamicResource BorderBrush}"
                       IsVisible="{Binding HasTag}">
-                <TextBlock Classes="mono" FontSize="10.5" Foreground="{DynamicResource AccentSecondaryBrush}" Text="{Binding Tag}" />
+                <TextBlock Classes="mono" FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource AccentSecondaryBrush}" Text="{Binding Tag}" />
               </Border>
             </Grid>
           </DataTemplate>
@@ -147,7 +141,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="folders:NamePart">
-                    <TextBlock FontSize="13.5" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
+                    <TextBlock FontSize="{StaticResource FontSizeBody}" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
@@ -155,7 +149,7 @@
                       Classes="tag"
                       BorderThickness="1"
                       BorderBrush="{DynamicResource BorderBrush}">
-                <TextBlock Classes="mono dim" FontSize="10.5" Text="{Binding Format}" />
+                <TextBlock Classes="mono dim" FontSize="{StaticResource FontSizeFootnote}" Text="{Binding Format}" />
               </Border>
             </Grid>
           </DataTemplate>

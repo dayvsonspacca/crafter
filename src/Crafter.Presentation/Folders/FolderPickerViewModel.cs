@@ -207,7 +207,7 @@ public sealed partial class FolderPickerViewModel : ObservableObject, IFolderPic
 
         if (here.Count > 0)
         {
-            Entries.Add(new HeadingEntryViewModel("FOLDERS"));
+            Entries.Add(new HeadingEntryViewModel("Folders"));
             here.ForEach(Entries.Add);
         }
 
@@ -215,7 +215,7 @@ public sealed partial class FolderPickerViewModel : ObservableObject, IFolderPic
 
         if (pictures.Count > 0)
         {
-            Entries.Add(new HeadingEntryViewModel("IMAGES"));
+            Entries.Add(new HeadingEntryViewModel("Images"));
             pictures.ForEach(Entries.Add);
         }
 
@@ -226,7 +226,7 @@ public sealed partial class FolderPickerViewModel : ObservableObject, IFolderPic
 
         if (repositories.Count > 0)
         {
-            Entries.Add(new HeadingEntryViewModel("REPOSITORIES"));
+            Entries.Add(new HeadingEntryViewModel("Repositories"));
             repositories.ForEach(Entries.Add);
         }
 

@@ -7,14 +7,8 @@
              x:DataType="namer:ProjectNamerViewModel"
              IsVisible="{Binding IsOpen}">
   <UserControl.Styles>
-    <Style Selector="TextBlock.kicker">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="10.5" />
-      <Setter Property="LetterSpacing" Value="1.2" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-    </Style>
     <Style Selector="TextBlock.about">
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
   </UserControl.Styles>
@@ -28,7 +22,7 @@
 
       <StackPanel Spacing="18">
         <StackPanel Spacing="8" IsVisible="{Binding IsAdding}">
-          <TextBlock Classes="kicker" Text="FOLDER" />
+          <TextBlock Classes="group" Text="Folder" />
           <Border Padding="12,10"
                   CornerRadius="6"
                   BorderThickness="1"
@@ -41,15 +35,15 @@
                     VerticalAlignment="Center"
                     Stroke="{DynamicResource ForegroundMutedBrush}"
                     Data="M1.5,4.5 H5.5 L7,6 H14.5 V13 H1.5 Z" />
-              <TextBlock Grid.Column="1" FontSize="13.5" VerticalAlignment="Center" Text="{Binding Folder}" />
+              <TextBlock Grid.Column="1" FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center" Text="{Binding Folder}" />
               <Border Grid.Column="2"
                       Padding="7,1"
                       CornerRadius="99"
                       BorderThickness="1"
                       BorderBrush="{DynamicResource BorderBrush}"
                       IsVisible="{Binding IsRepository}">
-                <TextBlock FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                           FontSize="10.5"
+                <TextBlock FontFamily="{StaticResource MonoFont}"
+                           FontSize="{StaticResource FontSizeFootnote}"
                            Foreground="{DynamicResource AccentSecondaryBrush}"
                            Text="git" />
               </Border>
@@ -58,13 +52,13 @@
         </StackPanel>
 
         <StackPanel Spacing="8">
-          <TextBlock FontSize="14" FontWeight="SemiBold" Text="Name" />
+          <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Name" />
           <TextBlock Classes="about" Text="How crafter shows this project." />
-          <TextBox x:Name="NameBox" FontSize="14" Text="{Binding Name}" AutomationProperties.Name="Name" />
+          <TextBox x:Name="NameBox" FontSize="{StaticResource FontSizeContent}" Text="{Binding Name}" AutomationProperties.Name="Name" />
         </StackPanel>
 
         <StackPanel Spacing="8" IsVisible="{Binding !IsAdding}">
-          <TextBlock FontSize="14" FontWeight="SemiBold" Text="Project icon" />
+          <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Project icon" />
           <TextBlock Classes="about" Text="Any image. crafter keeps a copy in the project." />
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Border Width="44"
