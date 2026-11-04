@@ -30,6 +30,10 @@ public sealed partial class StatusBarViewModel : ObservableObject, IDisposable
 
     public bool HasBranch => Branch is not null;
 
+    // The project in front can manage Crafter through its agent.
+    [ObservableProperty]
+    public partial bool ManagesCrafter { get; set; }
+
     // The chat in front, whose background jobs the bar counts and opens.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasChat))]

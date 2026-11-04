@@ -33,6 +33,7 @@
     <ProjectReference Include="../Crafter.Agents.ClaudeCode/Crafter.Agents.ClaudeCode.csproj" />
     <ProjectReference Include="../Crafter.Highlight/Crafter.Highlight.csproj" />
     <ProjectReference Include="../Crafter.Markdown/Crafter.Markdown.csproj" />
+    <ProjectReference Include="../Crafter.Mcp/Crafter.Mcp.csproj" />
     <ProjectReference Include="../Crafter.Presentation/Crafter.Presentation.csproj" />
   </ItemGroup>
 </Project>

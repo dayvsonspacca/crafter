@@ -1,0 +1,141 @@
+using System.Text.Json.Nodes;
+using Crafter.Core.Agents;
+using Crafter.Core.Library;
+using Crafter.Core.Preferences;
+using Crafter.Core.Projects;
+using Crafter.Presentation.Abilities;
+using Crafter.Presentation.Agents;
+using Crafter.Presentation.Desks;
+using Crafter.Presentation.Folders;
+using Crafter.Presentation.Library;
+using Crafter.Presentation.Preferences;
+using Crafter.Presentation.Projects.Namer;
+using Crafter.Presentation.Status;
+using Crafter.Presentation.Tests.Fakes;
+using Crafter.Testing;
+using Microsoft.Extensions.Time.Testing;
+
+namespace Crafter.Presentation.Tests.Abilities;
+
+public sealed class CrafterAbilitiesTest : IDisposable
+{
+    private readonly string home = Directory.CreateTempSubdirectory("crafter-abilities-").FullName;
+
+    private readonly FakeTimeProvider time = new(new DateTimeOffset(2026, 11, 4, 12, 0, 0, TimeSpan.Zero));
+
+    private readonly LibraryInMemory store = new();
+
+    private readonly WorkbenchViewModel workbench;
+
+    private readonly LibraryViewModel library;
+
+    private readonly CrafterAbilities abilities;
+
+    private readonly Project crafter;
+
+    private readonly Project lorekeeper;
+
+    public CrafterAbilitiesTest()
+    {
+        var agent = new ScriptedAgent();
+        var crew = new Crew([agent]);
+        crew.Hire([agent.Id]);
+        var clipboard = new ClipboardInMemory();
+        var preferences = new PreferenceBook(new PreferencesInMemory(new UserPreferences(home) { Agents = [agent.Id], Library = "git@github.com:hero/crafter-library.git" }));
+        var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), time.GetLocalNow);
+        var picker = new FolderPickerViewModel(preferences, bookshelf);
+        var setup = new SetupViewModel(crew, preferences, clipboard);
+        library = new LibraryViewModel(preferences, store, time);
+        workbench = new WorkbenchViewModel(
+            bookshelf, preferences, picker, new ProjectNamerViewModel(picker), setup,
+            new PreferencesViewModel(preferences, picker, setup, new ThemesInMemory(), library),
+            new DeskFactory(new ChatsInMemory(), crew, preferences, clipboard, time), clipboard,
+            new StatusBarViewModel(new Branches(), time));
+        abilities = new CrafterAbilities(workbench, library, new Branches());
+
+        crafter = bookshelf.Add(Directory.CreateDirectory(Path.Combine(home, "crafter")).FullName, new ProjectName("Crafter"));
+        lorekeeper = bookshelf.Add(Directory.CreateDirectory(Path.Combine(home, "lorekeeper")).FullName, new ProjectName("Lorekeeper"));
+        workbench.Open(crafter);
+        workbench.NewChatCommand.Execute(null);
+        workbench.Allow(crafter, Capability.ManageCrafter, allowed: true);
+    }
+
+    [Fact]
+    public void ListsTheProjectsAndSaysWhichOneAsked()
+    {
+        var projects = JsonNode.Parse(abilities.ListProjects(crafter.Folder).Text)!.AsArray();
+
+        Assert.Equal(["Crafter", "Lorekeeper"], projects.Select(project => project!["name"]!.GetValue<string>()));
+        Assert.Equal("main", projects[0]!["branch"]!.GetValue<string>());
+        Assert.Equal(1, projects[0]!["openChats"]!.GetValue<int>());
+        Assert.True(projects[0]!["managesCrafter"]!.GetValue<bool>());
+        Assert.False(projects[1]!["managesCrafter"]!.GetValue<bool>());
+        Assert.True(projects[0]!["isYours"]!.GetValue<bool>());
+        Assert.False(projects[1]!["isYours"]!.GetValue<bool>());
+    }
+
+    [Fact]
+    public void RenamesAProjectWhereverItShows()
+    {
+        var told = abilities.RenameProject(lorekeeper.Folder, "Lorekeeper · desktop");
+
+        Assert.False(told.IsError);
+        Assert.Equal("Renamed Lorekeeper to Lorekeeper · desktop.", told.Text);
+        Assert.Contains(workbench.Shelf, item => item.Project.Name.Text == "Lorekeeper · desktop");
+    }
+
+    [Fact]
+    public void RefusesToRenameWhatItCannotFindOrToANameOfNothing()
+    {
+        Assert.True(abilities.RenameProject("/nowhere", "x").IsError);
+        Assert.True(abilities.RenameProject(crafter.Folder, " ").IsError);
+    }
+
+    [Fact]
+    public void ReadsASkillWithItsInstructions()
+    {
+        var folder = Directory.CreateDirectory(Path.Combine(home, "library", "skills", "pr-review")).FullName;
+        File.WriteAllText(Path.Combine(folder, "instructions.md"), "Read the diff.");
+        store.Contents = new LibraryContents([new Skill("pr-review", "PR review", "Reviews a pull request.", null, folder)], []);
+        library.SyncCommand.Execute(null);
+
+        var skill = JsonNode.Parse(abilities.ReadSkill("pr-review").Text)!;
+
+        Assert.Equal("Read the diff.", skill["instructions"]!.GetValue<string>());
+        Assert.True(abilities.ReadSkill("missing").IsError);
+    }
+
+    [Fact]
+    public async Task SavesASkillThroughTheLibraryAndSaysWhyItCouldNot()
+    {
+        var draft = new SkillDraft("pr-review", "PR review", "Reviews a pull request.", null, "Read the diff.");
+
+        Assert.Equal("Saved pr-review to the library and pushed it (a1b2c3d).", (await abilities.SaveSkill(draft)).Text);
+        Assert.Equal([draft], store.Saved);
+
+        store.Outcome = new SyncFailed("rejected: fetch first");
+        var failed = await abilities.SaveSkill(draft);
+        Assert.True(failed.IsError);
+        Assert.Equal("Could not save pr-review: rejected: fetch first", failed.Text);
+    }
+
+    [Fact]
+    public void ShowsTheProjectThatManagesCrafterInTheStatusBar()
+    {
+        Assert.True(workbench.Status.ManagesCrafter);
+
+        workbench.Open(lorekeeper);
+        Assert.False(workbench.Status.ManagesCrafter);
+
+        workbench.Open(crafter);
+        workbench.Allow(crafter, Capability.ManageCrafter, allowed: false);
+        Assert.False(workbench.Status.ManagesCrafter);
+    }
+
+    public void Dispose() => Directory.Delete(home, recursive: true);
+
+    private sealed class Branches : IBranches
+    {
+        public string? Of(Project project) => "main";
+    }
+}

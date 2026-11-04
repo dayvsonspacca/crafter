@@ -5,7 +5,9 @@ using Crafter.Core.Projects;
 using Crafter.Desktop.Platform;
 using Crafter.Desktop.Themes;
 using Crafter.Desktop.WindowManagers;
+using Crafter.Desktop.Mcp;
 using Crafter.Presentation;
+using Crafter.Presentation.Abilities;
 using Crafter.Presentation.Agents;
 using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
@@ -31,11 +33,16 @@ public static class Composition
     {
         var time = TimeProvider.System;
         var clipboard = new AvaloniaClipboard();
-        var crew = Crew();
+
+        // Sessions ask for their tool servers when they start, after the server below is up.
+        CrafterMcp? mcp = null;
+        var crew = new Crew([new ClaudeCode(servers: project => mcp?.ServersFor(project) ?? [])]);
         var preferences = new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), UserPreferences.Default(Home)));
         var bookshelf = new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), time.GetLocalNow);
         var picker = new FolderPickerViewModel(preferences, bookshelf);
         var setup = new SetupViewModel(crew, preferences, clipboard);
+        var branches = new GitBranches();
+        var library = new LibraryViewModel(preferences, new GitLibrary(Path.Combine(Data, "library")), time);
 
         var viewModel = new WorkbenchViewModel(
             bookshelf,
@@ -43,13 +50,14 @@ public static class Composition
             picker,
             new ProjectNamerViewModel(picker),
             setup,
-            new PreferencesViewModel(preferences, picker, setup, new AvaloniaThemeSwitcher(), new LibraryViewModel(preferences, new GitLibrary(Path.Combine(Data, "library")), time)),
+            new PreferencesViewModel(preferences, picker, setup, new AvaloniaThemeSwitcher(), library),
             new DeskFactory(new JsonChatStore(Path.Combine(Data, "chats")), crew, preferences, clipboard, time),
             clipboard,
-            new StatusBarViewModel(new GitBranches(), time));
+            new StatusBarViewModel(branches, time));
+
+        mcp = new CrafterMcp(viewModel, new CrafterAbilities(viewModel, library, branches));
+        mcp.Start();
 
         return new WorkbenchWindow(WindowManager.Detect(), viewModel);
     }
-
-    private static Crew Crew() => new([new ClaudeCode()]);
 }

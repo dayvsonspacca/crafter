@@ -107,6 +107,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         {
             field = value;
             Status.Watch(value);
+            Status.ManagesCrafter = value is not null && bookshelf.Can(value, Capability.ManageCrafter);
             OnPropertyChanged();
             OnPropertyChanged(nameof(Heading));
         }
@@ -202,12 +203,32 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public async Task Edit(Project project)
     {
-        if (await Namer.Edit(project) is not Named named)
+        if (await Namer.Edit(project, bookshelf.Can(project, Capability.ManageCrafter)) is not Named named)
         {
             return;
         }
 
-        var edited = bookshelf.Edit(project, named.Name, named.Icon);
+        Allow(project, Capability.ManageCrafter, Namer.ManagesCrafter);
+        Apply(project, named.Name, named.Icon);
+    }
+
+    public IReadOnlyList<Project> Projects => bookshelf.Projects;
+
+    public Project Rename(Project project, ProjectName name) => Apply(project, name, new SameIcon());
+
+    public bool Can(Project project, Capability capability) => bookshelf.Can(project, capability);
+
+    public void Allow(Project project, Capability capability, bool allowed)
+    {
+        bookshelf.Allow(project, capability, allowed);
+        Status.ManagesCrafter = Current is { } current && bookshelf.Can(current, Capability.ManageCrafter);
+    }
+
+    public int OpenChats(Project project) => desks.GetValueOrDefault(project)?.Count ?? 0;
+
+    private Project Apply(Project project, ProjectName name, IconChange icon)
+    {
+        var edited = bookshelf.Edit(project, name, icon);
         if (desks.TryGetValue(edited, out var desk))
         {
             desk.Describe(edited);
@@ -219,6 +240,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         }
 
         Restock();
+
+        return edited;
     }
 
     [RelayCommand]

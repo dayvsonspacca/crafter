@@ -18,6 +18,9 @@ public sealed class TestApp : Application
     // Runs a test body on the UI thread of one shared headless app.
     public static void Run(Action test) => Session.Value.Dispatch(test, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
+    // For tests that await work the UI thread must serve meanwhile, like a server calling back into it.
+    public static Task RunAsync(Func<Task> test) => Session.Value.Dispatch(test, TestContext.Current.CancellationToken);
+
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<TestApp>()
         .UseSkia()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })

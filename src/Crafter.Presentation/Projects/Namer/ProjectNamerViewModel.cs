@@ -41,6 +41,10 @@ public sealed partial class ProjectNamerViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsRepository { get; set; }
 
+    // The project's agent may see your projects, rename them and write to the skills library.
+    [ObservableProperty]
+    public partial bool ManagesCrafter { get; set; }
+
     [ObservableProperty]
     public partial string Confirm { get; set; }
 
@@ -69,9 +73,10 @@ public sealed partial class ProjectNamerViewModel : ObservableObject
         return Ask("Add Project", adding: true, suggested, "Add", "Back");
     }
 
-    public Task<Naming> Edit(Project project)
+    public Task<Naming> Edit(Project project, bool managesCrafter = false)
     {
         home = project.Folder;
+        ManagesCrafter = managesCrafter;
         Show(new SameIcon(), ProjectIcon.FileOf(project));
 
         return Ask("Edit Project", adding: false, project.Name, "Save", "Cancel");

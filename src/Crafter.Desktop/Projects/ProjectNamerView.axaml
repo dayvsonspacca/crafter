@@ -84,6 +84,16 @@
             <Button Classes="ghost" VerticalAlignment="Center" Content="Remove" Command="{Binding RemoveIconCommand}" IsVisible="{Binding HasPreview}" />
           </StackPanel>
         </StackPanel>
+
+        <StackPanel Spacing="8" IsVisible="{Binding !IsAdding}">
+          <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Capabilities" />
+          <CheckBox IsChecked="{Binding ManagesCrafter}" AutomationProperties.Name="Manages Crafter">
+            <StackPanel Spacing="2">
+              <TextBlock FontSize="{StaticResource FontSizeBody}" Text="Manages Crafter" />
+              <TextBlock Classes="about" Text="This project's agent can see your projects, rename them, and read and write the skills library. Changes ask first." />
+            </StackPanel>
+          </CheckBox>
+        </StackPanel>
       </StackPanel>
     </DockPanel>
   </controls:Modal>

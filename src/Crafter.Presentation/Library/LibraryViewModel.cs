@@ -133,6 +133,25 @@ public sealed partial class LibraryViewModel : ObservableObject, IDisposable
 
     private bool CanSync() => !IsSyncing;
 
+    // Writes a skill to the repository, commits and pushes it, then shows the library as it is now.
+    public async Task<SyncOutcome> Save(SkillDraft skill)
+    {
+        if (Repository is not { } repository)
+        {
+            return new SyncFailed("no library repository is linked; link one in Preferences → Library");
+        }
+
+        var outcome = await library.Save(skill, repository);
+        if (outcome is Synced synced)
+        {
+            HasFailed = false;
+            Status = $"Synced at {time.GetLocalNow():HH:mm} · {synced.Commit}";
+            Show(library.Read());
+        }
+
+        return outcome;
+    }
+
     private void Show(LibraryContents contents)
     {
         Skills = contents.Skills;
