@@ -1,4 +1,4 @@
-using Crafter.Core.Agents;
+using Crafter.Core.Agents.Options;
 
 namespace Crafter.Presentation.Conversations;
 

@@ -1,4 +1,4 @@
-namespace Crafter.Core.Agents;
+namespace Crafter.Core.Agents.Options;
 
 public sealed class Configuration : IEquatable<Configuration>
 {

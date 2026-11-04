@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Crafter.Core.Agents;
+using Crafter.Core.Agents.Options;
 
 namespace Crafter.Presentation.Agents;
 

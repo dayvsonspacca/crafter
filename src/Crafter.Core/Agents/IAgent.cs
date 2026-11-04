@@ -1,3 +1,4 @@
+using Crafter.Core.Agents.Options;
 using Crafter.Core.Projects;
 
 namespace Crafter.Core.Agents;

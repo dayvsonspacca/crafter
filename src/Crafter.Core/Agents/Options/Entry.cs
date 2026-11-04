@@ -1,4 +1,4 @@
-namespace Crafter.Core.Agents;
+namespace Crafter.Core.Agents.Options;
 
 public sealed record Entry(string Key, string Title, string About, string Fallback) : Setting(Key, Title, About)
 {

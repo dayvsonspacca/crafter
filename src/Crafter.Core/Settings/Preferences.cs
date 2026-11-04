@@ -1,4 +1,5 @@
 using Crafter.Core.Agents;
+using Crafter.Core.Agents.Options;
 
 namespace Crafter.Core.Settings;
 

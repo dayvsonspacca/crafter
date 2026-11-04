@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Crafter.Core.Agents;
+using Crafter.Core.Agents.Options;
 using Crafter.Core.Settings;
 
 namespace Crafter.Storage;

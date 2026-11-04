@@ -1,4 +1,5 @@
 using Crafter.Core.Agents;
+using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Settings;

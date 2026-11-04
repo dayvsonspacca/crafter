@@ -1,4 +1,5 @@
 using Crafter.Core.Agents;
+using Crafter.Core.Agents.Options;
 using Crafter.Core.Settings;
 using Crafter.Storage;
 

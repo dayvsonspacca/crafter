@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using Crafter.Core.Agents;
+using Crafter.Core.Agents.Options;
 
 namespace Crafter.Presentation.Agents;
 

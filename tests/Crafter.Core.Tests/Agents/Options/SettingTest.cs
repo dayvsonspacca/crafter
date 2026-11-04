@@ -1,6 +1,6 @@
-using Crafter.Core.Agents;
+using Crafter.Core.Agents.Options;
 
-namespace Crafter.Core.Tests.Agents;
+namespace Crafter.Core.Tests.Agents.Options;
 
 public sealed class SettingTest
 {
