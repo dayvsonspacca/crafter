@@ -9,6 +9,7 @@ using Crafter.Presentation;
 using Crafter.Presentation.Agents;
 using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
+using Crafter.Presentation.Library;
 using Crafter.Presentation.Preferences;
 using Crafter.Presentation.Projects.Namer;
 using Crafter.Presentation.Status;
@@ -42,7 +43,7 @@ public static class Composition
             picker,
             new ProjectNamerViewModel(picker),
             setup,
-            new PreferencesViewModel(preferences, picker, setup, new AvaloniaThemeSwitcher()),
+            new PreferencesViewModel(preferences, picker, setup, new AvaloniaThemeSwitcher(), new LibraryViewModel(preferences, new GitLibrary(Path.Combine(Data, "library")), time)),
             new DeskFactory(new JsonChatStore(Path.Combine(Data, "chats")), crew, preferences, clipboard, time),
             clipboard,
             new StatusBarViewModel(new GitBranches(), time));

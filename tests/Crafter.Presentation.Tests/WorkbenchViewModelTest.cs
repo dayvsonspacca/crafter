@@ -4,6 +4,7 @@ using Crafter.Core.Projects;
 using Crafter.Presentation.Agents;
 using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
+using Crafter.Presentation.Library;
 using Crafter.Presentation.Preferences;
 using Crafter.Presentation.Projects.Namer;
 using Crafter.Presentation.Status;
@@ -93,7 +94,7 @@ public sealed class WorkbenchViewModelTest : IDisposable
             picker,
             new ProjectNamerViewModel(picker),
             setup,
-            new PreferencesViewModel(preferences, picker, setup, new ThemesInMemory()),
+            new PreferencesViewModel(preferences, picker, setup, new ThemesInMemory(), new LibraryViewModel(preferences, new LibraryInMemory(), time)),
             new DeskFactory(new ChatsInMemory(), crew, preferences, clipboard, time),
             clipboard,
             new StatusBarViewModel(new NoBranches(), time));

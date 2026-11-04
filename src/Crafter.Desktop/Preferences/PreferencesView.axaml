@@ -6,6 +6,8 @@
              xmlns:options="using:Crafter.Presentation.Agents.Options"
              xmlns:controls="using:Crafter.Desktop.Controls"
              xmlns:keyboard="using:Crafter.Presentation.Keyboard"
+             xmlns:library="using:Crafter.Presentation.Library"
+             xmlns:core="using:Crafter.Core.Library"
              x:Class="Crafter.Desktop.Preferences.PreferencesView"
              x:DataType="preferences:PreferencesViewModel"
              Focusable="True"
@@ -51,6 +53,11 @@
     </Style>
     <Style Selector="Border.setting">
       <Setter Property="Padding" Value="0,16" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Border.entry">
+      <Setter Property="Padding" Value="0,10" />
       <Setter Property="BorderThickness" Value="0,0,0,1" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
     </Style>
@@ -275,6 +282,78 @@
                                Foreground="{DynamicResource RemovedBrush}"
                                Text="This folder does not exist."
                                IsVisible="{Binding IsRootMissing}" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate DataType="preferences:LibraryGroupViewModel">
+              <StackPanel DataContext="{Binding Library}" x:DataType="library:LibraryViewModel">
+                <TextBlock Classes="heading" Text="Library" />
+                <Border Classes="setting" BorderThickness="0">
+                  <StackPanel Spacing="8">
+                    <TextBlock Classes="title" Text="Repository" />
+                    <TextBlock Classes="about" Text="One git repository keeps your skills and agents. Crafter clones it with your git access and keeps it in sync on its own; it never writes to it." />
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                      <TextBox Classes="path"
+                               Text="{Binding Draft}"
+                               PlaceholderText="git@github.com:you/crafter-library.git"
+                               AutomationProperties.Name="Library repository" />
+                      <Button Grid.Column="1" Classes="ghost" Content="Link" Command="{Binding LinkCommand}" />
+                      <Button Grid.Column="2" Classes="ghost" Content="Sync" Command="{Binding SyncCommand}" IsVisible="{Binding IsLinked}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                      <Ellipse Classes="dot"
+                               Classes.ready="{Binding !HasFailed}"
+                               Classes.attention="{Binding HasFailed}"
+                               IsVisible="{Binding IsLinked}" />
+                      <TextBlock Grid.Column="1" Classes="status" TextWrapping="Wrap" Text="{Binding Status}" />
+                    </Grid>
+                  </StackPanel>
+                </Border>
+
+                <Border Classes="setting" BorderThickness="0" IsVisible="{Binding IsLinked}">
+                  <StackPanel Spacing="8">
+                    <TextBlock Classes="title" Text="Skills" />
+                    <TextBlock Classes="about" Text="Every folder under skills/ with a skill.json (name, description, when to use) and an instructions.md." />
+                    <TextBlock Classes="about"
+                               Text="No skills in the repository yet."
+                               IsVisible="{Binding ShowsEmpty}" />
+                    <ItemsControl ItemsSource="{Binding Skills}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="core:Skill">
+                          <Border Classes="entry">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                              <StackPanel Spacing="2">
+                                <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Name}" />
+                                <TextBlock Classes="about" Text="{Binding Description}" />
+                              </StackPanel>
+                              <TextBlock Grid.Column="1" Classes="status" VerticalAlignment="Top" Text="{Binding Id}" />
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Spacing="4" Margin="0,8,0,0" IsVisible="{Binding HasProblems}">
+                      <TextBlock Classes="title" Text="Could not read" />
+                      <ItemsControl ItemsSource="{Binding Problems}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="core:LibraryProblem">
+                            <Border Classes="entry">
+                              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <TextBlock Classes="status" Text="{Binding Place}" />
+                                <TextBlock Grid.Column="1"
+                                           FontSize="{StaticResource FontSizeCallout}"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource RemovedBrush}"
+                                           Text="{Binding Reason}" />
+                              </Grid>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
                   </StackPanel>
                 </Border>
               </StackPanel>

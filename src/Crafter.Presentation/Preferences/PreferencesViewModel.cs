@@ -3,15 +3,22 @@ using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Preferences;
 using Crafter.Presentation.Agents;
 using Crafter.Presentation.Folders;
+using Crafter.Presentation.Library;
 using Crafter.Presentation.Themes;
 
 namespace Crafter.Presentation.Preferences;
 
 public sealed partial class PreferencesViewModel : ObservableObject
 {
-    public PreferencesViewModel(PreferenceBook preferences, IFolderPicker folders, SetupViewModel setup, IThemeSwitcher themes)
+    public PreferencesViewModel(PreferenceBook preferences, IFolderPicker folders, SetupViewModel setup, IThemeSwitcher themes, LibraryViewModel library)
     {
-        AppGroups = [new AppearanceGroupViewModel(preferences, themes), new ProjectsGroupViewModel(preferences, folders), new ShortcutsGroupViewModel()];
+        AppGroups =
+        [
+            new AppearanceGroupViewModel(preferences, themes),
+            new ProjectsGroupViewModel(preferences, folders),
+            new LibraryGroupViewModel(library),
+            new ShortcutsGroupViewModel(),
+        ];
         AgentGroups = [.. setup.Panels.Select(panel => new AgentGroupViewModel(panel))];
         Show(AppGroups[0]);
     }
