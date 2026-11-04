@@ -3,6 +3,7 @@
   "icon": ".crafter/icon.png",
   "axioms": [
     "Never name a specific agent like Claude Code in Crafter's interface text; Crafter speaks of agents in general.",
-    "Commit straight on main; never open a feature branch."
+    "Commit straight on main; never open a feature branch.",
+    "Keep the project summary true for anyone who clones it: nothing about one machine or one chat."
   ]
 }
