@@ -62,5 +62,19 @@ public sealed class JsonPreferencesStoreTest : IDisposable
         Assert.Equal(new UserPreferences("/home/hero/Projetos"), new JsonPreferencesStore(File, Defaults).Load());
     }
 
+    [Theory]
+    [InlineData("not json")]
+    [InlineData("""{"projectsRoot":""}""")]
+    public void KeepsAnUnreadableFileAside(string content)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(File)!);
+        System.IO.File.WriteAllText(File, content);
+        var store = new JsonPreferencesStore(File, Defaults);
+
+        store.Save(store.Load());
+
+        Assert.Equal(content, System.IO.File.ReadAllText(Aside.Of(File)));
+    }
+
     public void Dispose() => Directory.Delete(folder, recursive: true);
 }

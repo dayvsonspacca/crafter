@@ -99,5 +99,21 @@ public sealed class JsonChatArchiveTest : IDisposable
         Assert.Empty(archive.Load(Crafter));
     }
 
+    [Theory]
+    [InlineData("not json")]
+    [InlineData("""[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","agent":"claude-code","title":" ","sessionId":null,"turns":[]}]""")]
+    public void KeepsAnUnreadableFileAside(string content)
+    {
+        var archive = new JsonChatArchive(folder);
+        archive.Save(Crafter, []);
+        var file = Directory.GetFiles(folder).Single();
+        File.WriteAllText(file, content);
+
+        archive.Load(Crafter);
+        archive.Save(Crafter, []);
+
+        Assert.Equal(content, File.ReadAllText(Aside.Of(file)));
+    }
+
     public void Dispose() => Directory.Delete(folder, recursive: true);
 }

@@ -110,6 +110,21 @@ public sealed class JsonProjectSettingsStoreTest : IDisposable
         Assert.Null(new JsonProjectSettingsStore().Load(folder));
     }
 
+    [Theory]
+    [InlineData("not json")]
+    [InlineData("""{"name":" "}""")]
+    public void KeepsAnUnreadableFileAside(string content)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(File)!);
+        System.IO.File.WriteAllText(File, content);
+        var store = new JsonProjectSettingsStore();
+
+        store.Load(folder);
+        store.Save(folder, new ProjectSettings(new ProjectName("crafter")));
+
+        Assert.Equal(content, System.IO.File.ReadAllText(Aside.Of(File)));
+    }
+
     public void Dispose() => Directory.Delete(folder, recursive: true);
 
     private string Image(string name)

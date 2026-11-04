@@ -21,16 +21,16 @@ public sealed class JsonBookshelfStore(string file) : IBookshelfStore
         }
         catch (Exception unreadable) when (unreadable is JsonException or ArgumentException)
         {
+            JsonFile.SetAside(file);
+
             return [];
         }
     }
 
     public void Save(IReadOnlyList<Shelved> shelf)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(file))!);
-
         List<ShelfEntry> entries = [.. shelf.Select(shelved => new ShelfEntry(shelved.Project.Folder, shelved.LastOpened))];
-        File.WriteAllText(file, JsonSerializer.Serialize(entries, BookshelfJson.Default.ListShelfEntry));
+        JsonFile.Write(file, JsonSerializer.Serialize(entries, BookshelfJson.Default.ListShelfEntry));
     }
 }
 

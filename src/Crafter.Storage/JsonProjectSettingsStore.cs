@@ -31,7 +31,13 @@ public sealed class JsonProjectSettingsStore : IProjectSettingsStore
                 ? new ProjectSettings(new ProjectName(entry.Name), entry.Icon)
                 : null;
         }
-        catch (Exception unreadable) when (unreadable is JsonException or ArgumentException or IOException or UnauthorizedAccessException)
+        catch (Exception unreadable) when (unreadable is JsonException or ArgumentException)
+        {
+            JsonFile.SetAside(file);
+
+            return null;
+        }
+        catch (Exception unreachable) when (unreachable is IOException or UnauthorizedAccessException)
         {
             return null;
         }
@@ -39,9 +45,7 @@ public sealed class JsonProjectSettingsStore : IProjectSettingsStore
 
     public void Save(string folder, ProjectSettings settings)
     {
-        var file = FileIn(folder);
-        Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-        File.WriteAllText(file, JsonSerializer.Serialize(new SettingsEntry(settings.Name.Text, settings.Icon), Shape));
+        JsonFile.Write(FileIn(folder), JsonSerializer.Serialize(new SettingsEntry(settings.Name.Text, settings.Icon), Shape));
     }
 
     public string AdoptIcon(string folder, string image)

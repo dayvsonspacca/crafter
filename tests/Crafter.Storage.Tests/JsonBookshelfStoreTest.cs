@@ -49,5 +49,31 @@ public sealed class JsonBookshelfStoreTest : IDisposable
         Assert.Empty(new JsonBookshelfStore(File).Load());
     }
 
+    [Theory]
+    [InlineData("not json")]
+    [InlineData("""[{"folder":"","lastOpened":"2026-11-03T09:00:00+00:00"}]""")]
+    public void KeepsAnUnreadableFileAside(string content)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(File)!);
+        System.IO.File.WriteAllText(File, content);
+        var store = new JsonBookshelfStore(File);
+
+        store.Load();
+        store.Save([]);
+
+        Assert.Equal(content, System.IO.File.ReadAllText(Aside.Of(File)));
+    }
+
+    [Fact]
+    public void LeavesOnlyTheFileBehindWhenSaving()
+    {
+        var store = new JsonBookshelfStore(File);
+
+        store.Save([]);
+        store.Save([]);
+
+        Assert.Equal([File], Directory.GetFiles(Path.GetDirectoryName(File)!));
+    }
+
     public void Dispose() => Directory.Delete(folder, recursive: true);
 }

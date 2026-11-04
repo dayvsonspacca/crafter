@@ -21,14 +21,15 @@ public sealed class JsonPreferencesStore(string file, UserPreferences defaults) 
         }
         catch (Exception unreadable) when (unreadable is JsonException or ArgumentException)
         {
+            JsonFile.SetAside(file);
+
             return defaults;
         }
     }
 
     public void Save(UserPreferences preferences)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(file))!);
-        File.WriteAllText(file, JsonSerializer.Serialize(preferences, PreferencesJson.Default.UserPreferences));
+        JsonFile.Write(file, JsonSerializer.Serialize(preferences, PreferencesJson.Default.UserPreferences));
     }
 }
 

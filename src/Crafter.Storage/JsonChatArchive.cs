@@ -28,16 +28,16 @@ public sealed class JsonChatArchive(string folder) : IChatArchive
         }
         catch (Exception unreadable) when (unreadable is JsonException or ArgumentException)
         {
+            JsonFile.SetAside(file);
+
             return [];
         }
     }
 
     public void Save(Project project, IReadOnlyList<ChatRecord> chats)
     {
-        Directory.CreateDirectory(folder);
-
         List<ChatEntry> entries = [.. chats.Select(Entry)];
-        File.WriteAllText(FileOf(project), JsonSerializer.Serialize(entries, ChatJson.Default.ListChatEntry));
+        JsonFile.Write(FileOf(project), JsonSerializer.Serialize(entries, ChatJson.Default.ListChatEntry));
     }
 
     private string FileOf(Project project)
