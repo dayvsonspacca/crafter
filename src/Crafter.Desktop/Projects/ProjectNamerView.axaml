@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:Crafter.Desktop"
              xmlns:projectsViews="using:Crafter.Desktop.Projects"
              xmlns:namer="using:Crafter.Presentation.Projects.Namer"
+             xmlns:controls="using:Crafter.Desktop.Controls"
              x:Class="Crafter.Desktop.Projects.ProjectNamerView"
              x:DataType="namer:ProjectNamer"
              IsVisible="{Binding IsOpen}">
@@ -46,7 +46,7 @@
     </Style>
   </UserControl.Styles>
 
-  <local:Modal Title="{Binding Title}" IsCompact="{Binding !IsAdding}" Dismissed="Dismiss">
+  <controls:Modal Title="{Binding Title}" IsCompact="{Binding !IsAdding}" Dismissed="Dismiss">
     <DockPanel Margin="20,22,20,20">
       <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,24,0,0">
         <Button Classes="ghost" Content="{Binding Retreat}" Command="{Binding BackCommand}" />
@@ -119,5 +119,5 @@
         </StackPanel>
       </StackPanel>
     </DockPanel>
-  </local:Modal>
+  </controls:Modal>
 </UserControl>

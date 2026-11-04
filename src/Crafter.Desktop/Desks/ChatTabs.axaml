@@ -3,7 +3,7 @@
              xmlns:conversations="using:Crafter.Presentation.Conversations"
              xmlns:projects="using:Crafter.Desktop.Projects"
              xmlns:desks="using:Crafter.Presentation.Desks"
-             x:Class="Crafter.Desktop.Conversations.ChatTabs"
+             x:Class="Crafter.Desktop.Desks.ChatTabs"
              x:DataType="desks:ProjectDesk"
              Height="35">
   <UserControl.Styles>

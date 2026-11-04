@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:Crafter.Desktop"
              xmlns:folders="using:Crafter.Presentation.Folders"
              xmlns:folderViews="using:Crafter.Desktop.Folders"
+             xmlns:controls="using:Crafter.Desktop.Controls"
              x:Class="Crafter.Desktop.Folders.FolderPickerView"
              x:DataType="folders:FolderPicker"
              IsVisible="{Binding IsOpen}">
@@ -69,7 +69,7 @@
     </Style>
   </UserControl.Styles>
 
-  <local:Modal Title="{Binding Title}" Dismissed="Dismiss">
+  <controls:Modal Title="{Binding Title}" Dismissed="Dismiss">
     <DockPanel Margin="16,14,16,12">
       <Border Classes="field" DockPanel.Dock="Top" Margin="0,0,0,4">
         <Grid ColumnDefinitions="Auto,*">
@@ -163,5 +163,5 @@
         </ListBox.DataTemplates>
       </ListBox>
     </DockPanel>
-  </local:Modal>
+  </controls:Modal>
 </UserControl>

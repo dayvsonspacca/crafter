@@ -4,7 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-namespace Crafter.Desktop;
+namespace Crafter.Desktop.Controls;
 
 public sealed class Modal : ContentControl
 {

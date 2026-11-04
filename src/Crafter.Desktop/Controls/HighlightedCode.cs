@@ -4,7 +4,7 @@ using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Crafter.Highlight;
 
-namespace Crafter.Desktop.Conversations;
+namespace Crafter.Desktop.Controls;
 
 public sealed class HighlightedCode : SelectableTextBlock
 {

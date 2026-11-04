@@ -6,7 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Crafter.Presentation.Agents;
 
-namespace Crafter.Desktop.Setup;
+namespace Crafter.Desktop.Agents;
 
 public sealed partial class SetupView : UserControl
 {

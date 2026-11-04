@@ -1,11 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:Crafter.Desktop"
              xmlns:themes="using:Crafter.Desktop.Themes"
              xmlns:agents="using:Crafter.Presentation.Agents"
              xmlns:preferences="using:Crafter.Presentation.Preferences"
              xmlns:options="using:Crafter.Presentation.Agents.Options"
-             x:Class="Crafter.Desktop.Settings.PreferencesView"
+             xmlns:controls="using:Crafter.Desktop.Controls"
+             x:Class="Crafter.Desktop.Preferences.PreferencesView"
              x:DataType="preferences:PreferencesScreen"
              Focusable="True"
              IsVisible="{Binding IsOpen}">
@@ -144,7 +144,7 @@
     </Style>
   </UserControl.Styles>
 
-  <local:Modal Title="Preferences" Dismissed="Leave">
+  <controls:Modal Title="Preferences" Dismissed="Leave">
     <Grid ColumnDefinitions="220,*">
       <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0" Padding="8,14">
         <StackPanel Spacing="2">
@@ -379,5 +379,5 @@
         </ContentControl>
       </ScrollViewer>
     </Grid>
-  </local:Modal>
+  </controls:Modal>
 </UserControl>

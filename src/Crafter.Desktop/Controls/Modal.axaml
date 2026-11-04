@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="using:Crafter.Desktop">
-  <ControlTheme x:Key="{x:Type local:Modal}" TargetType="local:Modal">
+                    xmlns:controls="using:Crafter.Desktop.Controls">
+  <ControlTheme x:Key="{x:Type controls:Modal}" TargetType="controls:Modal">
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>

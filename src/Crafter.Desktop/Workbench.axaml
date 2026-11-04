@@ -1,12 +1,13 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:presentation="using:Crafter.Presentation"
-        xmlns:desktop="using:Crafter.Desktop"
         xmlns:conversations="using:Crafter.Desktop.Conversations"
         xmlns:projects="using:Crafter.Desktop.Projects"
         xmlns:folders="using:Crafter.Desktop.Folders"
-        xmlns:settings="using:Crafter.Desktop.Settings"
-        xmlns:setup="using:Crafter.Desktop.Setup"
+        xmlns:controls="using:Crafter.Desktop.Controls"
+        xmlns:desks="using:Crafter.Desktop.Desks"
+        xmlns:preferences="using:Crafter.Desktop.Preferences"
+        xmlns:agents="using:Crafter.Desktop.Agents"
         x:Class="Crafter.Desktop.Workbench"
         x:DataType="presentation:WorkbenchScreen"
         Title="crafter"
@@ -16,19 +17,19 @@
         Background="{DynamicResource BackgroundBrush}"
         Foreground="{DynamicResource ForegroundBrush}">
   <DockPanel>
-    <desktop:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
+    <controls:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
     <Panel>
       <DockPanel IsVisible="{Binding !ShowsSetup}">
         <projects:ProjectsSidebar DockPanel.Dock="Left" IsVisible="{Binding IsSidebarVisible}" />
         <Panel>
           <DockPanel IsVisible="{Binding ShowsConversation}">
-            <conversations:ChatTabs DockPanel.Dock="Top" DataContext="{Binding Desk}" />
+            <desks:ChatTabs DockPanel.Dock="Top" DataContext="{Binding Desk}" />
             <Panel>
               <Panel IsVisible="{Binding !Desk.ShowsOverview}">
                 <conversations:ConversationView DataContext="{Binding Desk.Selected}" />
               </Panel>
               <Panel IsVisible="{Binding Desk.ShowsOverview}">
-                <conversations:ProjectOverviewView DataContext="{Binding Desk.Overview}" />
+                <desks:ProjectOverviewView DataContext="{Binding Desk.Overview}" />
               </Panel>
             </Panel>
           </DockPanel>
@@ -41,10 +42,10 @@
         </Panel>
       </DockPanel>
 
-      <settings:PreferencesView DataContext="{Binding Preferences}" />
+      <preferences:PreferencesView DataContext="{Binding Preferences}" />
       <projects:ProjectNamerView DataContext="{Binding Namer}" />
       <folders:FolderPickerView DataContext="{Binding Picker}" />
-      <setup:SetupView DataContext="{Binding Setup}" />
+      <agents:SetupView DataContext="{Binding Setup}" />
     </Panel>
   </DockPanel>
 </Window>

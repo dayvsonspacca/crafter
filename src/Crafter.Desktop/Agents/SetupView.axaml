@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:agents="using:Crafter.Presentation.Agents"
-             x:Class="Crafter.Desktop.Setup.SetupView"
+             x:Class="Crafter.Desktop.Agents.SetupView"
              x:DataType="agents:SetupScreen"
              IsVisible="{Binding NeedsSetup}"
              Background="{DynamicResource BackgroundBrush}">

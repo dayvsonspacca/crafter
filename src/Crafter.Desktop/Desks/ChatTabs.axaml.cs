@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Crafter.Desktop.Conversations;
+namespace Crafter.Desktop.Desks;
 
 public sealed partial class ChatTabs : UserControl
 {

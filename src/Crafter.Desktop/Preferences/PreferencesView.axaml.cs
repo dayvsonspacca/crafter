@@ -5,7 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Crafter.Presentation.Preferences;
 
-namespace Crafter.Desktop.Settings;
+namespace Crafter.Desktop.Preferences;
 
 public sealed partial class PreferencesView : UserControl
 {

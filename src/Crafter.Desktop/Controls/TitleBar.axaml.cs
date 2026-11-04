@@ -4,7 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Crafter.Desktop.WindowManagers;
 
-namespace Crafter.Desktop;
+namespace Crafter.Desktop.Controls;
 
 public sealed partial class TitleBar : UserControl
 {
