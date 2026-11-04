@@ -73,6 +73,12 @@ public sealed partial class WorkbenchWindow : Window
             var slot = place;
             shortcuts.On(ProjectShortcuts.Slot(slot)!, () => viewModel.OpenSlot(slot));
         }
+
+        for (var place = 0; place < ChatShortcuts.Slots; place++)
+        {
+            var slot = place;
+            shortcuts.On(ChatShortcuts.Slot(slot)!, () => viewModel.OpenChat(slot));
+        }
     }
 
     private void ResizeSidebar(object? sender, VectorEventArgs e) =>

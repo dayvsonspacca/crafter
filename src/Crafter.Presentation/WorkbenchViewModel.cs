@@ -118,6 +118,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     [NotifyPropertyChangedFor(nameof(ShowsConversation), nameof(ShowsHint), nameof(ShowsSidebar))]
     public partial ProjectDeskViewModel? Desk { get; set; }
 
+    public void OpenChat(int place) => Desk?.SelectAt(place);
+
     public void OpenSlot(int place)
     {
         if (place < Shelf.Count)
@@ -154,7 +156,14 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         Current = project;
         Desk = desk;
         desk.IsShown = true;
-        desk.ShowOverview();
+
+        // Coming back to a project returns to the chat that was in front; a project without
+        // one opens on its overview, fresh.
+        if (desk.Selected is null)
+        {
+            desk.ShowOverview();
+        }
+
         Restock();
     }
 

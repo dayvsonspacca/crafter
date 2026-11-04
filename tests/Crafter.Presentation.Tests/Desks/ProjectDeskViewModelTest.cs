@@ -39,6 +39,24 @@ public sealed class ProjectDeskViewModelTest
         Assert.Single(store.Saved);
     }
 
+    [Fact]
+    public void SelectsAChatByItsPlaceAndIgnoresAnEmptyPlace()
+    {
+        var desk = Desk(new ScriptedAgent());
+        desk.NewChat();
+        desk.NewChat();
+        desk.NewChat();
+
+        desk.SelectAt(0);
+        Assert.Same(desk.Chats[0], desk.Selected);
+
+        desk.SelectAt(2);
+        Assert.Same(desk.Chats[2], desk.Selected);
+
+        desk.SelectAt(5);
+        Assert.Same(desk.Chats[2], desk.Selected);
+    }
+
     private static ProjectDeskViewModel Desk(IAgent agent, ChatsInMemory? store = null)
     {
         var crew = new Crew([agent]);

@@ -101,6 +101,15 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     public void Select(ConversationViewModel chat) => Selected = chat;
 
+    // Alt+1 to 9: the open chats in tab order; a place with no chat does nothing.
+    public void SelectAt(int place)
+    {
+        if (place >= 0 && place < Chats.Count)
+        {
+            Selected = Chats[place];
+        }
+    }
+
     public void Keep(ConversationViewModel chat) => Save();
 
     public void Describe(Project described)
