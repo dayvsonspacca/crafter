@@ -28,22 +28,34 @@ public static class ClaudeCodeTools
         };
     }
 
-    // The name a tool goes by in the chat. A tool server's tool, mcp__<server>__<tool>, goes by its
-    // server, and what it did reads as words with its first argument: "crafter", "set project icon · …".
-    public static (string Tool, string Summary, Changes? Changes) Shown(string tool, JsonElement input, string? folder)
+    // A tool as Crafter knows it. A tool server's tool, mcp__<server>__<tool>, goes by its server,
+    // and what it did reads as words with its first argument: "crafter", "set project icon · …".
+    public static (Tool Tool, string Summary, Changes? Changes) Shown(string tool, JsonElement input, string? folder)
     {
         if (Served(tool) is not { } served)
         {
             var (summary, changes) = Describe(tool, input, folder);
 
-            return (tool, summary, changes);
+            return (new Tool(Kind(tool), tool), summary, changes);
         }
 
         var action = served.Tool.Replace('_', ' ').Replace('-', ' ').Trim();
         var argument = FirstArgument(input) is { } first ? Relative(FirstLine(first), folder) : null;
 
-        return (served.Server, argument is { Length: > 0 } ? $"{action} · {argument}" : action, null);
+        return (new Tool(ToolKind.Served, served.Server), argument is { Length: > 0 } ? $"{action} · {argument}" : action, null);
     }
+
+    public static ToolKind Kind(string tool) => tool switch
+    {
+        "Bash" => ToolKind.Shell,
+        "Read" => ToolKind.Read,
+        "Edit" or "MultiEdit" or "NotebookEdit" => ToolKind.Edit,
+        "Write" => ToolKind.Write,
+        "Grep" or "Glob" => ToolKind.Search,
+        "WebFetch" or "WebSearch" => ToolKind.Web,
+        "Task" or "Agent" => ToolKind.Delegate,
+        _ => Served(tool) is not null ? ToolKind.Served : ToolKind.Other,
+    };
 
     private static (string Server, string Tool)? Served(string tool)
     {

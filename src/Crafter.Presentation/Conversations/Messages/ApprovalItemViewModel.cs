@@ -9,7 +9,7 @@ public sealed partial class ApprovalItemViewModel(NeedsApproval approval, string
 {
     public string Id { get; } = approval.Id;
 
-    public string Asking { get; } = $"{agent} wants to use {approval.Tool}";
+    public string Asking { get; } = $"{agent} wants to use {ToolName.Of(approval.Tool)}";
 
     public string Summary { get; } = approval.Summary;
 

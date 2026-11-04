@@ -45,9 +45,9 @@ public sealed class JsonChatStoreTest : IDisposable
                     Steps =
                     [
                         new Wrote("Running them."),
-                        new Acting("t-1", "Bash", "dotnet test"),
+                        new Acting("t-1", new Tool(ToolKind.Shell, "Bash"), "dotnet test"),
                         new Acted("t-1", Failed: false, Output: "Passed: 12"),
-                        new Acting("t-2", "Edit", "src/App.cs", new Changes(2, 1)),
+                        new Acting("t-2", new Tool(ToolKind.Edit, "Edit"), "src/App.cs", new Changes(2, 1)),
                         new Acted("t-2", Failed: true, Output: "no match"),
                         new Wrote("All green."),
                     ],
@@ -107,7 +107,7 @@ public sealed class JsonChatStoreTest : IDisposable
 
         var answered = Assert.IsType<Answered>(Assert.Single(Assert.Single(store.Load(Crafter)).Turns));
 
-        Assert.Equal([new Acting("t-1", "Edit", "a.cs", new Changes(2, 1)), new Acting("t-2", "Write", "b.md", new Changes(3))], answered.Steps);
+        Assert.Equal([new Acting("t-1", new Tool(ToolKind.Other, "Edit"), "a.cs", new Changes(2, 1)), new Acting("t-2", new Tool(ToolKind.Other, "Write"), "b.md", new Changes(3))], answered.Steps);
     }
 
     [Theory]

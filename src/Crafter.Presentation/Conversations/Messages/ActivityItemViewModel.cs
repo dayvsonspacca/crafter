@@ -11,7 +11,7 @@ public sealed partial class ActivityItemViewModel(Acting acting) : ObservableObj
 
     public string Id { get; } = acting.Id;
 
-    public string Tool { get; } = acting.Tool;
+    public string Tool { get; } = ToolName.Of(acting.Tool);
 
     public string Summary { get; } = acting.Summary;
 

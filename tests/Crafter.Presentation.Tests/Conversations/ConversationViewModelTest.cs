@@ -418,7 +418,7 @@ public sealed class ConversationViewModelTest
             new Asked(new Prompt("Run the tests")),
             new Answered("Running.Green.", new Finished())
             {
-                Steps = [new Wrote("Running."), new Acting("t-1", "Bash", "dotnet test"), new Acted("t-1", Failed: false, Output: "ok"), new Wrote("Green.")],
+                Steps = [new Wrote("Running."), new Acting("t-1", new Tool(ToolKind.Shell, "Bash"), "dotnet test"), new Acted("t-1", Failed: false, Output: "ok"), new Wrote("Green.")],
             },
             new Asked(new Prompt("Older")),
             new Answered("Only words.", new Finished()),

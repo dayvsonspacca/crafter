@@ -68,7 +68,7 @@ public sealed class JsonChatStore(string folder) : IChatStore
     private static Reply? Step(StepEntry step) => step switch
     {
         { Kind: "wrote", Text: { } text } => new Wrote(text),
-        { Kind: "acting", Id: { } id, Tool: { } tool } => new Acting(id, tool, step.Summary ?? string.Empty, Changes(step)),
+        { Kind: "acting", Id: { } id, Tool: { } tool } => new Acting(id, new Tool(Enum.TryParse<ToolKind>(step.Does, ignoreCase: true, out var kind) ? kind : ToolKind.Other, tool), step.Summary ?? string.Empty, Changes(step)),
         { Kind: "acted", Id: { } id } => new Acted(id, step.Failed ?? false, step.Text ?? string.Empty),
         _ => null,
     };
@@ -76,7 +76,7 @@ public sealed class JsonChatStore(string folder) : IChatStore
     private static StepEntry? Entry(Reply step) => step switch
     {
         Wrote wrote => new StepEntry("wrote", Text: wrote.Fragment),
-        Acting acting => new StepEntry("acting", Id: acting.Id, Tool: acting.Tool, Summary: acting.Summary, Added: acting.Changes?.Added, Removed: acting.Changes?.Removed),
+        Acting acting => new StepEntry("acting", Id: acting.Id, Tool: acting.Tool.Name, Does: acting.Tool.Kind == ToolKind.Other ? null : JsonNamingPolicy.CamelCase.ConvertName(acting.Tool.Kind.ToString()), Summary: acting.Summary, Added: acting.Changes?.Added, Removed: acting.Changes?.Removed),
         Acted acted => new StepEntry("acted", Id: acted.Id, Text: acted.Output, Failed: acted.Failed ? true : null),
         _ => null,
     };
@@ -142,7 +142,8 @@ internal sealed record StepEntry(
     string? Stat = null,
     bool? Failed = null,
     int? Added = null,
-    int? Removed = null);
+    int? Removed = null,
+    string? Does = null);
 
 [JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(List<ChatEntry>))]

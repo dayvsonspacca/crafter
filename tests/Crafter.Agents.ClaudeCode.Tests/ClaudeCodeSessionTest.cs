@@ -274,7 +274,7 @@ public sealed class ClaudeCodeSessionTest
             }
         }
 
-        Assert.Equal(new NeedsApproval("r-1", "Bash", "touch x", "Create x"), replies[0]);
+        Assert.Equal(new NeedsApproval("r-1", new Tool(ToolKind.Shell, "Bash"), "touch x", "Create x"), replies[0]);
         Assert.Contains(new Wrote(answer), replies);
     }
 

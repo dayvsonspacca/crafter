@@ -27,7 +27,7 @@ public sealed class ConversationTest
             new Began("claude-opus-5-5"),
             new Wrote("Let me "),
             new Wrote("look."),
-            new Acting("t-1", "Bash", "ls"),
+            new Acting("t-1", new Tool(ToolKind.Shell, "Bash"), "ls"),
             new Acted("t-1", Failed: false, Output: new string('x', Answered.LongestOutput + 10)),
             new Wrote("Found it."),
             new Finished()));
@@ -38,7 +38,7 @@ public sealed class ConversationTest
         Assert.Equal("Let me look.Found it.", answered.Text);
         Assert.Equal(4, answered.Steps.Count);
         Assert.Equal(new Wrote("Let me look."), answered.Steps[0]);
-        Assert.Equal(new Acting("t-1", "Bash", "ls"), answered.Steps[1]);
+        Assert.Equal(new Acting("t-1", new Tool(ToolKind.Shell, "Bash"), "ls"), answered.Steps[1]);
         Assert.EndsWith("\n…", Assert.IsType<Acted>(answered.Steps[2]).Output);
         Assert.Equal(new Wrote("Found it."), answered.Steps[3]);
     }
@@ -132,8 +132,8 @@ public sealed class ConversationTest
     public async Task PassesWhatTheAgentDoesAlongAndKeepsItsToolsButNotItsQuestions()
     {
         var conversation = new Conversation(new ScriptedSession(
-            new Acting("t-1", "Bash", "dotnet test"),
-            new NeedsApproval("r-1", "Bash", "dotnet test", "Run the tests"),
+            new Acting("t-1", new Tool(ToolKind.Shell, "Bash"), "dotnet test"),
+            new NeedsApproval("r-1", new Tool(ToolKind.Shell, "Bash"), "dotnet test", "Run the tests"),
             new Acted("t-1", false, "ok"),
             new Wrote("Pronto."),
             new Finished()));
@@ -142,7 +142,7 @@ public sealed class ConversationTest
 
         Assert.Equal(5, replies.Count);
         Assert.Equal(
-            new Answered("Pronto.", new Finished()) { Steps = [new Acting("t-1", "Bash", "dotnet test"), new Acted("t-1", false, "ok"), new Wrote("Pronto.")] },
+            new Answered("Pronto.", new Finished()) { Steps = [new Acting("t-1", new Tool(ToolKind.Shell, "Bash"), "dotnet test"), new Acted("t-1", false, "ok"), new Wrote("Pronto.")] },
             conversation.Turns[^1]);
     }
 }

@@ -131,7 +131,7 @@ public sealed class ClaudeCodeTranscriptTest
 
         var replies = transcript.Hear("""{"type":"assistant","message":{"content":[{"type":"text","text":"ok"},{"type":"tool_use","id":"t-1","name":"Edit","input":{"file_path":"/home/hero/crafter/a.cs","old_string":"x","new_string":"y"}},{"type":"tool_use","name":"NoId"},"junk"]}}""");
 
-        Assert.Equal([new Acting("t-1", "Edit", "a.cs", new Changes(1, 1))], replies);
+        Assert.Equal([new Acting("t-1", new Tool(ToolKind.Edit, "Edit"), "a.cs", new Changes(1, 1))], replies);
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public sealed class ClaudeCodeTranscriptTest
 
         var replies = transcript.Hear("""{"type":"control_request","request_id":"r-1","request":{"subtype":"can_use_tool","tool_name":"Bash","display_name":"Bash","input":{"command":"dotnet test"},"description":"Run the tests"}}""");
 
-        Assert.Equal([new NeedsApproval("r-1", "Bash", "dotnet test", "Run the tests")], replies);
+        Assert.Equal([new NeedsApproval("r-1", new Tool(ToolKind.Shell, "Bash"), "dotnet test", "Run the tests")], replies);
         Assert.Equal("""{"command":"dotnet test"}""", transcript.InputOf("r-1"));
         Assert.Equal("{}", transcript.InputOf("r-9"));
     }
@@ -172,7 +172,7 @@ public sealed class ClaudeCodeTranscriptTest
 
         var replies = transcript.Hear("""{"type":"control_request","request_id":"r-2","request":{"subtype":"can_use_tool","tool_name":"Mystery"}}""");
 
-        Assert.Equal([new NeedsApproval("r-2", "Mystery", "Mystery", null)], replies);
+        Assert.Equal([new NeedsApproval("r-2", new Tool(ToolKind.Other, "Mystery"), "Mystery", null)], replies);
         Assert.Equal("{}", transcript.InputOf("r-2"));
     }
 

@@ -256,7 +256,7 @@ public sealed partial class ClaudeCodeTranscript(string? folder = null)
         [
             new NeedsApproval(
                 request,
-                Text(asked, "display_name") ?? shown,
+                Text(asked, "display_name") is { } named ? shown with { Name = named } : shown,
                 summary,
                 Text(asked, "description"),
                 ClaudeCodePermissions.Remembers(suggestions)),
