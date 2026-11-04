@@ -193,22 +193,24 @@ public sealed class ClaudeCodeTranscriptTest
 
         var replies = transcript.Hear("""{"type":"control_request","request_id":"r-3","request":{"subtype":"can_use_tool","tool_name":"Bash","input":{"command":"npm test"},"permission_suggestions":[{"type":"addRules","rules":[{"toolName":"Bash","ruleContent":"npm test:*"}],"behavior":"allow","destination":"localSettings"},{"type":"addDirectories","directories":["/tmp/out"],"destination":"localSettings"}]}}""");
 
-        Assert.Equal("Bash(npm test:*), /tmp/out in this project", Assert.IsType<NeedsApproval>(Assert.Single(replies)).Remembers);
+        Assert.Equal([new Rule("Bash(npm test:*)", Reach.Project), new Rule("/tmp/out", Reach.Project)], Assert.IsType<NeedsApproval>(Assert.Single(replies)).Remembers);
         Assert.Contains("\"ruleContent\":\"npm test:*\"", transcript.SuggestionsOf("r-3"));
     }
 
     [Theory]
-    [InlineData("""[{"type":"addRules","rules":[{"toolName":"WebFetch"}],"behavior":"allow","destination":"session"}]""", "WebFetch in this chat")]
-    [InlineData("""[{"type":"addRules","rules":[{"toolName":"Bash","ruleContent":"ls /tmp/x"}],"behavior":"allow","destination":"localSettings"},{"type":"addRules","rules":[{"toolName":"Read","ruleContent":"//tmp/x/**"}],"behavior":"allow","destination":"session"}]""", "Bash(ls /tmp/x) in this project, Read(//tmp/x/**) in this chat")]
-    [InlineData("""[{"type":"setMode","mode":"acceptEdits","destination":"session"}]""", "acceptEdits mode in this chat")]
-    [InlineData("""[{"type":"addRules","rules":[{"toolName":"Read"}],"behavior":"allow","destination":"userSettings"}]""", "Read everywhere")]
+    [InlineData("""[{"type":"addRules","rules":[{"toolName":"WebFetch"}],"behavior":"allow","destination":"session"}]""", "WebFetch@Chat")]
+    [InlineData("""[{"type":"addRules","rules":[{"toolName":"Bash","ruleContent":"ls /tmp/x"}],"behavior":"allow","destination":"localSettings"},{"type":"addRules","rules":[{"toolName":"Read","ruleContent":"//tmp/x/**"}],"behavior":"allow","destination":"session"}]""", "Bash(ls /tmp/x)@Project, Read(//tmp/x/**)@Chat")]
+    [InlineData("""[{"type":"setMode","mode":"acceptEdits","destination":"session"}]""", "acceptEdits mode@Chat")]
+    [InlineData("""[{"type":"addRules","rules":[{"toolName":"Read"}],"behavior":"allow","destination":"userSettings"}]""", "Read@Everywhere")]
     [InlineData("""[{"type":"addRules","rules":[{"toolName":"Bash"}],"behavior":"deny","destination":"session"}]""", null)]
     [InlineData("[]", null)]
     public void DescribesEachKindOfSuggestion(string suggestions, string? remembers)
     {
         var replies = new ClaudeCodeTranscript().Hear("""{"type":"control_request","request_id":"r-4","request":{"subtype":"can_use_tool","tool_name":"Bash","permission_suggestions":""" + suggestions + "}}");
 
-        Assert.Equal(remembers, Assert.IsType<NeedsApproval>(Assert.Single(replies)).Remembers);
+        var rules = Assert.IsType<NeedsApproval>(Assert.Single(replies)).Remembers;
+
+        Assert.Equal(remembers, rules is null ? null : string.Join(", ", rules.Select(rule => $"{rule.What}@{rule.Reach}")));
     }
 
     [Fact]

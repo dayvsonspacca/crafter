@@ -294,7 +294,7 @@ public sealed class ClaudeCodeSessionTest
         var first = await Decided(session, new AlwaysAllow());
         var second = await Decided(session, new Allow());
 
-        Assert.Equal("Bash(touch:*) in this chat", first.OfType<NeedsApproval>().Single().Remembers);
+        Assert.Equal([new Rule("Bash(touch:*)", Reach.Chat)], first.OfType<NeedsApproval>().Single().Remembers);
         Assert.Contains(new Wrote("always"), first);
         Assert.Contains(new Wrote("remembered"), second);
     }

@@ -17,7 +17,9 @@ public sealed partial class ApprovalItemViewModel(NeedsApproval approval, string
 
     public bool HasReason => !string.IsNullOrWhiteSpace(Reason);
 
-    public string? AlwaysLabel { get; } = approval.Remembers is { } remembered ? $"Always allow {remembered}" : null;
+    public string? Remembered { get; } = approval.Remembers is { Count: > 0 } rules ? Phrase(rules) : null;
+
+    public string? AlwaysLabel => Remembered is { } remembered ? $"Always allow {remembered}" : null;
 
     public bool CanAlwaysAllow => AlwaysLabel is not null;
 
@@ -38,11 +40,22 @@ public sealed partial class ApprovalItemViewModel(NeedsApproval approval, string
     private void Allow() => Decide(new Allow(), "Allowed");
 
     [RelayCommand]
-    private void AlwaysAllow() => Decide(new AlwaysAllow(), $"Allowed · remembered {approval.Remembers}");
+    private void AlwaysAllow() => Decide(new AlwaysAllow(), $"Allowed · remembered {Remembered}");
 
     [RelayCommand]
     private void Deny() =>
         Decide(new Deny(Feedback?.Trim() is { Length: > 0 } said ? said : null), Feedback?.Trim() is { Length: > 0 } why ? $"Denied · {why}" : "Denied");
+
+    // "Bash(npm test), /tmp in this project, Read everywhere": what is kept, gathered by how far it reaches.
+    private static string Phrase(IReadOnlyList<Rule> rules) =>
+        string.Join(", ", rules.GroupBy(rule => rule.Reach).Select(reach => $"{string.Join(", ", reach.Select(rule => rule.What))} {Words(reach.Key)}"));
+
+    private static string Words(Reach reach) => reach switch
+    {
+        Reach.Everywhere => "everywhere",
+        Reach.Project => "in this project",
+        _ => "in this chat",
+    };
 
     private void Decide(Decision decision, string verdict)
     {

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Crafter.Core.Conversations.Replies;
 using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode.Protocol;
@@ -7,30 +8,28 @@ internal static class ClaudeCodePermissions
 {
     private const string Allows = "allow";
 
-    public static string? Remembers(JsonElement suggestions)
+    public static IReadOnlyList<Rule>? Remembers(JsonElement suggestions)
     {
         if (suggestions.ValueKind != JsonValueKind.Array)
         {
             return null;
         }
 
-        List<(string Part, string Scope)> parts = [];
+        List<Rule> rules = [];
 
         foreach (var suggestion in Each(suggestions))
         {
-            var scope = Scope(Text(suggestion, "destination"));
-            parts.AddRange((Text(suggestion, "type") switch
+            var reach = Reach(Text(suggestion, "destination"));
+            rules.AddRange((Text(suggestion, "type") switch
             {
                 "addRules" when Text(suggestion, "behavior") == Allows => Rules(suggestion),
                 "addDirectories" => Strings(suggestion, "directories"),
                 "setMode" when Text(suggestion, "mode") is { } mode => [$"{mode} mode"],
                 _ => [],
-            }).Select(part => (part, scope)));
+            }).Select(what => new Rule(what, reach)));
         }
 
-        var groups = parts.Distinct().GroupBy(each => each.Scope).Select(group => $"{string.Join(", ", group.Select(each => each.Part))} {group.Key}");
-
-        return parts.Count > 0 ? string.Join(", ", groups) : null;
+        return rules.Count > 0 ? [.. rules.Distinct()] : null;
     }
 
     public static (IReadOnlyList<string> Rules, IReadOnlyList<string> Directories) Granted(string? suggestions)
@@ -55,11 +54,11 @@ internal static class ClaudeCodePermissions
         }
     }
 
-    private static string Scope(string? destination) => destination switch
+    private static Reach Reach(string? destination) => destination switch
     {
-        "userSettings" => "everywhere",
-        "projectSettings" or "localSettings" => "in this project",
-        _ => "in this chat",
+        "userSettings" => Core.Conversations.Replies.Reach.Everywhere,
+        "projectSettings" or "localSettings" => Core.Conversations.Replies.Reach.Project,
+        _ => Core.Conversations.Replies.Reach.Chat,
     };
 
     private static IEnumerable<string> Rules(JsonElement suggestion) =>
