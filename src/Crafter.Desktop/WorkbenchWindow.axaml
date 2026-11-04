@@ -11,7 +11,7 @@
         xmlns:status="using:Crafter.Desktop.Status"
         x:Class="Crafter.Desktop.WorkbenchWindow"
         x:DataType="presentation:WorkbenchViewModel"
-        Title="crafter"
+        Title="Crafter"
         Icon="/Assets/crafter.png"
         Width="1200" Height="780"
         MinWidth="760" MinHeight="520"

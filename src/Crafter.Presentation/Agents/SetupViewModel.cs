@@ -44,8 +44,8 @@ public sealed partial class SetupViewModel : ObservableObject
 
     public string Explanation => this switch
     {
-        { IsPicking: true } => "crafter checks only the agents you mark.",
-        { IsConfirming: true } => "crafter is checking the agents you marked.",
+        { IsPicking: true } => "Crafter checks only the agents you mark.",
+        { IsConfirming: true } => "Crafter is checking the agents you marked.",
         { Waiting: 1 } => "Fix it, then check again.",
         _ => "Fix them, then check again.",
     };

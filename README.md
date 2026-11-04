@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="src/Crafter.Desktop/Assets/crafter.png" alt="crafter" width="120" />
+  <img src="src/Crafter.Desktop/Assets/crafter.png" alt="Crafter" width="120" />
 </p>
 
-<h1 align="center">crafter</h1>
+<h1 align="center">Crafter</h1>
 
 <p align="center">
   <strong>My AI-coding IDE.</strong><br />

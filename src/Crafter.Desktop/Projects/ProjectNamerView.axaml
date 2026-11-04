@@ -53,13 +53,13 @@
 
         <StackPanel Spacing="8">
           <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Name" />
-          <TextBlock Classes="about" Text="How crafter shows this project." />
+          <TextBlock Classes="about" Text="How Crafter shows this project." />
           <TextBox x:Name="NameBox" FontSize="{StaticResource FontSizeContent}" Text="{Binding Name}" AutomationProperties.Name="Name" />
         </StackPanel>
 
         <StackPanel Spacing="8" IsVisible="{Binding !IsAdding}">
           <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Project icon" />
-          <TextBlock Classes="about" Text="Any image. crafter keeps a copy in the project." />
+          <TextBlock Classes="about" Text="Any image. Crafter keeps a copy in the project." />
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Border Width="44"
                     Height="44"
