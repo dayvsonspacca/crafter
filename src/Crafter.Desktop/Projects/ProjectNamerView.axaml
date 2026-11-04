@@ -4,7 +4,7 @@
              xmlns:namer="using:Crafter.Presentation.Projects.Namer"
              xmlns:controls="using:Crafter.Desktop.Controls"
              x:Class="Crafter.Desktop.Projects.ProjectNamerView"
-             x:DataType="namer:ProjectNamer"
+             x:DataType="namer:ProjectNamerViewModel"
              IsVisible="{Binding IsOpen}">
   <UserControl.Styles>
     <Style Selector="TextBlock.kicker">

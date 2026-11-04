@@ -15,7 +15,7 @@ public sealed partial class ProjectNamerView : UserControl
         NameBox.AddHandler(KeyDownEvent, Steer, RoutingStrategies.Tunnel);
     }
 
-    private ProjectNamer? Namer => DataContext as ProjectNamer;
+    private ProjectNamerViewModel? Namer => DataContext as ProjectNamerViewModel;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {

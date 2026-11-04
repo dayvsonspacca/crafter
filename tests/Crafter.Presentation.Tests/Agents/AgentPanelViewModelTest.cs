@@ -1,0 +1,23 @@
+using Crafter.Core.Agents;
+using Crafter.Core.Preferences;
+using Crafter.Presentation.Agents;
+using Crafter.Presentation.Tests.Fakes;
+using Crafter.Testing;
+
+namespace Crafter.Presentation.Tests.Agents;
+
+public sealed class AgentPanelViewModelTest
+{
+    [Fact]
+    public async Task CopiesTheRemedyOfABlockedAgent()
+    {
+        var clipboard = new ClipboardInMemory();
+        var agent = new ScriptedAgent { Readiness = new Blocked("Signed out", "Sign in from a terminal.", "claude auth login") };
+        var panel = new AgentPanelViewModel(agent, new PreferenceBook(new PreferencesInMemory(UserPreferences.Default("/home/hero"))), clipboard);
+
+        await panel.CheckCommand.ExecuteAsync(null);
+        await panel.CopyRemedyCommand.ExecuteAsync(null);
+
+        Assert.Equal(["claude auth login"], clipboard.Copied);
+    }
+}

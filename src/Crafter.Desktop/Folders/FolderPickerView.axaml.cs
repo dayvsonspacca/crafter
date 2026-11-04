@@ -15,7 +15,7 @@ public sealed partial class FolderPickerView : UserControl
         FilterBox.AddHandler(KeyDownEvent, Steer, RoutingStrategies.Tunnel);
     }
 
-    private FolderPicker? Picker => DataContext as FolderPicker;
+    private FolderPickerViewModel? Picker => DataContext as FolderPickerViewModel;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {

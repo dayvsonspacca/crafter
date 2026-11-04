@@ -3,7 +3,7 @@
              xmlns:projects="using:Crafter.Desktop.Projects"
              xmlns:desks="using:Crafter.Presentation.Desks"
              x:Class="Crafter.Desktop.Desks.ProjectOverviewView"
-             x:DataType="desks:ProjectOverview">
+             x:DataType="desks:ProjectOverviewViewModel">
   <UserControl.Styles>
     <Style Selector="TextBlock.kicker">
       <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
@@ -137,10 +137,10 @@
         <Border Classes="recents" IsVisible="{Binding HasRecent}">
           <ItemsControl ItemsSource="{Binding Recent}">
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="desks:RecentChat">
+              <DataTemplate x:DataType="desks:RecentChatViewModel">
                 <Button Classes="recent"
                         Classes.last="{Binding IsLast}"
-                        Command="{Binding $parent[UserControl].((desks:ProjectOverview)DataContext).ResumeCommand}"
+                        Command="{Binding $parent[UserControl].((desks:ProjectOverviewViewModel)DataContext).ResumeCommand}"
                         CommandParameter="{Binding}"
                         AutomationProperties.Name="{Binding Title}">
                   <Grid ColumnDefinitions="10,*,Auto" ColumnSpacing="14">

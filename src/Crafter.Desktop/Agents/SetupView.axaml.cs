@@ -10,7 +10,7 @@ namespace Crafter.Desktop.Agents;
 
 public sealed partial class SetupView : UserControl
 {
-    private SetupScreen? screen;
+    private SetupViewModel? viewModel;
 
     public SetupView()
     {
@@ -29,15 +29,15 @@ public sealed partial class SetupView : UserControl
     {
         base.OnDataContextChanged(e);
 
-        if (screen is not null)
+        if (viewModel is not null)
         {
-            screen.PropertyChanged -= Follow;
+            viewModel.PropertyChanged -= Follow;
         }
 
-        screen = DataContext as SetupScreen;
-        if (screen is not null)
+        viewModel = DataContext as SetupViewModel;
+        if (viewModel is not null)
         {
-            screen.PropertyChanged += Follow;
+            viewModel.PropertyChanged += Follow;
         }
     }
 
@@ -49,7 +49,7 @@ public sealed partial class SetupView : UserControl
 
     private void Follow(object? sender, PropertyChangedEventArgs changed)
     {
-        if (changed.PropertyName == nameof(SetupScreen.IsPicking))
+        if (changed.PropertyName == nameof(SetupViewModel.IsPicking))
         {
             Settle();
         }
@@ -58,7 +58,7 @@ public sealed partial class SetupView : UserControl
     private void Settle() => Dispatcher.UIThread.Post(
         () =>
         {
-            if (IsEffectivelyVisible && screen is { IsPicking: true })
+            if (IsEffectivelyVisible && viewModel is { IsPicking: true })
             {
                 (Choices.ContainerFromIndex(0) as ContentPresenter)?.Child?.Focus(NavigationMethod.Tab);
             }
@@ -67,12 +67,12 @@ public sealed partial class SetupView : UserControl
 
     private void Press(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && screen is { IsPicking: true })
+        if (e.Key == Key.Enter && viewModel is { IsPicking: true })
         {
             e.Handled = true;
-            if (screen.ContinueCommand.CanExecute(null))
+            if (viewModel.ContinueCommand.CanExecute(null))
             {
-                screen.ContinueCommand.Execute(null);
+                viewModel.ContinueCommand.Execute(null);
             }
         }
     }

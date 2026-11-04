@@ -4,15 +4,15 @@ namespace Crafter.Presentation.Tests.Fakes;
 
 internal sealed class KeeperInMemory : IChatKeeper
 {
-    public void Select(ConversationScreen chat)
+    public void Select(ConversationViewModel chat)
     {
     }
 
-    public void Close(ConversationScreen chat)
+    public void Close(ConversationViewModel chat)
     {
     }
 
-    public void Keep(ConversationScreen chat)
+    public void Keep(ConversationViewModel chat)
     {
     }
 }

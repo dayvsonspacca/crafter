@@ -1,0 +1,20 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Crafter.Core.Conversations.Replies;
+
+namespace Crafter.Presentation.Conversations.Messages;
+
+public sealed partial class PickItemViewModel(Pick pick, Action<PickItemViewModel> toggle) : ObservableObject
+{
+    public string Label { get; } = pick.Label;
+
+    public string Description { get; } = pick.Description;
+
+    public bool HasDescription => Description.Length > 0;
+
+    [ObservableProperty]
+    public partial bool IsChosen { get; set; }
+
+    [RelayCommand]
+    private void Toggle() => toggle(this);
+}

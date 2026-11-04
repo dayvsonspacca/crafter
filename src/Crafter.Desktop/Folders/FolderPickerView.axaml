@@ -4,7 +4,7 @@
              xmlns:folderViews="using:Crafter.Desktop.Folders"
              xmlns:controls="using:Crafter.Desktop.Controls"
              x:Class="Crafter.Desktop.Folders.FolderPickerView"
-             x:DataType="folders:FolderPicker"
+             x:DataType="folders:FolderPickerViewModel"
              IsVisible="{Binding IsOpen}">
   <UserControl.Styles>
     <Style Selector="TextBlock.mono">
@@ -87,10 +87,10 @@
                SelectedItem="{Binding Selected}"
                DoubleTapped="Chosen">
         <ListBox.DataTemplates>
-          <DataTemplate DataType="folders:HeadingEntry">
+          <DataTemplate DataType="folders:HeadingEntryViewModel">
             <TextBlock Classes="heading" Margin="0,4,0,0" Text="{Binding Text}" />
           </DataTemplate>
-          <DataTemplate DataType="folders:FolderEntry">
+          <DataTemplate DataType="folders:FolderEntryViewModel">
             <Grid ColumnDefinitions="16,*,Auto" ColumnSpacing="10">
               <Path Width="16"
                     Height="16"
@@ -129,7 +129,7 @@
               </Border>
             </Grid>
           </DataTemplate>
-          <DataTemplate DataType="folders:ImageEntry">
+          <DataTemplate DataType="folders:ImageEntryViewModel">
             <Grid ColumnDefinitions="24,*,Auto" ColumnSpacing="10">
               <Border Width="24"
                       Height="24"

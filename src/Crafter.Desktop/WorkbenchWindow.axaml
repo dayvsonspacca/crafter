@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:presentation="using:Crafter.Presentation"
+        xmlns:conversations="using:Crafter.Desktop.Conversations"
+        xmlns:projects="using:Crafter.Desktop.Projects"
+        xmlns:folders="using:Crafter.Desktop.Folders"
+        xmlns:controls="using:Crafter.Desktop.Controls"
+        xmlns:desks="using:Crafter.Desktop.Desks"
+        xmlns:preferences="using:Crafter.Desktop.Preferences"
+        xmlns:agents="using:Crafter.Desktop.Agents"
+        x:Class="Crafter.Desktop.WorkbenchWindow"
+        x:DataType="presentation:WorkbenchViewModel"
+        Title="crafter"
+        Icon="/Assets/crafter.png"
+        Width="900" Height="640"
+        WindowDecorations="None"
+        Background="{DynamicResource BackgroundBrush}"
+        Foreground="{DynamicResource ForegroundBrush}">
+  <DockPanel>
+    <controls:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
+    <Panel>
+      <DockPanel IsVisible="{Binding !ShowsSetup}">
+        <projects:ProjectsSidebarView DockPanel.Dock="Left" IsVisible="{Binding IsSidebarVisible}" />
+        <Panel>
+          <DockPanel IsVisible="{Binding ShowsConversation}">
+            <desks:ProjectDeskView DockPanel.Dock="Top" DataContext="{Binding Desk}" />
+            <Panel>
+              <Panel IsVisible="{Binding !Desk.ShowsOverview}">
+                <conversations:ConversationView DataContext="{Binding Desk.Selected}" />
+              </Panel>
+              <Panel IsVisible="{Binding Desk.ShowsOverview}">
+                <desks:ProjectOverviewView DataContext="{Binding Desk.Overview}" />
+              </Panel>
+            </Panel>
+          </DockPanel>
+
+          <TextBlock IsVisible="{Binding ShowsHint}"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     FontSize="15"
+                     Text="{Binding Hint}" />
+        </Panel>
+      </DockPanel>
+
+      <preferences:PreferencesView DataContext="{Binding Preferences}" />
+      <projects:ProjectNamerView DataContext="{Binding Namer}" />
+      <folders:FolderPickerView DataContext="{Binding Picker}" />
+      <agents:SetupView DataContext="{Binding Setup}" />
+    </Panel>
+  </DockPanel>
+</Window>

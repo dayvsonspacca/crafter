@@ -5,7 +5,7 @@
     <RootNamespace>Crafter.Desktop</RootNamespace>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <PublishAot Condition="'$(RuntimeIdentifier)' != ''">true</PublishAot>
-    <!-- AVLN3001: Workbench takes its dependencies from Composition, so it has no parameterless constructor. -->
+    <!-- AVLN3001: WorkbenchWindow takes its dependencies from Composition, so it has no parameterless constructor. -->
     <NoWarn>$(NoWarn);IL2104;AVLN3001</NoWarn>
   </PropertyGroup>
 

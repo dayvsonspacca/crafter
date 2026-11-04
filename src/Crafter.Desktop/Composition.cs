@@ -25,27 +25,27 @@ public static class Composition
 
     private static string Data => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), App);
 
-    public static Workbench Workbench()
+    public static WorkbenchWindow MainWindow()
     {
         var time = TimeProvider.System;
         var clipboard = new AvaloniaClipboard();
         var crew = Crew();
         var preferences = new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), UserPreferences.Default(Home)));
         var bookshelf = new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), time.GetLocalNow);
-        var picker = new FolderPicker(preferences, bookshelf);
-        var setup = new SetupScreen(crew, preferences, clipboard);
+        var picker = new FolderPickerViewModel(preferences, bookshelf);
+        var setup = new SetupViewModel(crew, preferences, clipboard);
 
-        var screen = new WorkbenchScreen(
+        var viewModel = new WorkbenchViewModel(
             bookshelf,
             preferences,
             picker,
-            new ProjectNamer(picker),
+            new ProjectNamerViewModel(picker),
             setup,
-            new PreferencesScreen(preferences, picker, setup, new AvaloniaThemeSwitcher()),
+            new PreferencesViewModel(preferences, picker, setup, new AvaloniaThemeSwitcher()),
             new DeskFactory(new JsonChatStore(Path.Combine(Data, "chats")), crew, preferences, clipboard, time),
             clipboard);
 
-        return new Workbench(WindowManager.Detect(), screen);
+        return new WorkbenchWindow(WindowManager.Detect(), viewModel);
     }
 
     private static Crew Crew() => new([new ClaudeCode()]);

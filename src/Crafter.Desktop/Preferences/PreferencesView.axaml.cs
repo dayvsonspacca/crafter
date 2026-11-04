@@ -33,7 +33,7 @@ public sealed partial class PreferencesView : UserControl
 
     private void Leave(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is PreferencesScreen preferences)
+        if (DataContext is PreferencesViewModel preferences)
         {
             preferences.LeaveCommand.Execute(null);
             e.Handled = true;

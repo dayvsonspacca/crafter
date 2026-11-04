@@ -26,10 +26,10 @@ public sealed partial class ConversationView : UserControl
 
         e.Handled = true;
 
-        if (DataContext is ConversationScreen screen && screen.CraftCommand.CanExecute(null))
+        if (DataContext is ConversationViewModel viewModel && viewModel.CraftCommand.CanExecute(null))
         {
             following = true;
-            screen.CraftCommand.Execute(null);
+            viewModel.CraftCommand.Execute(null);
         }
     }
 

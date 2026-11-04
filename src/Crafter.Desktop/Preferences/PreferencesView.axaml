@@ -6,7 +6,7 @@
              xmlns:options="using:Crafter.Presentation.Agents.Options"
              xmlns:controls="using:Crafter.Desktop.Controls"
              x:Class="Crafter.Desktop.Preferences.PreferencesView"
-             x:DataType="preferences:PreferencesScreen"
+             x:DataType="preferences:PreferencesViewModel"
              Focusable="True"
              IsVisible="{Binding IsOpen}">
   <UserControl.Styles>
@@ -151,10 +151,10 @@
           <TextBlock Classes="kicker" Margin="10,4,10,6" Text="APP" />
           <ItemsControl ItemsSource="{Binding AppGroups}">
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="preferences:PreferenceGroup">
+              <DataTemplate x:DataType="preferences:PreferenceGroupViewModel">
                 <Button Classes="group"
                         Classes.shown="{Binding IsShown}"
-                        Command="{Binding $parent[UserControl].((preferences:PreferencesScreen)DataContext).ShowCommand}"
+                        Command="{Binding $parent[UserControl].((preferences:PreferencesViewModel)DataContext).ShowCommand}"
                         CommandParameter="{Binding}">
                   <TextBlock Text="{Binding Name}" />
                 </Button>
@@ -165,10 +165,10 @@
           <TextBlock Classes="kicker" Margin="10,18,10,6" Text="AGENTS" />
           <ItemsControl ItemsSource="{Binding AgentGroups}">
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="preferences:AgentGroup">
+              <DataTemplate x:DataType="preferences:AgentGroupViewModel">
                 <Button Classes="group"
                         Classes.shown="{Binding IsShown}"
-                        Command="{Binding $parent[UserControl].((preferences:PreferencesScreen)DataContext).ShowCommand}"
+                        Command="{Binding $parent[UserControl].((preferences:PreferencesViewModel)DataContext).ShowCommand}"
                         CommandParameter="{Binding}">
                   <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="{Binding Name}" />
@@ -187,7 +187,7 @@
       <ScrollViewer Grid.Column="1">
         <ContentControl Margin="32,26,32,20" Content="{Binding Shown}">
           <ContentControl.DataTemplates>
-            <DataTemplate DataType="preferences:AppearanceGroup">
+            <DataTemplate DataType="preferences:AppearanceGroupViewModel">
               <StackPanel>
                 <TextBlock Classes="heading" Text="Appearance" />
                 <Border Classes="setting" BorderThickness="0">
@@ -201,7 +201,7 @@
                         </ItemsPanelTemplate>
                       </ItemsControl.ItemsPanel>
                       <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="preferences:ThemeChoice">
+                        <DataTemplate x:DataType="preferences:ThemeChoiceViewModel">
                           <Button Classes="theme"
                                   Classes.chosen="{Binding IsChosen}"
                                   Command="{Binding ChooseCommand}"
@@ -266,7 +266,7 @@
               </StackPanel>
             </DataTemplate>
 
-            <DataTemplate DataType="preferences:ProjectsGroup">
+            <DataTemplate DataType="preferences:ProjectsGroupViewModel">
               <StackPanel>
                 <TextBlock Classes="heading" Text="Projects" />
                 <Border Classes="setting" BorderThickness="0">
@@ -286,8 +286,8 @@
               </StackPanel>
             </DataTemplate>
 
-            <DataTemplate DataType="preferences:AgentGroup">
-              <StackPanel DataContext="{Binding Agent}" x:DataType="agents:AgentPanel">
+            <DataTemplate DataType="preferences:AgentGroupViewModel">
+              <StackPanel DataContext="{Binding Agent}" x:DataType="agents:AgentPanelViewModel">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                   <StackPanel Spacing="8">
                     <TextBlock Classes="heading" Text="{Binding AgentName}" />
@@ -338,7 +338,7 @@
 
                 <ItemsControl ItemsSource="{Binding Settings}">
                   <ItemsControl.DataTemplates>
-                    <DataTemplate DataType="options:ChoiceSetting">
+                    <DataTemplate DataType="options:ChoiceSettingViewModel">
                       <Border Classes="setting">
                         <StackPanel Spacing="8">
                           <TextBlock Classes="title" Text="{Binding Title}" />
@@ -348,7 +348,7 @@
                                     SelectedItem="{Binding Chosen}"
                                     AutomationProperties.Name="{Binding Title}">
                             <ComboBox.ItemTemplate>
-                              <DataTemplate x:DataType="options:ChoiceOption">
+                              <DataTemplate x:DataType="options:ChoiceOptionViewModel">
                                 <TextBlock Text="{Binding Label}" />
                               </DataTemplate>
                             </ComboBox.ItemTemplate>
@@ -356,7 +356,7 @@
                         </StackPanel>
                       </Border>
                     </DataTemplate>
-                    <DataTemplate DataType="options:EntrySetting">
+                    <DataTemplate DataType="options:EntrySettingViewModel">
                       <Border Classes="setting">
                         <StackPanel Spacing="8">
                           <TextBlock Classes="title" Text="{Binding Title}" />

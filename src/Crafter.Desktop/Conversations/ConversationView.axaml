@@ -7,7 +7,7 @@
              xmlns:messages="using:Crafter.Presentation.Conversations.Messages"
              xmlns:controls="using:Crafter.Desktop.Controls"
              x:Class="Crafter.Desktop.Conversations.ConversationView"
-             x:DataType="conversations:ConversationScreen">
+             x:DataType="conversations:ConversationViewModel">
   <UserControl.Styles>
     <Style Selector="TextBlock.mono">
       <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
@@ -472,7 +472,7 @@
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="conversations:ChatChooser">
+              <DataTemplate x:DataType="conversations:ChatChooserViewModel">
                 <Button Classes="chooser" Classes.changed="{Binding IsChanged}" AutomationProperties.Name="{Binding Title}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Classes="mono" Text="{Binding Label}" />
@@ -481,7 +481,7 @@
                   <Button.Flyout>
                     <MenuFlyout Placement="BottomEdgeAlignedRight" ItemsSource="{Binding Options}">
                       <MenuFlyout.ItemContainerTheme>
-                        <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="conversations:ChooserOption">
+                        <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="conversations:ChooserOptionViewModel">
                           <Setter Property="Header" Value="{Binding Label}" />
                           <Setter Property="Command" Value="{Binding ChooseCommand}" />
                           <Setter Property="ToggleType" Value="Radio" />
@@ -531,7 +531,7 @@
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.DataTemplates>
-              <DataTemplate DataType="messages:YourMessage">
+              <DataTemplate DataType="messages:YourMessageViewModel">
                 <Grid ColumnDefinitions="28,*" ColumnSpacing="16">
                   <DockPanel>
                     <Border DockPanel.Dock="Top" Classes="slot">
@@ -557,7 +557,7 @@
                 </Grid>
               </DataTemplate>
 
-              <DataTemplate DataType="messages:CrafterMessage">
+              <DataTemplate DataType="messages:CrafterMessageViewModel">
                 <Grid Classes="answer" Classes.last="{Binding IsLast}" ColumnDefinitions="28,*" ColumnSpacing="16" Background="Transparent">
                   <DockPanel>
                     <Border DockPanel.Dock="Top" Classes="slot">
@@ -578,10 +578,10 @@
                   <StackPanel Grid.Column="1" Margin="0,0,0,30" Spacing="10">
                     <ItemsControl ItemsSource="{Binding Items}">
                       <ItemsControl.DataTemplates>
-                        <DataTemplate DataType="messages:TextSegment">
+                        <DataTemplate DataType="messages:TextSegmentViewModel">
                           <ItemsControl ItemsSource="{Binding Pieces}">
                             <ItemsControl.DataTemplates>
-                              <DataTemplate DataType="messages:Prose">
+                              <DataTemplate DataType="messages:ProseViewModel">
                                 <md:MarkdownScrollViewer Markdown="{Binding Text}">
                                   <md:MarkdownScrollViewer.MarkdownStyle>
                                     <Styles>
@@ -595,7 +595,7 @@
                                   </md:MarkdownScrollViewer.MarkdownStyle>
                                 </md:MarkdownScrollViewer>
                               </DataTemplate>
-                              <DataTemplate DataType="messages:CodeBlock">
+                              <DataTemplate DataType="messages:CodeBlockViewModel">
                                 <Border Margin="0,4,0,12"
                                         CornerRadius="9"
                                         ClipToBounds="True"
@@ -626,7 +626,7 @@
                             </ItemsControl.DataTemplates>
                           </ItemsControl>
                         </DataTemplate>
-                        <DataTemplate DataType="messages:ActivityItem">
+                        <DataTemplate DataType="messages:ActivityItemViewModel">
                           <StackPanel Classes="activity">
                             <Button Classes="act" Command="{Binding ToggleCommand}" AutomationProperties.Name="{Binding Summary}">
                               <Grid ColumnDefinitions="14,52,*,Auto" ColumnSpacing="10">
@@ -650,7 +650,7 @@
                             </Border>
                           </StackPanel>
                         </DataTemplate>
-                        <DataTemplate DataType="messages:ApprovalItem">
+                        <DataTemplate DataType="messages:ApprovalItemViewModel">
                           <Border Classes="approval" Classes.open="{Binding IsOpen}">
                             <StackPanel Spacing="10">
                               <TextBlock FontSize="13.5" Text="{Binding Asking}" />
@@ -688,7 +688,7 @@
                             </StackPanel>
                           </Border>
                         </DataTemplate>
-                        <DataTemplate DataType="messages:QuestionItem">
+                        <DataTemplate DataType="messages:QuestionItemViewModel">
                           <Border Classes="approval" Classes.open="{Binding IsOpen}">
                             <StackPanel Spacing="14">
                               <TextBlock FontSize="13.5" Text="{Binding Asking}" />
@@ -699,7 +699,7 @@
                                   </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
-                                  <DataTemplate DataType="messages:QuestionCard">
+                                  <DataTemplate DataType="messages:QuestionCardViewModel">
                                     <StackPanel Spacing="8">
                                       <TextBlock Classes="mono" Text="{Binding Header}" IsVisible="{Binding HasHeader}" />
                                       <TextBlock FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding Text}" />
@@ -712,7 +712,7 @@
                                             </ItemsPanelTemplate>
                                           </ItemsControl.ItemsPanel>
                                           <ItemsControl.ItemTemplate>
-                                            <DataTemplate DataType="messages:PickItem">
+                                            <DataTemplate DataType="messages:PickItemViewModel">
                                               <Button Classes="pick"
                                                       Classes.chosen="{Binding IsChosen}"
                                                       Command="{Binding ToggleCommand}"
@@ -760,7 +760,7 @@
                 </Grid>
               </DataTemplate>
 
-              <DataTemplate DataType="messages:ResumedMark">
+              <DataTemplate DataType="messages:ResumedMarkViewModel">
                 <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12" Margin="0,0,0,26">
                   <Rectangle Height="1" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Text}" />

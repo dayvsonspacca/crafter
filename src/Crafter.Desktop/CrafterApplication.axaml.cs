@@ -12,7 +12,7 @@ public sealed partial class CrafterApplication : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
-            lifetime.MainWindow = Composition.Workbench();
+            lifetime.MainWindow = Composition.MainWindow();
         }
 
         base.OnFrameworkInitializationCompleted();
