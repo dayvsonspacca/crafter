@@ -5,8 +5,7 @@
 <h1 align="center">Crafter</h1>
 
 <p align="center">
-  <strong>My AI-coding IDE.</strong><br />
-  Your agents craft the code. You bring the recipe.
+  <strong>My AI-coding IDE.</strong>
 </p>
 
 Crafter is the desktop IDE I build and code in with AI agents.
