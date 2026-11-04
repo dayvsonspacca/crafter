@@ -436,6 +436,27 @@ public sealed class ConversationViewModelTest
         Assert.Equal("Only words.", Assert.IsType<TextSegmentViewModel>(Assert.Single(answers[1].Items)).Text);
     }
 
+    [Fact]
+    public void OpensOnItsLatestFewExchangesAndBringsEarlierOnesIn()
+    {
+        var session = new ScriptedSession();
+        var agent = new ScriptedAgent { Sessions = () => session };
+        Turn[] turns = [.. Enumerable.Range(1, ConversationViewModel.Window + 3).SelectMany(at => new Turn[] { new Asked(new Prompt($"Ask {at}")), new Answered($"Answer {at}", new Finished()) })];
+        var chat = new Chat(ChatId.New(), agent.Id, ChatTitle.Untitled, new Conversation(session, turns));
+
+        var viewModel = new ConversationViewModel(chat, agent, preferences, "crafter", keeper, clipboard, new FilesInMemory(), time);
+
+        Assert.Equal(ConversationViewModel.Window * 2, viewModel.Messages.Count);
+        Assert.Equal("Ask 4", Assert.IsType<YourMessageViewModel>(viewModel.Messages[0]).Text);
+        Assert.Equal("Show 6 earlier messages", viewModel.EarlierLabel);
+
+        viewModel.ShowEarlierCommand.Execute(null);
+
+        Assert.Equal(turns.Length, viewModel.Messages.Count);
+        Assert.Equal("Ask 1", Assert.IsType<YourMessageViewModel>(viewModel.Messages[0]).Text);
+        Assert.False(viewModel.HasEarlier);
+    }
+
     private static Task Ask(ConversationViewModel viewModel, string prompt)
     {
         viewModel.Draft = prompt;

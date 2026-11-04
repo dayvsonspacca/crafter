@@ -7,6 +7,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Crafter.Core.Conversations;
+using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Preferences;
 using Crafter.Desktop.Conversations;
 using Crafter.Presentation.Conversations;
@@ -127,14 +128,48 @@ public sealed class ConversationViewTest : IDisposable
         });
     }
 
+    [Fact]
+    public void ScrollingUpNearTheTopBringsEarlierMessagesInWithoutMovingTheReader()
+    {
+        TestApp.Run(() =>
+        {
+            var exchanges = (ConversationViewModel.Window * 2) + 2;
+            Turn[] turns =
+            [
+                .. Enumerable.Range(1, exchanges).SelectMany(at => new Turn[]
+                {
+                    new Asked(new Prompt($"Ask {at}")),
+                    new Answered(string.Join("\n\n", Enumerable.Repeat($"Answer {at}, long enough to take some room on screen.", 6)), new Finished()),
+                }),
+            ];
+            var (_, view, chat) = Show(turns);
+            var scroller = view.GetVisualDescendants().OfType<ScrollViewer>().Single(each => each.Name == "Scroller");
+            scroller.ScrollToEnd();
+            Settle();
+            var top = chat.Messages[0];
+            var onScreen = Where(view, scroller, top) + scroller.Offset.Y - 100;
+
+            scroller.Offset = new Vector(0, 100);
+            Settle();
+            Settle();
+
+            Assert.Equal(ConversationViewModel.Window * 4, chat.Messages.Count);
+            Assert.True(chat.HasEarlier);
+            Assert.InRange(Where(view, scroller, top), onScreen - 2, onScreen + 2);
+        });
+    }
+
     public void Dispose() => Directory.Delete(folder, recursive: true);
 
-    private (Window Window, ConversationView View, ConversationViewModel Chat) Show()
+    private static double Where(ConversationView view, ScrollViewer scroller, object message) =>
+        view.GetVisualDescendants().OfType<Control>().First(each => each.DataContext == message && each.Parent is Panel).TranslatePoint(default, scroller)!.Value.Y;
+
+    private (Window Window, ConversationView View, ConversationViewModel Chat) Show(params Turn[] turns)
     {
         var session = new ScriptedSession();
         var agent = new ScriptedAgent { Sessions = () => session };
         var chat = new ConversationViewModel(
-            new Chat(ChatId.New(), agent.Id, ChatTitle.Untitled, new Conversation(session)),
+            new Chat(ChatId.New(), agent.Id, ChatTitle.Untitled, new Conversation(session, turns)),
             agent,
             new PreferenceBook(new PreferencesInMemory(UserPreferences.Default(folder))),
             "crafter",

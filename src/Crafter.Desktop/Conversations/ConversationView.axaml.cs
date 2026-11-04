@@ -16,6 +16,9 @@ public sealed partial class ConversationView : UserControl
 {
     private const double Near = 48;
 
+    // How close to the top scrolling up brings the earlier messages in, before the reader runs out.
+    private const double Top = 400;
+
     // One view serves every chat, so each chat keeps where it was left.
     private readonly ConditionalWeakTable<ConversationViewModel, Place> places = new();
 
@@ -25,6 +28,8 @@ public sealed partial class ConversationView : UserControl
     private ConversationViewModel? shown;
 
     private bool following = true;
+
+    private bool bringingEarlier;
 
     public ConversationView()
     {
@@ -320,6 +325,10 @@ public sealed partial class ConversationView : UserControl
         if (scrolledUp)
         {
             following = false;
+            if (Scroller.Offset.Y < Top)
+            {
+                BringEarlier();
+            }
         }
         else if (following && resized)
         {
@@ -331,6 +340,29 @@ public sealed partial class ConversationView : UserControl
         }
 
         Jump.IsVisible = !following && bottom > Near;
+    }
+
+    // The earlier messages go in above what the reader is on, so it stays where it was on screen.
+    private void BringEarlier()
+    {
+        if (bringingEarlier || Conversation is not { HasEarlier: true } chat)
+        {
+            return;
+        }
+
+        bringingEarlier = true;
+        var fromBottom = Scroller.Extent.Height - Scroller.Offset.Y;
+        chat.ShowEarlierCommand.Execute(null);
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                bringingEarlier = false;
+                if (Conversation == chat)
+                {
+                    Scroller.Offset = new Vector(Scroller.Offset.X, Math.Max(0, Scroller.Extent.Height - fromBottom));
+                }
+            },
+            DispatcherPriority.Loaded);
     }
 
     private void ToLatest(object? sender, RoutedEventArgs e) => ToLatest();

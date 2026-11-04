@@ -17,7 +17,9 @@ namespace Crafter.Presentation.Conversations;
 
 public sealed partial class ConversationViewModel : ObservableObject
 {
-    private const int Window = 20;
+    // A chat opens on its latest few exchanges and brings earlier ones in this many at a time:
+    // every answer on screen costs to draw and more to take down when the chat closes.
+    public const int Window = 5;
 
     private static readonly TimeSpan Second = TimeSpan.FromSeconds(1);
 

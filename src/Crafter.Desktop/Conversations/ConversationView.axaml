@@ -832,7 +832,7 @@
                 <ItemsPanelTemplate>
                   <!-- Not virtualized: a virtualizing panel guesses the height of messages it has not
                        drawn and moves the reader when the guess changes. The chat shows its latest
-                       messages and earlier ones on demand, so drawing them all is cheap. -->
+                       few messages and brings earlier ones in as the reader scrolls up. -->
                   <StackPanel />
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
