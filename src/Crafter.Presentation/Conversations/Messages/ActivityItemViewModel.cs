@@ -30,12 +30,21 @@ public sealed partial class ActivityItemViewModel(Acting acting) : ObservableObj
         _ => "done",
     };
 
+    // An edit's line counts, "+12 −3", drawn in the colours of a diff once it went through.
+    public bool ShowsChanges => IsFine && Added is not null;
+
+    public bool ShowsResult => !ShowsChanges;
+
+    public string? Added => acting.Stat?.Split(' ')[0] is { } added && added.StartsWith('+') ? added : null;
+
+    public string? Removed => acting.Stat?.Split(' ') is [_, var removed] && removed.StartsWith('−') ? removed : null;
+
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsRunning), nameof(IsFine), nameof(Result))]
+    [NotifyPropertyChangedFor(nameof(IsRunning), nameof(IsFine), nameof(Result), nameof(ShowsChanges), nameof(ShowsResult))]
     public partial bool IsDone { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsFine), nameof(Result))]
+    [NotifyPropertyChangedFor(nameof(IsFine), nameof(Result), nameof(ShowsChanges), nameof(ShowsResult))]
     public partial bool IsFailed { get; set; }
 
     [ObservableProperty]

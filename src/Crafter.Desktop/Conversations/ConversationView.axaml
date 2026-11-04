@@ -738,7 +738,11 @@
                                   </Panel>
                                   <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Tool}" />
                                   <TextBlock Grid.Column="2" Classes="mono what" TextTrimming="CharacterEllipsis" Text="{Binding Summary}" />
-                                  <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Result}" />
+                                  <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Result}" IsVisible="{Binding ShowsResult}" />
+                                  <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowsChanges}">
+                                    <TextBlock Classes="mono" Foreground="{DynamicResource AddedBrush}" Text="{Binding Added}" />
+                                    <TextBlock Classes="mono" Foreground="{DynamicResource RemovedBrush}" Text="{Binding Removed}" IsVisible="{Binding Removed, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                  </StackPanel>
                                 </Grid>
                               </Button>
                               <Border Classes="output" IsVisible="{Binding IsExpanded}">
