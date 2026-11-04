@@ -753,7 +753,8 @@
       </Border>
 
       <StackPanel DockPanel.Dock="Bottom" Margin="24,8,24,16" Spacing="8">
-        <StackPanel Orientation="Horizontal" Spacing="10" Margin="6,0,0,0" IsVisible="{Binding ShowsClock}">
+        <!-- As wide as the composer, so the clock starts at its left edge however wide the window. -->
+        <StackPanel Orientation="Horizontal" Spacing="10" MaxWidth="760" Margin="6,0,0,0" IsVisible="{Binding ShowsClock}">
           <UniformGrid Classes="bench" Rows="3" Columns="3">
             <Border Classes="cell b0" />
             <Border Classes="cell b1" />
