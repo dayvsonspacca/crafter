@@ -23,6 +23,7 @@ public sealed partial class WorkbenchWindow : Window
     public WorkbenchWindow(WindowManager windowManager, WorkbenchViewModel viewModel)
     {
         InitializeComponent();
+        TypedText.Watch(this);
 
         DataContext = viewModel;
         Bar.ArrangeFor(windowManager);
