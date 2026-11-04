@@ -602,7 +602,10 @@
             <ItemsControl ItemsSource="{Binding Messages}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                  <VirtualizingStackPanel />
+                  <!-- Not virtualized: a virtualizing panel guesses the height of messages it has not
+                       drawn and moves the reader when the guess changes. The chat shows its latest
+                       messages and earlier ones on demand, so drawing them all is cheap. -->
+                  <StackPanel />
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.DataTemplates>

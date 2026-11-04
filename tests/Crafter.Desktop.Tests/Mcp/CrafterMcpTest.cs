@@ -43,7 +43,7 @@ public sealed class CrafterMcpTest : IDisposable
             Assert.Equal(["list_projects", "library_status", "sync_library", "list_skills", "read_skill"], server.FreeTools);
 
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
-            Assert.Equal(7, tools.Count);
+            Assert.Equal(8, tools.Count);
 
             var listed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "list_projects", ["arguments"] = new JsonObject() });
             var projects = JsonNode.Parse(listed["result"]!["content"]![0]!["text"]!.GetValue<string>())!.AsArray();

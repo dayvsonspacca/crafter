@@ -19,7 +19,14 @@ public sealed class TestApp : Application
     public static void Run(Action test) => Session.Value.Dispatch(test, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
     // For tests that await work the UI thread must serve meanwhile, like a server calling back into it.
-    public static Task RunAsync(Func<Task> test) => Session.Value.Dispatch(test, TestContext.Current.CancellationToken);
+    // Only the Func<Task<T>> overload runs the body to its end; a bare Func<Task> lands on Func<T>,
+    // which hands back once the body reaches its first await and leaves the rest unrun.
+    public static Task RunAsync(Func<Task> test) => Session.Value.Dispatch(async () =>
+    {
+        await test();
+
+        return true;
+    }, TestContext.Current.CancellationToken);
 
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<TestApp>()
         .UseSkia()

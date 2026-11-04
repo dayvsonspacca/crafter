@@ -34,10 +34,13 @@ public static class ShortcutCatalog
             new("Stop the agent and edit the prompt", "Escape"),
             new("Clear the draft", "Escape Escape"),
             new("Mention a file", "@"),
+            new("Call a skill", "/"),
             new("Remove the last attachment, at the start of the draft", "Backspace"),
         ]),
         new("Chat text",
         [
+            new("Jump to the latest message and follow the agent", "Ctrl+End"),
+            new("Jump to the first message shown", "Ctrl+Home"),
             new("Copy the selection", "Ctrl+C"),
             new("Select all", "Ctrl+A"),
             new("Clear the selection", "Escape"),

@@ -39,6 +39,7 @@ public sealed partial class ConversationView : UserControl
         AddHandler(DragDrop.DropEvent, Drop);
         Composer.AddHandler(Button.ClickEvent, Refocus);
         AddHandler(KeyDownEvent, Stop, RoutingStrategies.Bubble);
+        AddHandler(KeyDownEvent, Travel, RoutingStrategies.Tunnel);
     }
 
     private ConversationViewModel? Conversation => DataContext as ConversationViewModel;
@@ -305,6 +306,8 @@ public sealed partial class ConversationView : UserControl
         PromptBox.Focus();
     }
 
+    // The chat follows the agent only while the reader is at the end. Any move up by the reader,
+    // however small, lets go; coming back down to the end, Ctrl+End or the jump button follows again.
     private void Follow(object? sender, ScrollChangedEventArgs e)
     {
         var bottom = Scroller.Extent.Height - Scroller.Viewport.Height;
@@ -314,7 +317,11 @@ public sealed partial class ConversationView : UserControl
         // so an upward move without either is the reader scrolling away.
         var scrolledUp = e.OffsetDelta.Y < 0 && e.ExtentDelta.Y >= 0 && e.ViewportDelta.Y <= 0;
 
-        if (following && resized && !scrolledUp)
+        if (scrolledUp)
+        {
+            following = false;
+        }
+        else if (following && resized)
         {
             Scroller.ScrollToEnd();
         }
@@ -326,10 +333,37 @@ public sealed partial class ConversationView : UserControl
         Jump.IsVisible = !following && bottom > Near;
     }
 
-    private void ToLatest(object? sender, RoutedEventArgs e)
+    private void ToLatest(object? sender, RoutedEventArgs e) => ToLatest();
+
+    // Taken on the way down, before the composer's text box would move its caret instead.
+    private void Travel(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyModifiers != KeyModifiers.Control || e.Key is not (Key.End or Key.Home))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        if (e.Key == Key.End)
+        {
+            ToLatest();
+        }
+        else
+        {
+            ToFirst();
+        }
+    }
+
+    private void ToLatest()
     {
         following = true;
         Scroller.ScrollToEnd();
+    }
+
+    private void ToFirst()
+    {
+        following = false;
+        Scroller.ScrollToHome();
     }
 
     private sealed record Place(bool Following, double Offset)
