@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Crafter.Core.Projects;
+using Crafter.Presentation.Conversations;
 
 namespace Crafter.Presentation.Status;
 
@@ -28,6 +29,13 @@ public sealed partial class StatusBarViewModel : ObservableObject, IDisposable
     public partial string? Branch { get; private set; }
 
     public bool HasBranch => Branch is not null;
+
+    // The chat in front, whose background jobs the bar counts and opens.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasChat))]
+    public partial ConversationViewModel? Chat { get; set; }
+
+    public bool HasChat => Chat is not null;
 
     public void Watch(Project? watched)
     {

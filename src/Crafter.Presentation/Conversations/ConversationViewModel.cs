@@ -56,7 +56,6 @@ public sealed partial class ConversationViewModel : ObservableObject
         this.files = files;
         this.time = time;
         Mentions = new MentionsViewModel(files);
-        IsPanelOpen = true;
         AgentName = agent.Name;
         ProjectName = projectName;
         Draft = string.Empty;
@@ -82,10 +81,16 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     public bool HasJobs => Jobs.Count > 0;
 
-    public bool IsPanelEmpty => !HasJobs;
+    public string JobsLabel => Jobs.Count switch
+    {
+        0 => "No jobs",
+        1 => "1 job",
+        var count => $"{count} jobs",
+    };
 
+    // The background jobs window, opened from the status bar or with Ctrl+J.
     [ObservableProperty]
-    public partial bool IsPanelOpen { get; set; }
+    public partial bool IsJobsOpen { get; set; }
 
     [ObservableProperty]
     public partial string ProjectName { get; set; }
@@ -216,7 +221,10 @@ public sealed partial class ConversationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void TogglePanel() => keeper.TogglePanel();
+    private void ToggleJobs() => IsJobsOpen = !IsJobsOpen;
+
+    [RelayCommand]
+    private void CloseJobs() => IsJobsOpen = false;
 
     [RelayCommand]
     private void Select() => keeper.Select(this);
@@ -339,7 +347,7 @@ public sealed partial class ConversationViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(HasJobs));
-        OnPropertyChanged(nameof(IsPanelEmpty));
+        OnPropertyChanged(nameof(JobsLabel));
         Clock();
         Tick();
     }

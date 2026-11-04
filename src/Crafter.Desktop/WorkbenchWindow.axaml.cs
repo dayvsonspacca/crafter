@@ -12,8 +12,6 @@ namespace Crafter.Desktop;
 
 public sealed partial class WorkbenchWindow : Window
 {
-    private const double NarrowWidth = 1100;
-
     private const double SidebarMin = 200;
 
     private const double SidebarMax = 320;
@@ -39,11 +37,6 @@ public sealed partial class WorkbenchWindow : Window
         if (change.Property == WindowStateProperty)
         {
             Bar?.Follow(WindowState);
-        }
-
-        if (change.Property == ClientSizeProperty && DataContext is WorkbenchViewModel viewModel)
-        {
-            viewModel.IsNarrow = ClientSize.Width < NarrowWidth;
         }
     }
 
@@ -73,7 +66,7 @@ public sealed partial class WorkbenchWindow : Window
         shortcuts.On(ChatShortcuts.Close, () => viewModel.CloseChatCommand.Execute(null));
         shortcuts.On(ChatShortcuts.Next, () => viewModel.NextChatCommand.Execute(null));
         shortcuts.On(ChatShortcuts.Previous, () => viewModel.PreviousChatCommand.Execute(null));
-        shortcuts.On(ChatShortcuts.TogglePanel, () => viewModel.TogglePanelCommand.Execute(null));
+        shortcuts.On(ChatShortcuts.ToggleJobs, () => viewModel.ToggleJobsCommand.Execute(null));
 
         for (var place = 0; place < ProjectShortcuts.Slots; place++)
         {

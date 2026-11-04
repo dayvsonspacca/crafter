@@ -52,8 +52,6 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     public bool ShowsOverview => Selected is null;
 
-    public bool ShowsPanel => IsPanelOpen && !ShowsOverview;
-
     public ObservableCollection<ConversationViewModel> Chats { get; } = [];
 
     public int Count => Chats.Count;
@@ -65,12 +63,8 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
     public bool HasUnread => Chats.Any(chat => chat.State == ChatState.Unread);
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsOverview), nameof(ShowsPanel))]
+    [NotifyPropertyChangedFor(nameof(ShowsOverview))]
     public partial ConversationViewModel? Selected { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsPanel))]
-    public partial bool IsPanelOpen { get; set; } = true;
 
     [ObservableProperty]
     public partial bool IsShown { get; set; }
@@ -108,15 +102,6 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
     public void Select(ConversationViewModel chat) => Selected = chat;
 
     public void Keep(ConversationViewModel chat) => Save();
-
-    public void TogglePanel()
-    {
-        IsPanelOpen = !IsPanelOpen;
-        foreach (var chat in Chats)
-        {
-            chat.IsPanelOpen = IsPanelOpen;
-        }
-    }
 
     public void Describe(Project described)
     {
@@ -207,7 +192,7 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     private ConversationViewModel Add(Chat chat, IAgent agent, string? resumed = null)
     {
-        var viewModel = new ConversationViewModel(chat, agent, preferences, Project.Name.Text, this, clipboard, files, time, resumed) { IsPanelOpen = IsPanelOpen };
+        var viewModel = new ConversationViewModel(chat, agent, preferences, Project.Name.Text, this, clipboard, files, time, resumed);
         viewModel.PropertyChanged += Follow;
         viewModel.Concluded += Keep;
         Chats.Add(viewModel);

@@ -98,13 +98,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     [NotifyPropertyChangedFor(nameof(ShowsSidebar))]
     public partial bool IsSidebarVisible { get; set; }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsSidebar))]
-    public partial bool IsNarrow { get; set; }
-
-    public bool ShowsSidebar => IsSidebarVisible && !IsCrowded;
-
-    private bool IsCrowded => IsNarrow && Desk is { ShowsPanel: true };
+    public bool ShowsSidebar => IsSidebarVisible;
 
     public Project? Current
     {
@@ -250,18 +244,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     private Task EditCurrent() => Current is { } project ? Edit(project) : Task.CompletedTask;
 
     [RelayCommand]
-    private void ToggleSidebar()
-    {
-        if (IsCrowded)
-        {
-            Desk?.TogglePanel();
-            IsSidebarVisible = true;
-
-            return;
-        }
-
-        IsSidebarVisible = !IsSidebarVisible;
-    }
+    private void ToggleSidebar() => IsSidebarVisible = !IsSidebarVisible;
 
     [RelayCommand]
     private void TogglePreferences() => Preferences.IsOpen = !Preferences.IsOpen;
@@ -276,7 +259,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     private void NextChat() => Desk?.Next(1);
 
     [RelayCommand]
-    private void TogglePanel() => Desk?.TogglePanel();
+    private void ToggleJobs() => Desk?.Selected?.ToggleJobsCommand.Execute(null);
 
     [RelayCommand]
     private void PreviousChat() => Desk?.Next(-1);
@@ -300,13 +283,16 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         {
             newValue.PropertyChanged += FollowDesk;
         }
+
+        Status.Chat = newValue?.Selected;
     }
 
+    // The status bar follows the chat in front: its jobs sit there.
     private void FollowDesk(object? sender, PropertyChangedEventArgs changed)
     {
-        if (changed.PropertyName is nameof(ProjectDeskViewModel.ShowsPanel))
+        if (changed.PropertyName is nameof(ProjectDeskViewModel.Selected))
         {
-            OnPropertyChanged(nameof(ShowsSidebar));
+            Status.Chat = Desk?.Selected;
         }
     }
 

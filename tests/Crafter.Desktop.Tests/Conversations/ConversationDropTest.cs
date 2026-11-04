@@ -173,10 +173,6 @@ public sealed class ConversationDropTest : IDisposable
         public void Keep(ConversationViewModel chat)
         {
         }
-
-        public void TogglePanel()
-        {
-        }
     }
 
     private sealed class Clipboard : IClipboard

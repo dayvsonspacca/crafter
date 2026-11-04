@@ -233,13 +233,18 @@ public sealed class ConversationViewModelTest
         time.Advance(TimeSpan.FromSeconds(75));
 
         Assert.True(viewModel.HasJobs);
+        Assert.Equal("2 jobs", viewModel.JobsLabel);
         Assert.Equal(["shell", "monitor"], viewModel.Jobs.Select(job => job.Kind));
         Assert.Equal("1m 15s", viewModel.Jobs[0].Elapsed);
         Assert.False(viewModel.IsAsking);
 
+        session.Run(new Job("b-1", JobKind.Shell, "Dev server"));
+        Assert.Equal("1 job", viewModel.JobsLabel);
+
         session.Run();
 
         Assert.False(viewModel.HasJobs);
+        Assert.Equal("No jobs", viewModel.JobsLabel);
     }
 
     [Fact]
@@ -296,16 +301,17 @@ public sealed class ConversationViewModelTest
     }
 
     [Fact]
-    public void StartsWithAnEmptyPanelOpen()
+    public void OpensAndClosesTheJobsWindow()
     {
         var viewModel = ViewModel(new ScriptedSession());
 
-        Assert.True(viewModel.IsPanelOpen);
-        Assert.True(viewModel.IsPanelEmpty);
+        Assert.False(viewModel.IsJobsOpen);
 
-        viewModel.TogglePanelCommand.Execute(null);
+        viewModel.ToggleJobsCommand.Execute(null);
+        Assert.True(viewModel.IsJobsOpen);
 
-        Assert.Equal(1, keeper.PanelToggles);
+        viewModel.CloseJobsCommand.Execute(null);
+        Assert.False(viewModel.IsJobsOpen);
     }
 
     private static Task Ask(ConversationViewModel viewModel, string prompt)

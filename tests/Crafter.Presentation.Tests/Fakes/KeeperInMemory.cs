@@ -15,8 +15,4 @@ internal sealed class KeeperInMemory : IChatKeeper
     public void Keep(ConversationViewModel chat)
     {
     }
-
-    public int PanelToggles { get; private set; }
-
-    public void TogglePanel() => PanelToggles++;
 }

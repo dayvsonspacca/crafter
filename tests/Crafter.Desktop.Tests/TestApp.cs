@@ -29,6 +29,7 @@ public sealed class TestApp : Application
         _ = typeof(ProseView).Assembly;
         Resources.MergedDictionaries.Add(new ResourceInclude(Crafter) { Source = new Uri("avares://crafter/Themes/Tokens.axaml") });
         Resources.MergedDictionaries.Add(new ResourceInclude(Crafter) { Source = new Uri("avares://crafter/Themes/Deepslate.axaml") });
+        Resources.MergedDictionaries.Add(new ResourceInclude(Crafter) { Source = new Uri("avares://crafter/Controls/Modal.axaml") });
         RequestedThemeVariant = ThemeVariant.Dark;
         Styles.Add(new FluentTheme());
         Styles.Add(new StyleInclude(Crafter) { Source = new Uri("avares://crafter/Themes/Controls.axaml") });

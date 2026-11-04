@@ -12,5 +12,5 @@ public static class ChatShortcuts
 
     public static readonly Shortcut Previous = Shortcut.Of("Ctrl+Shift+Tab");
 
-    public static readonly Shortcut TogglePanel = Shortcut.Of("Ctrl+J");
+    public static readonly Shortcut ToggleJobs = Shortcut.Of("Ctrl+J");
 }

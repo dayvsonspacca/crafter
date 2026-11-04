@@ -7,6 +7,4 @@ public interface IChatKeeper
     void Close(ConversationViewModel chat);
 
     void Keep(ConversationViewModel chat);
-
-    void TogglePanel();
 }
