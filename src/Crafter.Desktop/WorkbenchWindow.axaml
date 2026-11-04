@@ -8,6 +8,7 @@
         xmlns:desks="using:Crafter.Desktop.Desks"
         xmlns:preferences="using:Crafter.Desktop.Preferences"
         xmlns:agents="using:Crafter.Desktop.Agents"
+        xmlns:status="using:Crafter.Desktop.Status"
         x:Class="Crafter.Desktop.WorkbenchWindow"
         x:DataType="presentation:WorkbenchViewModel"
         Title="crafter"
@@ -21,6 +22,9 @@
     <controls:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
     <Panel>
       <DockPanel IsVisible="{Binding !ShowsSetup}">
+        <Panel DockPanel.Dock="Bottom" IsVisible="{Binding ShowsConversation}">
+          <status:StatusBarView DataContext="{Binding Status}" />
+        </Panel>
         <Panel DockPanel.Dock="Left" IsVisible="{Binding ShowsSidebar}">
           <projects:ProjectsSidebarView x:Name="Sidebar" Width="240" />
           <Thumb Width="4"

@@ -12,6 +12,7 @@ using Crafter.Presentation.Platform;
 using Crafter.Presentation.Preferences;
 using Crafter.Presentation.Projects;
 using Crafter.Presentation.Projects.Namer;
+using Crafter.Presentation.Status;
 
 namespace Crafter.Presentation;
 
@@ -35,7 +36,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         SetupViewModel setup,
         PreferencesViewModel preferencesScreen,
         DeskFactory deskFactory,
-        IClipboard clipboard)
+        IClipboard clipboard,
+        StatusBarViewModel status)
     {
         this.bookshelf = bookshelf;
         this.preferences = preferences;
@@ -45,6 +47,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         Namer = namer;
         Setup = setup;
         Preferences = preferencesScreen;
+        Status = status;
         Preferences.PropertyChanged += Follow;
         Setup.PropertyChanged += Follow;
         if (!Setup.IsPicking)
@@ -68,6 +71,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public PreferencesViewModel Preferences { get; }
 
     public SetupViewModel Setup { get; }
+
+    public StatusBarViewModel Status { get; }
 
     public ObservableCollection<ShelfItemViewModel> Shelf { get; } = [];
 
@@ -107,6 +112,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         private set
         {
             field = value;
+            Status.Watch(value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(Heading));
         }

@@ -11,6 +11,7 @@ using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
 using Crafter.Presentation.Preferences;
 using Crafter.Presentation.Projects.Namer;
+using Crafter.Presentation.Status;
 using Crafter.Storage;
 
 namespace Crafter.Desktop;
@@ -43,7 +44,8 @@ public static class Composition
             setup,
             new PreferencesViewModel(preferences, picker, setup, new AvaloniaThemeSwitcher()),
             new DeskFactory(new JsonChatStore(Path.Combine(Data, "chats")), crew, preferences, clipboard, time),
-            clipboard);
+            clipboard,
+            new StatusBarViewModel(new GitBranches(), time));
 
         return new WorkbenchWindow(WindowManager.Detect(), viewModel);
     }
