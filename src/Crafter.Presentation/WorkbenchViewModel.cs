@@ -54,13 +54,13 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         Setup = setup;
         Preferences = preferencesScreen;
         Status = status;
-        Skills = new ProjectSkillsViewModel(Preferences.Library, (project, skill) => bookshelf.Has(project, skill.Id), Give);
+        Brief = new ProjectBriefViewModel(Preferences.Library, (project, skill) => bookshelf.Has(project, skill.Id), Give, AxiomsOf, Hold, Drop);
         Preferences.Library.Changed += (_, _) => Recount();
-        Status.SkillsWanted += (_, _) =>
+        Status.BriefWanted += (_, _) =>
         {
             if (Current is { } current && current != Home)
             {
-                Skills.Open(current);
+                Brief.Open(current);
             }
         };
         Preferences.PropertyChanged += Follow;
@@ -89,7 +89,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public StatusBarViewModel Status { get; }
 
-    public ProjectSkillsViewModel Skills { get; }
+    public ProjectBriefViewModel Brief { get; }
 
     public ObservableCollection<ShelfItemViewModel> Shelf { get; } = [];
 
@@ -119,7 +119,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         {
             field = value;
             Status.Watch(value);
-            Status.ChoosesSkills = value is not null && value != Home;
+            Status.ShowsBrief = value is not null && value != Home;
             Recount();
             OnPropertyChanged();
             OnPropertyChanged(nameof(Heading));
@@ -266,15 +266,35 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public IReadOnlyList<string> AxiomsOf(Project project) => bookshelf.AxiomsOf(project);
 
+    // A new axiom reaches the project's chats when their sessions start again.
+    public bool Hold(Project project, string axiom) => Changed(project, bookshelf.Hold(project, axiom));
+
+    public bool Drop(Project project, string axiom) => Changed(project, bookshelf.Drop(project, axiom));
+
     public void Give(Project project, Skill skill, bool given)
     {
         bookshelf.Give(project, skill.Id, given);
         Recount();
     }
 
+    private bool Changed(Project project, bool changed)
+    {
+        if (changed)
+        {
+            Recount();
+            if (Brief.IsOpen && Brief.Project == project)
+            {
+                Brief.Recall();
+            }
+        }
+
+        return changed;
+    }
+
     private void Recount()
     {
         Status.Skills = Current is { } shown ? SkillsFor(shown).Count : 0;
+        Status.Axioms = Current is { } held ? bookshelf.AxiomsOf(held).Count : 0;
     }
 
     public int OpenChats(Project project) => desks.GetValueOrDefault(project)?.Count ?? 0;

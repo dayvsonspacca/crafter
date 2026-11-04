@@ -31,27 +31,34 @@ public sealed partial class StatusBarViewModel : ObservableObject, IDisposable
 
     public bool HasBranch => Branch is not null;
 
-    // How many library skills the project in front gets, defaults included; the bar opens them
-    // in a window.
+    // How many library skills the project in front gets, defaults included, and how many axioms it
+    // follows; the bar opens both in a window.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SkillsLabel))]
+    [NotifyPropertyChangedFor(nameof(BriefLabel))]
     public partial int Skills { get; set; }
 
-    public string SkillsLabel => Skills switch
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BriefLabel))]
+    public partial int Axioms { get; set; }
+
+    public string BriefLabel => (Skills, Axioms) switch
     {
-        0 => "No skills",
-        1 => "1 skill",
-        _ => $"{Skills} skills",
+        (0, 0) => "No skills or axioms",
+        (_, 0) => Count(Skills, "skill", "skills"),
+        (0, _) => Count(Axioms, "axiom", "axioms"),
+        _ => $"{Count(Skills, "skill", "skills")} · {Count(Axioms, "axiom", "axioms")}",
     };
 
-    // Home gets the defaults and nothing to choose, so it shows no skills to open.
+    // Home gets the default skills and holds no axioms, so it shows nothing to open.
     [ObservableProperty]
-    public partial bool ChoosesSkills { get; set; }
+    public partial bool ShowsBrief { get; set; }
 
-    public event EventHandler? SkillsWanted;
+    public event EventHandler? BriefWanted;
 
     [RelayCommand]
-    private void ShowSkills() => SkillsWanted?.Invoke(this, EventArgs.Empty);
+    private void ShowBrief() => BriefWanted?.Invoke(this, EventArgs.Empty);
+
+    private static string Count(int count, string one, string many) => count == 1 ? $"1 {one}" : $"{count} {many}";
 
     // The chat in front, whose background jobs the bar counts and opens.
     [ObservableProperty]

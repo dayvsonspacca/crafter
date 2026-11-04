@@ -23,14 +23,16 @@ public sealed class StatusBarViewModelTest
     }
 
     [Theory]
-    [InlineData(0, "No skills")]
-    [InlineData(1, "1 skill")]
-    [InlineData(3, "3 skills")]
-    public void CountsTheSkillsTheProjectGets(int skills, string label)
+    [InlineData(0, 0, "No skills or axioms")]
+    [InlineData(1, 0, "1 skill")]
+    [InlineData(3, 0, "3 skills")]
+    [InlineData(0, 1, "1 axiom")]
+    [InlineData(2, 3, "2 skills · 3 axioms")]
+    public void CountsTheSkillsAndAxiomsTheProjectGets(int skills, int axioms, string label)
     {
-        using var status = new StatusBarViewModel(branches, time) { Skills = skills };
+        using var status = new StatusBarViewModel(branches, time) { Skills = skills, Axioms = axioms };
 
-        Assert.Equal(label, status.SkillsLabel);
+        Assert.Equal(label, status.BriefLabel);
     }
 
     [Fact]

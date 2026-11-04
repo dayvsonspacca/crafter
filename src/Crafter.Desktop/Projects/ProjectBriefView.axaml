@@ -1,0 +1,120 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:projects="using:Crafter.Presentation.Projects"
+             xmlns:controls="using:Crafter.Desktop.Controls"
+             x:Class="Crafter.Desktop.Projects.ProjectBriefView"
+             x:DataType="projects:ProjectBriefViewModel"
+             IsVisible="{Binding IsOpen}"
+             Focusable="True">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.about">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Border.choice">
+      <Setter Property="Padding" Value="0,10" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Button.tab">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="4,0" />
+      <Setter Property="Height" Value="38" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="BorderThickness" Value="0,0,0,2" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    </Style>
+    <Style Selector="Button.tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.tab.chosen">
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+  </UserControl.Styles>
+
+  <controls:Modal Title="{Binding Title}" IsCompact="True" Dismissed="Dismiss">
+    <DockPanel>
+      <Border DockPanel.Dock="Top" Padding="20,0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}">
+        <StackPanel Orientation="Horizontal" Spacing="18">
+          <Button Classes="tab" Classes.chosen="{Binding ShowsSkills}" Content="Skills" Command="{Binding ShowSkillsTabCommand}" />
+          <Button Classes="tab" Classes.chosen="{Binding ShowsAxioms}" Content="Axioms" Command="{Binding ShowAxiomsTabCommand}" />
+        </StackPanel>
+      </Border>
+
+      <!-- One height for both tabs, so the window does not jump when switching. -->
+      <Panel Height="440">
+        <ScrollViewer IsVisible="{Binding ShowsSkills}" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="20,8,20,20" Spacing="14">
+            <TextBlock Classes="about" Margin="0,8,0,0" Text="The library has no skills yet." IsVisible="{Binding !HasSkills}" />
+            <ItemsControl ItemsSource="{Binding Skills}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="projects:SkillChoiceViewModel">
+                  <Border Classes="choice">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                      <CheckBox IsChecked="{Binding IsGiven}" IsEnabled="{Binding CanChange}" AutomationProperties.Name="{Binding Skill.Name}">
+                        <StackPanel Spacing="2">
+                          <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Skill.Name}" />
+                          <TextBlock Classes="about" Text="{Binding Skill.Description}" />
+                        </StackPanel>
+                      </CheckBox>
+                      <TextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Top" Text="default" IsVisible="{Binding IsDefault}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="about"
+                       Text="Defaults come from Preferences → Library and reach every project; tick others for this one. Call a skill in a chat with /." />
+          </StackPanel>
+        </ScrollViewer>
+
+        <DockPanel IsVisible="{Binding ShowsAxioms}" Margin="20,16,20,20">
+          <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,14,0,0">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <TextBox Text="{Binding NewAxiom}" Watermark="A rule the agent always follows" AutomationProperties.Name="New axiom">
+                <TextBox.KeyBindings>
+                  <KeyBinding Gesture="Enter" Command="{Binding AddAxiomCommand}" />
+                </TextBox.KeyBindings>
+              </TextBox>
+              <Button Grid.Column="1" Classes="primary" Content="Add" Command="{Binding AddAxiomCommand}" />
+            </Grid>
+            <TextBlock Classes="about"
+                       Text="Rules this project's agent follows in every chat, in place of CLAUDE.md and Claude Code's memory. A chat takes a change when its session starts again." />
+          </StackPanel>
+
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <Panel>
+              <TextBlock Classes="about" Text="No axioms yet." IsVisible="{Binding !HasAxioms}" />
+              <ItemsControl ItemsSource="{Binding Axioms}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="projects:AxiomViewModel">
+                    <Border Classes="choice">
+                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" FontSize="{StaticResource FontSizeBody}" Text="{Binding Text}" />
+                        <Button Grid.Column="1"
+                                Classes="icon"
+                                VerticalAlignment="Center"
+                                Command="{Binding DropCommand}"
+                                ToolTip.Tip="Remove"
+                                AutomationProperties.Name="Remove axiom">
+                          <Path Data="M4,4 L12,12 M12,4 L4,12" />
+                        </Button>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Panel>
+          </ScrollViewer>
+        </DockPanel>
+      </Panel>
+    </DockPanel>
+  </controls:Modal>
+</UserControl>

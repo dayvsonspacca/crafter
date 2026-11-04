@@ -57,7 +57,7 @@
       <folders:FolderPickerView DataContext="{Binding Picker}" />
       <agents:SetupView DataContext="{Binding Setup}" />
       <conversations:JobsView DataContext="{Binding Desk.Selected}" />
-      <projects:ProjectSkillsView DataContext="{Binding Skills}" />
+      <projects:ProjectBriefView DataContext="{Binding Brief}" />
     </Panel>
   </DockPanel>
 </Window>
