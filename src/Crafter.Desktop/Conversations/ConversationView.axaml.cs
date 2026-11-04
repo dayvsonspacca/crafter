@@ -6,7 +6,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using ColorTextBlock.Avalonia;
+using Crafter.Desktop.Prose;
 using Crafter.Presentation.Conversations;
 using Crafter.Presentation.Conversations.Composing;
 
@@ -19,28 +19,17 @@ public sealed partial class ConversationView : UserControl
     // One view serves every chat, so each chat keeps where it was left.
     private readonly ConditionalWeakTable<ConversationViewModel, Place> places = new();
 
+    // One selection for the whole chat, across answers, prompts and tool output.
+    private readonly TextSelection selection;
+
     private ConversationViewModel? shown;
 
     private bool following = true;
 
-    static ConversationView()
-    {
-        // A markdown link puts the arrow back on its paragraph when the pointer leaves it;
-        // clearing that lets the paragraph inherit the text cursor again.
-        CursorProperty.Changed.AddClassHandler<CTextBlock>((block, e) =>
-        {
-            if (ReferenceEquals(e.NewValue, Cursor.Default))
-            {
-                block.ClearValue(CursorProperty);
-            }
-        });
-    }
-
     public ConversationView()
     {
         InitializeComponent();
-        MarkdownClicks.Watch(Scroller);
-        MarkdownCopy.Watch(Scroller);
+        selection = TextSelection.Watch(Scroller);
         PromptBox.AddHandler(KeyDownEvent, Submit, RoutingStrategies.Tunnel);
         PromptBox.AddHandler(TextBox.PastingFromClipboardEvent, Paste);
         PromptBox.PropertyChanged += Look;
@@ -212,6 +201,7 @@ public sealed partial class ConversationView : UserControl
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
+        selection?.Clear();
 
         if (shown is not null)
         {

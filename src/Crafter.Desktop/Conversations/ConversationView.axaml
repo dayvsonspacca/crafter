@@ -1,8 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
-             xmlns:ctxt="clr-namespace:ColorTextBlock.Avalonia;assembly=ColorTextBlock.Avalonia"
-             xmlns:mdc="clr-namespace:Markdown.Avalonia.StyleCollections;assembly=Markdown.Avalonia"
              xmlns:conversations="using:Crafter.Presentation.Conversations"
              xmlns:messages="using:Crafter.Presentation.Conversations.Messages"
              xmlns:composing="using:Crafter.Presentation.Conversations.Composing"
@@ -11,6 +8,7 @@
              xmlns:core="using:Crafter.Core.Conversations"
              xmlns:conversationViews="using:Crafter.Desktop.Conversations"
              xmlns:controls="using:Crafter.Desktop.Controls"
+             xmlns:prose="using:Crafter.Desktop.Prose"
              x:Class="Crafter.Desktop.Conversations.ConversationView"
              x:DataType="conversations:ConversationViewModel">
   <UserControl.Styles>
@@ -660,7 +658,7 @@
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
-                      <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" LineHeight="22" IsVisible="{Binding HasText}" />
+                      <prose:ProseText Text="{Binding Text}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" LineHeight="22" IsVisible="{Binding HasText}" />
                     </StackPanel>
                   </Border>
                 </Grid>
@@ -692,46 +690,7 @@
                           <ItemsControl ItemsSource="{Binding Pieces}" Classes.aside="{Binding FollowsActivity}">
                             <ItemsControl.DataTemplates>
                               <DataTemplate DataType="messages:ProseViewModel">
-                                <md:MarkdownScrollViewer Markdown="{Binding Text}"
-                                                         SelectionEnabled="True"
-                                                         SelectionBrush="{DynamicResource TextSelectionBrush}"
-                                                         Cursor="IBeam">
-                                  <md:MarkdownScrollViewer.MarkdownStyle>
-                                    <Styles>
-                                      <mdc:MarkdownStyleFluentTheme />
-                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer ctxt|CCode">
-                                        <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
-                                        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-                                        <Setter Property="MonospaceFontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-                                      </Style>
-                                      <!-- Tables read like the code blocks: one quiet frame, row dividers only, no zebra. -->
-                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Border.Table">
-                                        <Setter Property="Margin" Value="0,4,0,12" />
-                                        <Setter Property="CornerRadius" Value="9" />
-                                        <Setter Property="ClipToBounds" Value="True" />
-                                        <Setter Property="BorderThickness" Value="1" />
-                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-                                        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
-                                      </Style>
-                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Grid.Table > Border">
-                                        <Setter Property="Padding" Value="12,8" />
-                                        <Setter Property="BorderThickness" Value="0,0,0,1" />
-                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-                                        <Setter Property="Background" Value="Transparent" />
-                                      </Style>
-                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Grid.Table > Border.LastTableRow">
-                                        <Setter Property="BorderThickness" Value="0" />
-                                      </Style>
-                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Grid.Table > Border.TableHeader">
-                                        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-                                      </Style>
-                                      <Style Selector=".Markdown_Avalonia_MarkdownViewer Border.TableHeader ctxt|CTextBlock">
-                                        <Setter Property="FontWeight" Value="SemiBold" />
-                                        <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-                                      </Style>
-                                    </Styles>
-                                  </md:MarkdownScrollViewer.MarkdownStyle>
-                                </md:MarkdownScrollViewer>
+                                <prose:ProseView Markdown="{Binding Text}" />
                               </DataTemplate>
                               <DataTemplate DataType="messages:CodeBlockViewModel">
                                 <Border Margin="0,4,0,12"
@@ -779,12 +738,12 @@
                               </Grid>
                             </Button>
                             <Border Classes="output" IsVisible="{Binding IsExpanded}">
-                              <SelectableTextBlock FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                                   FontSize="12"
-                                                   LineHeight="19"
-                                                   TextWrapping="Wrap"
-                                                   Foreground="{DynamicResource ForegroundMutedBrush}"
-                                                   Text="{Binding Output}" />
+                              <prose:ProseText FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                               FontSize="12"
+                                               LineHeight="19"
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource ForegroundMutedBrush}"
+                                               Text="{Binding Output}" />
                             </Border>
                           </StackPanel>
                         </DataTemplate>
@@ -797,10 +756,10 @@
                                       BorderThickness="1"
                                       BorderBrush="{DynamicResource BorderBrush}"
                                       Background="{DynamicResource BackgroundBrush}">
-                                <SelectableTextBlock FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                                     FontSize="13"
-                                                     TextWrapping="Wrap"
-                                                     Text="{Binding Summary}" />
+                                <prose:ProseText FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                                 FontSize="13"
+                                                 TextWrapping="Wrap"
+                                                 Text="{Binding Summary}" />
                               </Border>
                               <TextBlock FontSize="{StaticResource FontSizeCallout}"
                                          TextWrapping="Wrap"

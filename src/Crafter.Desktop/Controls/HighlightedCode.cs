@@ -2,11 +2,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
+using Crafter.Desktop.Prose;
 using Crafter.Highlight;
 
 namespace Crafter.Desktop.Controls;
 
-public sealed class HighlightedCode : SelectableTextBlock
+public sealed class HighlightedCode : ProseText
 {
     public static readonly StyledProperty<IReadOnlyList<Token>> TokensProperty =
         AvaloniaProperty.Register<HighlightedCode, IReadOnlyList<Token>>(nameof(Tokens), []);

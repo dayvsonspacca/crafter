@@ -115,4 +115,79 @@
     <Setter Property="Cursor" Value="IBeam" />
     <Setter Property="SelectionBrush" Value="{DynamicResource TextSelectionBrush}" />
   </Style>
+
+  <!-- Chat text drawn from markdown: ProseView blocks, selected as one text by TextSelection. -->
+  <Style Selector="SelectableTextBlock.prose">
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeContent}" />
+    <Setter Property="LineHeight" Value="22" />
+  </Style>
+  <Style Selector="SelectableTextBlock.prose.h1">
+    <Setter Property="FontSize" Value="{StaticResource FontSizeTitle1}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LineHeight" Value="30" />
+  </Style>
+  <Style Selector="SelectableTextBlock.prose.h2">
+    <Setter Property="FontSize" Value="{StaticResource FontSizeTitle3}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LineHeight" Value="24" />
+  </Style>
+  <Style Selector="SelectableTextBlock.prose.h3">
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="SelectableTextBlock.prose.marker">
+    <Setter Property="MinWidth" Value="12" />
+    <Setter Property="TextAlignment" Value="Right" />
+    <Setter Property="TextWrapping" Value="NoWrap" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+  </Style>
+  <Style Selector="SelectableTextBlock.prose.code">
+    <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="TextWrapping" Value="NoWrap" />
+  </Style>
+  <Style Selector="SelectableTextBlock.prose.td, SelectableTextBlock.prose.th">
+    <Setter Property="MaxWidth" Value="360" />
+  </Style>
+  <Style Selector="SelectableTextBlock.prose.th">
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+  </Style>
+  <Style Selector="Border.prose-quote">
+    <Setter Property="Padding" Value="12,0,0,0" />
+    <Setter Property="BorderThickness" Value="2,0,0,0" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+  </Style>
+  <Style Selector="Border.prose-quote SelectableTextBlock.prose">
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+  </Style>
+  <Style Selector="Border.prose-code, Border.prose-table">
+    <Setter Property="CornerRadius" Value="9" />
+    <Setter Property="ClipToBounds" Value="True" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+  </Style>
+  <Style Selector="Border.prose-code">
+    <Setter Property="Padding" Value="14,12" />
+  </Style>
+  <Style Selector="Border.prose-table">
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+  <Style Selector="Border.prose-cell">
+    <Setter Property="Padding" Value="12,8" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+  </Style>
+  <Style Selector="Border.prose-cell.header">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+  </Style>
+  <Style Selector="Border.prose-cell.last">
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="Rectangle.prose-rule">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Fill" Value="{DynamicResource BorderBrush}" />
+  </Style>
 </Styles>
