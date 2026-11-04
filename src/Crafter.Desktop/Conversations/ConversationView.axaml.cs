@@ -35,6 +35,7 @@ public sealed partial class ConversationView : UserControl
         PromptBox.PropertyChanged += Look;
         Composer.AddHandler(DragDrop.DragOverEvent, Hover);
         Composer.AddHandler(DragDrop.DropEvent, Drop);
+        Composer.AddHandler(Button.ClickEvent, Refocus);
     }
 
     private ConversationViewModel? Conversation => DataContext as ConversationViewModel;
@@ -151,6 +152,9 @@ public sealed partial class ConversationView : UserControl
         }
     }
 
+    // Craft, attach and remove buttons hand the keyboard back to the prompt.
+    private void Refocus(object? sender, RoutedEventArgs e) => Dispatcher.UIThread.Post(() => PromptBox.Focus());
+
     private void Hover(object? sender, DragEventArgs e) =>
         e.DragEffects = e.DataTransfer.Contains(DataFormat.File) ? DragDropEffects.Copy : DragDropEffects.None;
 
@@ -236,6 +240,9 @@ public sealed partial class ConversationView : UserControl
         {
             Scroller.Offset = new Vector(Scroller.Offset.X, place.Offset);
         }
+
+        // Opening or switching to a chat puts the cursor in its composer, ready to type.
+        PromptBox.Focus();
     }
 
     private void Follow(object? sender, ScrollChangedEventArgs e)
