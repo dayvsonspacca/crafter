@@ -92,7 +92,7 @@
                            FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
                            FontSize="10"
                            FontWeight="SemiBold"
-                           Foreground="{DynamicResource RemovedBrush}"
+                           Foreground="{DynamicResource ForegroundBrush}"
                            Text="{Binding Overview.Letter}"
                            IsVisible="{Binding !Overview.HasIcon}" />
               </Panel>
@@ -117,7 +117,7 @@
                     <Panel Width="7" Height="7" VerticalAlignment="Center">
                       <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsCrafting}" />
                       <Ellipse Fill="{DynamicResource AccentSecondaryBrush}" IsVisible="{Binding IsUnread}" />
-                      <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
+                      <Ellipse Stroke="{DynamicResource IdleBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
                     </Panel>
                     <TextBlock Grid.Column="1"
                                MaxWidth="200"

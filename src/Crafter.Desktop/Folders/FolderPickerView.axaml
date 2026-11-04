@@ -54,8 +54,11 @@
     <Style Selector="ListBox.entries ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style Selector="ListBox.entries ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter, ListBox.entries ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.entries ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    <Style Selector="ListBox.entries ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    </Style>
+    <Style Selector="ListBox.entries ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.entries ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
     </Style>
 
     <Style Selector="Border.tag">

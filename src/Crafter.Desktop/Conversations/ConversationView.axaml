@@ -30,7 +30,7 @@
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     </Style>
     <Style Selector="Border.pill.crafting TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
     </Style>
 
     <Style Selector="Border.pill.waiting">
@@ -353,7 +353,7 @@
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
     <Style Selector="Button.chip.on">
-      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
     </Style>
     <Style Selector="Button.job">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -401,7 +401,7 @@
       <Setter Property="Focusable" Value="False" />
     </Style>
     <Style Selector="Button.mention:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.mention:pressed /template/ ContentPresenter#PART_ContentPresenter, Button.mention.chosen /template/ ContentPresenter#PART_ContentPresenter, Button.mention.chosen:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
     </Style>
     <Style Selector="Button.mention TextBlock">
       <Setter Property="FontSize" Value="13.5" />

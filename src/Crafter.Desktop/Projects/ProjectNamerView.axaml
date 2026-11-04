@@ -81,7 +81,7 @@
                            FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
                            FontSize="18"
                            FontWeight="SemiBold"
-                           Foreground="{DynamicResource RemovedBrush}"
+                           Foreground="{DynamicResource ForegroundBrush}"
                            Text="{Binding Letter}"
                            IsVisible="{Binding !HasPreview}" />
               </Panel>

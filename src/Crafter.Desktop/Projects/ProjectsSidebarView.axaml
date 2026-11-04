@@ -39,7 +39,7 @@
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     </Style>
     <Style Selector="Button.project.current /template/ ContentPresenter#PART_ContentPresenter, Button.project.current:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
     </Style>
     <Style Selector="Button.project TextBlock.name">
       <Setter Property="FontSize" Value="13" />
@@ -66,7 +66,7 @@
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     </Style>
     <Style Selector="Button.foot.current /template/ ContentPresenter#PART_ContentPresenter, Button.foot.current:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
     </Style>
 
     <Style Selector="MenuItem.danger">
@@ -168,7 +168,7 @@
                                    FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
                                    FontSize="10"
                                    FontWeight="SemiBold"
-                                   Foreground="{DynamicResource RemovedBrush}"
+                                   Foreground="{DynamicResource ForegroundBrush}"
                                    Text="{Binding Letter}"
                                    IsVisible="{Binding !HasIcon}" />
                       </Panel>

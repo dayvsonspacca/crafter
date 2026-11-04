@@ -28,10 +28,10 @@
       <Setter Property="Stroke" Value="{DynamicResource ForegroundBrush}" />
     </Style>
     <Style Selector="Button.close:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.close:pressed /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Background" Value="{DynamicResource CloseHoverBrush}" />
     </Style>
     <Style Selector="Button.close:pointerover Path, Button.close:pressed Path">
-      <Setter Property="Stroke" Value="{DynamicResource OnAccentBrush}" />
+      <Setter Property="Stroke" Value="{DynamicResource OnCloseHoverBrush}" />
     </Style>
 
     <Style Selector="TextBlock.path">

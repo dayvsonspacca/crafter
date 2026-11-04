@@ -42,6 +42,11 @@
   <Color x:Key="AddedColor">#57C48F</Color>
   <Color x:Key="RemovedColor">#E5737A</Color>
   <Color x:Key="ScrimColor">#9E080A0C</Color>
+  <Color x:Key="SelectedColor">#283E4C</Color>
+  <Color x:Key="AccentTextColor">#6CC4E8</Color>
+  <Color x:Key="IdleColor">#8794A5</Color>
+  <Color x:Key="CloseHoverColor">#C42B1C</Color>
+  <Color x:Key="OnCloseHoverColor">#FFFFFF</Color>
 
   <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
   <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
@@ -55,6 +60,11 @@
   <SolidColorBrush x:Key="AddedBrush" Color="{StaticResource AddedColor}" />
   <SolidColorBrush x:Key="RemovedBrush" Color="{StaticResource RemovedColor}" />
   <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource ScrimColor}" />
+  <SolidColorBrush x:Key="SelectedBrush" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="AccentTextBrush" Color="{StaticResource AccentTextColor}" />
+  <SolidColorBrush x:Key="IdleBrush" Color="{StaticResource IdleColor}" />
+  <SolidColorBrush x:Key="CloseHoverBrush" Color="{StaticResource CloseHoverColor}" />
+  <SolidColorBrush x:Key="OnCloseHoverBrush" Color="{StaticResource OnCloseHoverColor}" />
 
   <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource SurfaceColor}" />
   <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
@@ -67,9 +77,9 @@
   <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource BorderColor}" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource HoverColor}" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource BorderColor}" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="{StaticResource BorderColor}" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="{StaticResource BorderColor}" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPressed" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPressed" Color="{StaticResource SelectedColor}" />
   <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="{StaticResource ForegroundColor}" />
   <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="{StaticResource ForegroundColor}" />
   <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver" Color="{StaticResource ForegroundColor}" />

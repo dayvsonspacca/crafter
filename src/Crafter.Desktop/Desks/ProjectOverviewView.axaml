@@ -69,7 +69,7 @@
                        FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
                        FontSize="26"
                        FontWeight="SemiBold"
-                       Foreground="{DynamicResource RemovedBrush}"
+                       Foreground="{DynamicResource ForegroundBrush}"
                        Text="{Binding Letter}"
                        IsVisible="{Binding !HasIcon}" />
           </Panel>
@@ -102,7 +102,7 @@
                     <Panel Width="7" Height="7" VerticalAlignment="Center">
                       <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsCrafting}" />
                       <Ellipse Fill="{DynamicResource AccentSecondaryBrush}" IsVisible="{Binding IsUnread}" />
-                      <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
+                      <Ellipse Stroke="{DynamicResource IdleBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
                     </Panel>
                     <StackPanel Grid.Column="1" Spacing="3">
                       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">

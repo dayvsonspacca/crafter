@@ -105,7 +105,7 @@
       <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
     </Style>
     <Style Selector="TextBlock.state.attention">
-      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
     </Style>
 
   </UserControl.Styles>
