@@ -49,22 +49,6 @@ public sealed class Bookshelf
         store.Save(shelf);
     }
 
-    public bool Can(Project project, Capability capability) =>
-        shelf.Find(shelved => shelved.Project == project)?.Capabilities.Contains(capability) ?? false;
-
-    public void Allow(Project project, Capability capability, bool allowed)
-    {
-        var place = shelf.FindIndex(shelved => shelved.Project == project);
-        if (place < 0 || Can(project, capability) == allowed)
-        {
-            return;
-        }
-
-        var capabilities = shelf[place].Capabilities;
-        shelf[place] = shelf[place] with { Capabilities = allowed ? [.. capabilities, capability] : [.. capabilities.Where(each => each != capability)] };
-        store.Save(shelf);
-    }
-
     // Whether the project was given this library skill, defaults aside.
     public bool Has(Project project, string skill) =>
         shelf.Find(shelved => shelved.Project == project)?.Skills.Contains(skill) ?? false;

@@ -60,21 +60,17 @@ public sealed class CrafterAbilitiesTest : IDisposable
         lorekeeper = bookshelf.Add(Directory.CreateDirectory(Path.Combine(home, "lorekeeper")).FullName, new ProjectName("Lorekeeper"));
         workbench.Open(crafter);
         workbench.NewChatCommand.Execute(null);
-        workbench.Allow(crafter, Capability.ManageCrafter, allowed: true);
     }
 
     [Fact]
-    public void ListsTheProjectsAndSaysWhichOneAsked()
+    public void ListsTheProjectsButNotHome()
     {
-        var projects = JsonNode.Parse(abilities.ListProjects(crafter.Folder).Text)!.AsArray();
+        var projects = JsonNode.Parse(abilities.ListProjects().Text)!.AsArray();
 
         Assert.Equal(["Crafter", "Lorekeeper"], projects.Select(project => project!["name"]!.GetValue<string>()));
+        Assert.Equal(crafter.Folder, projects[0]!["folder"]!.GetValue<string>());
         Assert.Equal("main", projects[0]!["branch"]!.GetValue<string>());
         Assert.Equal(1, projects[0]!["openChats"]!.GetValue<int>());
-        Assert.True(projects[0]!["managesCrafter"]!.GetValue<bool>());
-        Assert.False(projects[1]!["managesCrafter"]!.GetValue<bool>());
-        Assert.True(projects[0]!["isYours"]!.GetValue<bool>());
-        Assert.False(projects[1]!["isYours"]!.GetValue<bool>());
     }
 
     [Fact]
@@ -156,39 +152,6 @@ public sealed class CrafterAbilitiesTest : IDisposable
         var failed = await abilities.SaveSkill(draft);
         Assert.True(failed.IsError);
         Assert.Equal("Could not save pr-review: rejected: fetch first", failed.Text);
-    }
-
-    [Fact]
-    public void CountsTheCapabilitiesOfTheProjectInFront()
-    {
-        Assert.Equal("1 capability", workbench.Status.CapabilitiesLabel);
-
-        workbench.Open(lorekeeper);
-        Assert.Equal("No capabilities", workbench.Status.CapabilitiesLabel);
-    }
-
-    [Fact]
-    public void OpensTheCapabilitiesOfTheProjectInFrontFromTheStatusBar()
-    {
-        workbench.Status.ShowCapabilitiesCommand.Execute(null);
-
-        Assert.True(workbench.Capabilities.IsOpen);
-        Assert.Equal("Capabilities · Crafter", workbench.Capabilities.Title);
-        var choice = Assert.Single(workbench.Capabilities.Choices);
-        Assert.Equal("Manages Crafter", choice.Info.Name);
-        Assert.True(choice.IsGranted);
-        Assert.Equal(["rename_project", "set_project_icon", "save_skill"], choice.Info.Tools.Where(tool => tool.Asks).Select(tool => tool.Name));
-    }
-
-    [Fact]
-    public void RevokesFromTheCapabilitiesWindow()
-    {
-        workbench.Status.ShowCapabilitiesCommand.Execute(null);
-
-        workbench.Capabilities.Choices[0].IsGranted = false;
-
-        Assert.False(workbench.Can(crafter, Capability.ManageCrafter));
-        Assert.Equal("No capabilities", workbench.Status.CapabilitiesLabel);
     }
 
     public void Dispose() => Directory.Delete(home, recursive: true);

@@ -23,16 +23,14 @@ public sealed class StatusBarViewModelTest
     }
 
     [Theory]
-    [InlineData(0, 0, "No capabilities")]
-    [InlineData(1, 0, "1 capability")]
-    [InlineData(2, 0, "2 capabilities")]
-    [InlineData(0, 1, "1 skill")]
-    [InlineData(1, 3, "1 capability · 3 skills")]
-    public void CountsWhatTheProjectHolds(int granted, int skills, string label)
+    [InlineData(0, "No skills")]
+    [InlineData(1, "1 skill")]
+    [InlineData(3, "3 skills")]
+    public void CountsTheSkillsTheProjectGets(int skills, string label)
     {
-        using var status = new StatusBarViewModel(branches, time) { Granted = granted, Skills = skills };
+        using var status = new StatusBarViewModel(branches, time) { Skills = skills };
 
-        Assert.Equal(label, status.CapabilitiesLabel);
+        Assert.Equal(label, status.SkillsLabel);
     }
 
     [Fact]

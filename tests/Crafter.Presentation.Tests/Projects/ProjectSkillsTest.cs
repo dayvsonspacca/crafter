@@ -13,7 +13,7 @@ using Crafter.Presentation.Tests.Fakes;
 using Crafter.Testing;
 using Microsoft.Extensions.Time.Testing;
 
-namespace Crafter.Presentation.Tests.Capabilities;
+namespace Crafter.Presentation.Tests.Projects;
 
 public sealed class ProjectSkillsTest : IDisposable
 {
@@ -67,34 +67,42 @@ public sealed class ProjectSkillsTest : IDisposable
         Assert.Equal([Commit], workbench.SkillsFor(crafter));
         Assert.Equal([Commit], workbench.SkillsFor(lorekeeper));
         Assert.Equal(["commit"], saved.Saved.DefaultSkills);
-        Assert.Equal("1 skill", workbench.Status.CapabilitiesLabel);
+        Assert.Equal("1 skill", workbench.Status.SkillsLabel);
     }
 
     [Fact]
     public void AGivenSkillReachesOnlyItsProject()
     {
-        workbench.Status.ShowCapabilitiesCommand.Execute(null);
+        workbench.Status.ShowSkillsCommand.Execute(null);
 
-        workbench.Capabilities.Skills.Single(choice => choice.Skill == Migrations).IsGiven = true;
+        workbench.Skills.Skills.Single(choice => choice.Skill == Migrations).IsGiven = true;
 
         Assert.Equal([Migrations], workbench.SkillsFor(crafter));
         Assert.Empty(workbench.SkillsFor(lorekeeper));
-        Assert.Equal("1 skill", workbench.Status.CapabilitiesLabel);
+        Assert.Equal("1 skill", workbench.Status.SkillsLabel);
     }
 
     [Fact]
-    public void TheCapabilitiesWindowOpensOnItsFirstTab()
+    public void HomeGetsTheDefaultsWithNothingToChoose()
     {
-        workbench.Status.ShowCapabilitiesCommand.Execute(null);
-        Assert.True(workbench.Capabilities.ShowsCapabilities);
+        library.MakeDefault(Commit, isDefault: true);
 
-        workbench.Capabilities.ShowSkillsTabCommand.Execute(null);
-        Assert.True(workbench.Capabilities.ShowsSkills);
-        Assert.False(workbench.Capabilities.ShowsCapabilities);
+        workbench.Open(workbench.Home);
+        workbench.Status.ShowSkillsCommand.Execute(null);
 
-        workbench.Capabilities.Close();
-        workbench.Status.ShowCapabilitiesCommand.Execute(null);
-        Assert.True(workbench.Capabilities.ShowsCapabilities);
+        Assert.Equal([Commit], workbench.SkillsFor(workbench.Home));
+        Assert.False(workbench.Status.ChoosesSkills);
+        Assert.False(workbench.Skills.IsOpen);
+    }
+
+    [Fact]
+    public void AProjectHasItsSkillsToChoose()
+    {
+        workbench.Status.ShowSkillsCommand.Execute(null);
+
+        Assert.True(workbench.Status.ChoosesSkills);
+        Assert.True(workbench.Skills.IsOpen);
+        Assert.Equal("Skills · Crafter", workbench.Skills.Title);
     }
 
     [Fact]
@@ -110,19 +118,19 @@ public sealed class ProjectSkillsTest : IDisposable
     }
 
     [Fact]
-    public void TheCapabilitiesWindowShowsADefaultTickedAndFixed()
+    public void TheSkillsWindowShowsADefaultTickedAndFixed()
     {
         library.MakeDefault(Commit, isDefault: true);
 
-        workbench.Status.ShowCapabilitiesCommand.Execute(null);
+        workbench.Status.ShowSkillsCommand.Execute(null);
 
-        var commit = workbench.Capabilities.Skills.Single(choice => choice.Skill == Commit);
+        var commit = workbench.Skills.Skills.Single(choice => choice.Skill == Commit);
         Assert.True(commit.IsDefault);
         Assert.True(commit.IsGiven);
         Assert.False(commit.CanChange);
         Assert.True(library.Entries.Single(entry => entry.Skill == Commit).IsDefault);
 
-        var migrations = workbench.Capabilities.Skills.Single(choice => choice.Skill == Migrations);
+        var migrations = workbench.Skills.Skills.Single(choice => choice.Skill == Migrations);
         Assert.False(migrations.IsGiven);
         Assert.True(migrations.CanChange);
     }

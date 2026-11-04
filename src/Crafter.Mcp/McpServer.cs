@@ -8,8 +8,9 @@ namespace Crafter.Mcp;
 
 // A Model Context Protocol server over HTTP for agents on this machine: JSON-RPC posted to
 // /mcp, answered as JSON. It listens on loopback only, wants a bearer token that names the
-// caller, and turns away browsers, which send an Origin.
-public sealed class McpServer(string name, string version, IReadOnlyList<McpTool> tools, Func<string, string?> callerOf) : IDisposable
+// caller, and turns away browsers, which send an Origin. Instructions, when given, tell the
+// agent what the server is for as it connects.
+public sealed class McpServer(string name, string version, IReadOnlyList<McpTool> tools, Func<string, string?> callerOf, string? instructions = null) : IDisposable
 {
     private static readonly string[] Versions = ["2025-06-18", "2025-03-26", "2024-11-05"];
 
@@ -178,13 +179,19 @@ public sealed class McpServer(string name, string version, IReadOnlyList<McpTool
     private JsonObject Initialize(JsonObject? parameters)
     {
         var asked = parameters?["protocolVersion"]?.GetValue<string>();
-
-        return new JsonObject
+        var result = new JsonObject
         {
             ["protocolVersion"] = asked is not null && Versions.Contains(asked) ? asked : Versions[0],
             ["capabilities"] = new JsonObject { ["tools"] = new JsonObject() },
             ["serverInfo"] = new JsonObject { ["name"] = name, ["version"] = version },
         };
+
+        if (instructions is not null)
+        {
+            result["instructions"] = instructions;
+        }
+
+        return result;
     }
 
     private static JsonObject Describe(McpTool tool) => new()

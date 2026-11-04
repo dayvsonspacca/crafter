@@ -31,32 +31,27 @@ public sealed partial class StatusBarViewModel : ObservableObject, IDisposable
 
     public bool HasBranch => Branch is not null;
 
-    // How many capabilities the project in front holds; the bar opens them in a window.
+    // How many library skills the project in front gets, defaults included; the bar opens them
+    // in a window.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CapabilitiesLabel))]
-    public partial int Granted { get; set; }
-
-    // How many library skills it gets, defaults included; they open in the same window.
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CapabilitiesLabel))]
+    [NotifyPropertyChangedFor(nameof(SkillsLabel))]
     public partial int Skills { get; set; }
 
-    public string CapabilitiesLabel => (Granted, Skills) switch
+    public string SkillsLabel => Skills switch
     {
-        (0, 0) => "No capabilities",
-        (_, 0) => Count(Granted, "capability", "capabilities"),
-        (0, _) => Count(Skills, "skill", "skills"),
-        _ => $"{Count(Granted, "capability", "capabilities")} · {Count(Skills, "skill", "skills")}",
+        0 => "No skills",
+        1 => "1 skill",
+        _ => $"{Skills} skills",
     };
 
-    private static string Count(int count, string one, string many) => count == 1 ? $"1 {one}" : $"{count} {many}";
+    // Home gets the defaults and nothing to choose, so it shows no skills to open.
+    [ObservableProperty]
+    public partial bool ChoosesSkills { get; set; }
 
-    public bool HasProject => project is not null;
-
-    public event EventHandler? CapabilitiesWanted;
+    public event EventHandler? SkillsWanted;
 
     [RelayCommand]
-    private void ShowCapabilities() => CapabilitiesWanted?.Invoke(this, EventArgs.Empty);
+    private void ShowSkills() => SkillsWanted?.Invoke(this, EventArgs.Empty);
 
     // The chat in front, whose background jobs the bar counts and opens.
     [ObservableProperty]
@@ -68,7 +63,6 @@ public sealed partial class StatusBarViewModel : ObservableObject, IDisposable
     public void Watch(Project? watched)
     {
         project = watched;
-        OnPropertyChanged(nameof(HasProject));
         Refresh();
     }
 

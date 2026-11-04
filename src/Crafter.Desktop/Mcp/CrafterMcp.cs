@@ -1,5 +1,5 @@
-using System.Collections.Concurrent;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json.Nodes;
 using Avalonia.Threading;
 using Crafter.Core.Agents;
@@ -11,12 +11,17 @@ using Crafter.Presentation.Abilities;
 
 namespace Crafter.Desktop.Mcp;
 
-// Crafter as a tool server for the agents of projects granted ManageCrafter. Each such project
-// gets its own token; the token stops working the moment the grant goes, even mid-chat. Tools run
-// on the UI thread, so the sidebar and the library show what they did right away.
+// Crafter as a tool server for Home's agent, the one place Crafter is managed from: no project's
+// agent gets it. Tools run on the UI thread, so the sidebar and the library show what they did
+// right away.
 public sealed class CrafterMcp : IDisposable
 {
     public const string Name = "crafter";
+
+    public const string Instructions =
+        "You are Home, the chat the user runs Crafter from. Crafter is the desktop app this session runs in: "
+            + "it keeps a list of projects, each a folder with its own chats and agents, and a library of skills in a git repository. "
+            + "When the user asks about their projects or the skills library, use these tools; Crafter's own files are not yours to edit.";
 
     private static readonly string[] Free = ["list_projects", "library_status", "sync_library", "list_skills", "read_skill"];
 
@@ -24,7 +29,7 @@ public sealed class CrafterMcp : IDisposable
 
     private readonly CrafterAbilities abilities;
 
-    private readonly ConcurrentDictionary<string, string> tokens = new();
+    private readonly byte[] token = Encoding.ASCII.GetBytes(Convert.ToHexString(RandomNumberGenerator.GetBytes(24)));
 
     private readonly McpServer server;
 
@@ -32,48 +37,29 @@ public sealed class CrafterMcp : IDisposable
     {
         this.workbench = workbench;
         this.abilities = abilities;
-        server = new McpServer(Name, "1.0", Tools(), CallerOf);
+        server = new McpServer(Name, "1.0", Tools(), CallerOf, Instructions);
     }
 
     public void Start() => server.Start();
 
     public IReadOnlyList<ToolServer> ServersFor(Project project) =>
-        server.Endpoint is { } endpoint && OnUi(() => workbench.Can(project, Capability.ManageCrafter))
-            ? [new ToolServer(Name, endpoint, TokenFor(project), Free)]
+        server.Endpoint is { } endpoint && project == workbench.Home
+            ? [new ToolServer(Name, endpoint, Encoding.ASCII.GetString(token), Free)]
             : [];
 
     public void Dispose() => server.Dispose();
 
-    private string TokenFor(Project project)
-    {
-        foreach (var (token, folder) in tokens)
-        {
-            if (folder == project.Folder)
-            {
-                return token;
-            }
-        }
-
-        var issued = Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
-        tokens[issued] = project.Folder;
-
-        return issued;
-    }
-
-    private string? CallerOf(string token) =>
-        tokens.TryGetValue(token, out var folder)
-        && OnUi(() => workbench.Projects.FirstOrDefault(project => project.Folder == folder) is { } project && workbench.Can(project, Capability.ManageCrafter))
-            ? folder
-            : null;
+    private string? CallerOf(string offered) =>
+        CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(offered), token) ? workbench.Home.Folder : null;
 
     private McpTool[] Tools() =>
     [
         new(
             "list_projects",
-            "Lists the projects in Crafter's sidebar: name, folder, git branch, open chats, whether each may manage Crafter, and which one is yours, the project this chat belongs to.",
+            "Lists the projects in Crafter's sidebar: name, folder, git branch and open chats.",
             Schema(),
             ReadOnly: true,
-            call => Run(() => abilities.ListProjects(call.Caller))),
+            _ => Run(abilities.ListProjects)),
         new(
             "rename_project",
             "Renames a project in Crafter. The name shows in the sidebar and tabs and is kept in the project's .crafter/settings.json.",
@@ -86,7 +72,7 @@ public sealed class CrafterMcp : IDisposable
                 + "Crafter copies it into the project's .crafter folder and the sidebar shows it at once.",
             Schema(
                 ("folder", "The project's folder, as list_projects gives it.", true),
-                ("image", "The image file; a relative path is read from your project's folder.", true)),
+                ("image", "The image file; a relative path is read from your working folder.", true)),
             ReadOnly: false,
             call => Run(() => abilities.SetProjectIcon(call.Caller, call.Text("folder"), call.Text("image")))),
         new(
@@ -140,8 +126,6 @@ public sealed class CrafterMcp : IDisposable
 
         return new McpResult(told.Text, told.IsError);
     }
-
-    private static T OnUi<T>(Func<T> read) => Dispatcher.UIThread.CheckAccess() ? read() : Dispatcher.UIThread.Invoke(read);
 
     private static JsonObject Schema(params (string Name, string Description, bool Required)[] fields) => new()
     {

@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:projects="using:Crafter.Presentation.Projects"
+             xmlns:controls="using:Crafter.Desktop.Controls"
+             x:Class="Crafter.Desktop.Projects.ProjectSkillsView"
+             x:DataType="projects:ProjectSkillsViewModel"
+             IsVisible="{Binding IsOpen}"
+             Focusable="True">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.about">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Border.choice">
+      <Setter Property="Padding" Value="0,10" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <controls:Modal Title="{Binding Title}" IsCompact="True" Dismissed="Dismiss">
+    <ScrollViewer Height="440" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="20,8,20,20" Spacing="14">
+        <TextBlock Classes="about" Margin="0,8,0,0" Text="The library has no skills yet." IsVisible="{Binding !HasSkills}" />
+        <ItemsControl ItemsSource="{Binding Skills}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="projects:SkillChoiceViewModel">
+              <Border Classes="choice">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                  <CheckBox IsChecked="{Binding IsGiven}" IsEnabled="{Binding CanChange}" AutomationProperties.Name="{Binding Skill.Name}">
+                    <StackPanel Spacing="2">
+                      <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Skill.Name}" />
+                      <TextBlock Classes="about" Text="{Binding Skill.Description}" />
+                    </StackPanel>
+                  </CheckBox>
+                  <TextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Top" Text="default" IsVisible="{Binding IsDefault}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Classes="about"
+                   Text="Defaults come from Preferences → Library and reach every project; tick others for this one. Call a skill in a chat with /." />
+      </StackPanel>
+    </ScrollViewer>
+  </controls:Modal>
+</UserControl>

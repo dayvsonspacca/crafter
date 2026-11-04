@@ -10,7 +10,6 @@ using Crafter.Desktop.Mcp;
 using Crafter.Presentation;
 using Crafter.Presentation.Abilities;
 using Crafter.Presentation.Agents;
-using Crafter.Presentation.Capabilities;
 using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
 using Crafter.Presentation.Library;
@@ -28,18 +27,18 @@ public sealed class CrafterMcpTest : IDisposable
     private readonly string home = Directory.CreateTempSubdirectory("crafter-mcp-").FullName;
 
     [Fact]
-    public async Task ServesTheGrantedProjectAndStopsTheMomentTheGrantGoes()
+    public async Task ServesHomeAndNoProject()
     {
         await TestApp.RunAsync(async () =>
         {
             var (workbench, crafter, lorekeeper) = Workbench();
-            workbench.Allow(crafter, Capability.ManageCrafter, allowed: true);
             using var mcp = new CrafterMcp(workbench, new CrafterAbilities(workbench, Library(), new NoBranches()));
             mcp.Start();
             using var http = new HttpClient();
 
+            Assert.Empty(mcp.ServersFor(crafter));
             Assert.Empty(mcp.ServersFor(lorekeeper));
-            var server = Assert.Single(mcp.ServersFor(crafter));
+            var server = Assert.Single(mcp.ServersFor(workbench.Home));
             Assert.Equal(["list_projects", "library_status", "sync_library", "list_skills", "read_skill"], server.FreeTools);
 
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
@@ -48,32 +47,24 @@ public sealed class CrafterMcpTest : IDisposable
             var listed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "list_projects", ["arguments"] = new JsonObject() });
             var projects = JsonNode.Parse(listed["result"]!["content"]![0]!["text"]!.GetValue<string>())!.AsArray();
             Assert.Equal(["Crafter", "Lorekeeper"], projects.Select(project => project!["name"]!.GetValue<string>()));
-            Assert.True(projects[0]!["isYours"]!.GetValue<bool>());
 
-            workbench.Allow(crafter, Capability.ManageCrafter, allowed: false);
-            Assert.Equal(HttpStatusCode.Unauthorized, (await Post(http, server, "tools/list")).StatusCode);
-            Assert.Empty(mcp.ServersFor(crafter));
+            Assert.Equal(HttpStatusCode.Unauthorized, (await Post(http, server with { Token = "forged" }, "tools/list")).StatusCode);
         });
     }
 
     [Fact]
-    public async Task OffersExactlyTheToolsTheCapabilitiesWindowShows()
+    public async Task TellsHomeWhatItIsFor()
     {
         await TestApp.RunAsync(async () =>
         {
-            var (workbench, crafter, _) = Workbench();
-            workbench.Allow(crafter, Capability.ManageCrafter, allowed: true);
+            var (workbench, _, _) = Workbench();
             using var mcp = new CrafterMcp(workbench, new CrafterAbilities(workbench, Library(), new NoBranches()));
             mcp.Start();
             using var http = new HttpClient();
-            var server = mcp.ServersFor(crafter)[0];
 
-            var offered = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray()
-                .Select(tool => (tool!["name"]!.GetValue<string>(), !tool["annotations"]!["readOnlyHint"]!.GetValue<bool>()));
-            var shown = CapabilityCatalog.All.Single(info => info.Capability == Capability.ManageCrafter).Tools;
+            var initialized = await Ask(http, mcp.ServersFor(workbench.Home)[0], "initialize", new JsonObject { ["protocolVersion"] = "2025-06-18" });
 
-            Assert.Equal(shown.Select(tool => tool.Name).Order(), offered.Select(tool => tool.Item1).Order());
-            Assert.Equal(shown.Where(tool => !tool.Asks).Select(tool => tool.Name).Order(), server.FreeTools.Order());
+            Assert.Equal(CrafterMcp.Instructions, initialized["result"]!["instructions"]!.GetValue<string>());
         });
     }
 
@@ -82,13 +73,12 @@ public sealed class CrafterMcpTest : IDisposable
     {
         await TestApp.RunAsync(async () =>
         {
-            var (workbench, crafter, lorekeeper) = Workbench();
-            workbench.Allow(crafter, Capability.ManageCrafter, allowed: true);
+            var (workbench, _, lorekeeper) = Workbench();
             using var mcp = new CrafterMcp(workbench, new CrafterAbilities(workbench, Library(), new NoBranches()));
             mcp.Start();
             using var http = new HttpClient();
 
-            var renamed = await Ask(http, mcp.ServersFor(crafter)[0], "tools/call", new JsonObject
+            var renamed = await Ask(http, mcp.ServersFor(workbench.Home)[0], "tools/call", new JsonObject
             {
                 ["name"] = "rename_project",
                 ["arguments"] = new JsonObject { ["folder"] = lorekeeper.Folder, ["name"] = "Lorekeeper · desktop" },

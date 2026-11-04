@@ -20,24 +20,28 @@ public sealed class JsonBookshelfStoreTest : IDisposable
     {
         Shelved[] shelf =
         [
-            new(new Project("/home/hero/crafter"), new DateTimeOffset(2026, 11, 3, 9, 0, 0, TimeSpan.Zero)) { Capabilities = [Capability.ManageCrafter], Skills = ["laravel-migrations"] },
+            new(new Project("/home/hero/crafter"), new DateTimeOffset(2026, 11, 3, 9, 0, 0, TimeSpan.Zero)) { Skills = ["laravel-migrations"] },
             new(new Project("/home/hero/beacon"), new DateTimeOffset(2026, 11, 3, 10, 0, 0, TimeSpan.Zero)),
         ];
 
         new JsonBookshelfStore(File).Save(shelf);
 
         Assert.Equal(shelf, new JsonBookshelfStore(File).Load());
-        Assert.Contains("\"manage-crafter\"", System.IO.File.ReadAllText(File));
         Assert.Contains("\"laravel-migrations\"", System.IO.File.ReadAllText(File));
     }
 
     [Fact]
-    public void IgnoresACapabilityItDoesNotKnow()
+    public void DropsTheCapabilitiesProjectsOnceHeld()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(File)!);
-        System.IO.File.WriteAllText(File, """[{"folder":"/home/hero/crafter","lastOpened":"2026-11-03T09:00:00+00:00","capabilities":["fly","manage-crafter"]}]""");
+        System.IO.File.WriteAllText(File, """[{"folder":"/home/hero/crafter","lastOpened":"2026-11-03T09:00:00+00:00","capabilities":["manage-crafter"],"skills":["commit"]}]""");
+        var store = new JsonBookshelfStore(File);
 
-        Assert.Equal([Capability.ManageCrafter], Assert.Single(new JsonBookshelfStore(File).Load()).Capabilities);
+        var shelved = Assert.Single(store.Load());
+        store.Save([shelved]);
+
+        Assert.Equal(["commit"], shelved.Skills);
+        Assert.DoesNotContain("capabilities", System.IO.File.ReadAllText(File));
     }
 
     [Theory]

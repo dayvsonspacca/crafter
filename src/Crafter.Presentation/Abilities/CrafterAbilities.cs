@@ -7,20 +7,18 @@ using Crafter.Presentation.Library;
 
 namespace Crafter.Presentation.Abilities;
 
-// What a project granted ManageCrafter can do to Crafter through its agent: look at the projects,
-// rename them, change their icons, and read and write the skills library. Answers are JSON for the agent to read.
+// What Home's agent can do to Crafter: look at the projects, rename them, change their icons, and
+// read and write the skills library. Answers are JSON for the agent to read.
 public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewModel library, IBranches branches)
 {
     private static readonly JsonSerializerOptions Readable = new() { WriteIndented = true };
 
-    public Told ListProjects(string caller) => Json(new JsonArray([.. workbench.Projects.Select(project => (JsonNode)new JsonObject
+    public Told ListProjects() => Json(new JsonArray([.. workbench.Projects.Select(project => (JsonNode)new JsonObject
     {
         ["name"] = project.Name.Text,
         ["folder"] = project.Folder,
         ["branch"] = branches.Of(project),
         ["openChats"] = workbench.OpenChats(project),
-        ["managesCrafter"] = workbench.Can(project, Capability.ManageCrafter),
-        ["isYours"] = project.Folder == caller,
     })]));
 
     public Told RenameProject(string? folder, string? name)
@@ -41,7 +39,7 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
         return new Told($"Renamed {before} to {renamed.Name.Text}.");
     }
 
-    // A relative image is read from the asking project's folder, where its agent works.
+    // A relative image is read from the folder of the asking agent, where it works.
     public Told SetProjectIcon(string caller, string? folder, string? image)
     {
         if (Find(folder) is not { } project)

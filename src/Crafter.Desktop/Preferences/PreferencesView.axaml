@@ -293,7 +293,7 @@
                 <Border Classes="setting" BorderThickness="0">
                   <StackPanel Spacing="8">
                     <TextBlock Classes="title" Text="Repository" />
-                    <TextBlock Classes="about" Text="One git repository keeps your skills and agents. Crafter clones it with your git access and keeps it in sync on its own; it writes to it only when an agent that manages Crafter saves a skill." />
+                    <TextBlock Classes="about" Text="One git repository keeps your skills and agents. Crafter clones it with your git access and keeps it in sync on its own; it writes to it only when Home's agent saves a skill." />
                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                       <TextBox Classes="path"
                                Text="{Binding Draft}"
@@ -315,7 +315,7 @@
                 <Border Classes="setting" BorderThickness="0" IsVisible="{Binding IsLinked}">
                   <StackPanel Spacing="8">
                     <TextBlock Classes="title" Text="Skills" />
-                    <TextBlock Classes="about" Text="Every folder under skills/ with a skill.json (name, description, when to use) and an instructions.md. A default reaches every project's agent; give others to one project from its Capabilities in the status bar. Defaults are this Crafter's choice, not the library's." />
+                    <TextBlock Classes="about" Text="Every folder under skills/ with a skill.json (name, description, when to use) and an instructions.md. A default reaches every project's agent; give others to one project from its Skills in the status bar. Defaults are this Crafter's choice, not the library's." />
                     <TextBlock Classes="about"
                                Text="No skills in the repository yet."
                                IsVisible="{Binding ShowsEmpty}" />

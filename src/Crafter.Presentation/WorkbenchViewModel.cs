@@ -6,7 +6,6 @@ using Crafter.Core.Library;
 using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
 using Crafter.Presentation.Agents;
-using Crafter.Presentation.Capabilities;
 using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
 using Crafter.Presentation.Keyboard;
@@ -55,13 +54,13 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         Setup = setup;
         Preferences = preferencesScreen;
         Status = status;
-        Capabilities = new CapabilitiesViewModel(bookshelf.Can, Allow, Preferences.Library, (project, skill) => bookshelf.Has(project, skill.Id), Give);
+        Skills = new ProjectSkillsViewModel(Preferences.Library, (project, skill) => bookshelf.Has(project, skill.Id), Give);
         Preferences.Library.Changed += (_, _) => Recount();
-        Status.CapabilitiesWanted += (_, _) =>
+        Status.SkillsWanted += (_, _) =>
         {
-            if (Current is { } current)
+            if (Current is { } current && current != Home)
             {
-                Capabilities.Open(current);
+                Skills.Open(current);
             }
         };
         Preferences.PropertyChanged += Follow;
@@ -90,7 +89,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public StatusBarViewModel Status { get; }
 
-    public CapabilitiesViewModel Capabilities { get; }
+    public ProjectSkillsViewModel Skills { get; }
 
     public ObservableCollection<ShelfItemViewModel> Shelf { get; } = [];
 
@@ -120,6 +119,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         {
             field = value;
             Status.Watch(value);
+            Status.ChoosesSkills = value is not null && value != Home;
             Recount();
             OnPropertyChanged();
             OnPropertyChanged(nameof(Heading));
@@ -232,12 +232,11 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
             return;
         }
 
-        if (await Namer.Edit(project, bookshelf.Can(project, Capability.ManageCrafter)) is not Named named)
+        if (await Namer.Edit(project) is not Named named)
         {
             return;
         }
 
-        Allow(project, Capability.ManageCrafter, Namer.ManagesCrafter);
         Apply(project, named.Name, named.Icon);
     }
 
@@ -246,14 +245,6 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public Project Rename(Project project, ProjectName name) => Apply(project, name, new SameIcon());
 
     public Project ChangeIcon(Project project, string image) => Apply(project, project.Name, new NewIcon(image));
-
-    public bool Can(Project project, Capability capability) => bookshelf.Can(project, capability);
-
-    public void Allow(Project project, Capability capability, bool allowed)
-    {
-        bookshelf.Allow(project, capability, allowed);
-        Recount();
-    }
 
     // The library skills a project's agent gets: this Crafter's defaults and the ones given to it.
     public IReadOnlyList<Skill> SkillsFor(Project project) =>
@@ -267,7 +258,6 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     private void Recount()
     {
-        Status.Granted = Current is { } project ? CapabilityCatalog.All.Count(info => bookshelf.Can(project, info.Capability)) : 0;
         Status.Skills = Current is { } shown ? SkillsFor(shown).Count : 0;
     }
 

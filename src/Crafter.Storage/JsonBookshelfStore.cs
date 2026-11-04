@@ -19,7 +19,6 @@ public sealed class JsonBookshelfStore(string file) : IBookshelfStore
 
             return [.. entries.Select(entry => new Shelved(new Project(entry.Folder), entry.LastOpened)
             {
-                Capabilities = [.. (entry.Capabilities ?? []).Select(Capabilities.Of).OfType<Capability>().Distinct()],
                 Skills = [.. (entry.Skills ?? []).Where(skill => !string.IsNullOrWhiteSpace(skill)).Distinct()],
             })];
         }
@@ -36,13 +35,14 @@ public sealed class JsonBookshelfStore(string file) : IBookshelfStore
         List<ShelfEntry> entries = [.. shelf.Select(shelved => new ShelfEntry(
             shelved.Project.Folder,
             shelved.LastOpened,
-            shelved.Capabilities.Count > 0 ? [.. shelved.Capabilities.Select(Capabilities.Id)] : null,
             shelved.Skills.Count > 0 ? [.. shelved.Skills] : null))];
         JsonFile.Write(file, JsonSerializer.Serialize(entries, BookshelfJson.Default.ListShelfEntry));
     }
 }
 
-internal sealed record ShelfEntry(string Folder, DateTimeOffset LastOpened, List<string>? Capabilities = null, List<string>? Skills = null);
+// Projects once kept the capabilities they were granted; only Home manages Crafter now, so an
+// old "capabilities" field is left unread and goes at the next save.
+internal sealed record ShelfEntry(string Folder, DateTimeOffset LastOpened, List<string>? Skills = null);
 
 [JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(List<ShelfEntry>))]

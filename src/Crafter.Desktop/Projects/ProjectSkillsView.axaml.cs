@@ -3,18 +3,18 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using Crafter.Presentation.Capabilities;
+using Crafter.Presentation.Projects;
 
 namespace Crafter.Desktop.Projects;
 
-public sealed partial class CapabilitiesView : UserControl
+public sealed partial class ProjectSkillsView : UserControl
 {
-    public CapabilitiesView()
+    public ProjectSkillsView()
     {
         InitializeComponent();
     }
 
-    private CapabilitiesViewModel? Capabilities => DataContext as CapabilitiesViewModel;
+    private ProjectSkillsViewModel? Skills => DataContext as ProjectSkillsViewModel;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -34,9 +34,9 @@ public sealed partial class CapabilitiesView : UserControl
         if (e.Key == Key.Escape)
         {
             e.Handled = true;
-            Capabilities?.Close();
+            Skills?.Close();
         }
     }
 
-    private void Dismiss(object? sender, RoutedEventArgs e) => Capabilities?.Close();
+    private void Dismiss(object? sender, RoutedEventArgs e) => Skills?.Close();
 }

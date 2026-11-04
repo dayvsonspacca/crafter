@@ -51,6 +51,7 @@ public sealed class McpServerTest : IDisposable
         Assert.Equal("2025-03-26", answer["result"]!["protocolVersion"]!.GetValue<string>());
         Assert.Equal("crafter", answer["result"]!["serverInfo"]!["name"]!.GetValue<string>());
         Assert.NotNull(answer["result"]!["capabilities"]!["tools"]);
+        Assert.Null(answer["result"]!["instructions"]);
     }
 
     [Fact]
