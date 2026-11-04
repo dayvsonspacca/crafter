@@ -1,9 +1,11 @@
+using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using Crafter.Presentation.Conversations;
 using Crafter.Presentation.Conversations.Composing;
 
@@ -12,6 +14,11 @@ namespace Crafter.Desktop.Conversations;
 public sealed partial class ConversationView : UserControl
 {
     private const double Near = 48;
+
+    // One view serves every chat, so each chat keeps where it was left.
+    private readonly ConditionalWeakTable<ConversationViewModel, Place> places = new();
+
+    private ConversationViewModel? shown;
 
     private bool following = true;
 
@@ -186,11 +193,55 @@ public sealed partial class ConversationView : UserControl
         PromptBox.ClearSelection();
     }
 
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+
+        if (shown is not null)
+        {
+            places.AddOrUpdate(shown, new Place(following, Scroller.Offset.Y));
+        }
+
+        shown = Conversation;
+
+        if (shown is null)
+        {
+            return;
+        }
+
+        var chat = shown;
+        var place = places.TryGetValue(chat, out var left) ? left : Place.Latest;
+        following = place.Following;
+        Dispatcher.UIThread.Post(() => Return(chat, place), DispatcherPriority.Loaded);
+    }
+
+    private void Return(ConversationViewModel chat, Place place)
+    {
+        if (shown != chat)
+        {
+            return;
+        }
+
+        if (place.Following)
+        {
+            Scroller.ScrollToEnd();
+        }
+        else
+        {
+            Scroller.Offset = new Vector(Scroller.Offset.X, place.Offset);
+        }
+    }
+
     private void Follow(object? sender, ScrollChangedEventArgs e)
     {
         var bottom = Scroller.Extent.Height - Scroller.Viewport.Height;
+        var resized = e.ExtentDelta.Y != 0 || e.ViewportDelta.Y != 0;
 
-        if (e.ExtentDelta.Y > 0 && following)
+        // Clamping only moves the offset up when the content shrinks or the viewport grows,
+        // so an upward move without either is the reader scrolling away.
+        var scrolledUp = e.OffsetDelta.Y < 0 && e.ExtentDelta.Y >= 0 && e.ViewportDelta.Y <= 0;
+
+        if (following && resized && !scrolledUp)
         {
             Scroller.ScrollToEnd();
         }
@@ -206,5 +257,10 @@ public sealed partial class ConversationView : UserControl
     {
         following = true;
         Scroller.ScrollToEnd();
+    }
+
+    private sealed record Place(bool Following, double Offset)
+    {
+        public static Place Latest { get; } = new(Following: true, Offset: 0);
     }
 }
