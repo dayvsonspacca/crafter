@@ -283,8 +283,7 @@
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
     <Style Selector="Button.earlier:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -298,8 +297,7 @@
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
     <Style Selector="Button.jump:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -308,9 +306,9 @@
     </Style>
 
     <Style Selector="Border.composer">
-      <Setter Property="MaxWidth" Value="780" />
-      <Setter Property="Padding" Value="16,12,12,10" />
-      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="MaxWidth" Value="760" />
+      <Setter Property="Padding" Value="16,12,12,12" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusContainer}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
@@ -324,7 +322,7 @@
       <Setter Property="Padding" Value="0" />
       <Setter Property="MinHeight" Value="44" />
       <Setter Property="MaxHeight" Value="240" />
-      <Setter Property="FontSize" Value="14.5" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeContent}" />
       <Setter Property="AcceptsReturn" Value="True" />
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
@@ -335,25 +333,21 @@
       <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="Border.sidebar">
-      <Setter Property="Width" Value="340" />
+      <Setter Property="Width" Value="300" />
       <Setter Property="BorderThickness" Value="1,0,0,0" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
     </Style>
-    <Style Selector="TextBlock.heading">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="10.5" />
-      <Setter Property="LetterSpacing" Value="1.1" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-    </Style>
     <Style Selector="TextBlock.empty">
-      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
-    <Style Selector="Button.chip.on">
-      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+    <Style Selector="Button.icon.on /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
+    </Style>
+    <Style Selector="Button.icon.on Path">
+      <Setter Property="Stroke" Value="{DynamicResource ForegroundBrush}" />
     </Style>
     <Style Selector="Button.job">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -368,7 +362,7 @@
       <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
     </Style>
     <Style Selector="Button.job TextBlock.what">
-      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     </Style>
@@ -380,7 +374,7 @@
       <Setter Property="Stroke" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
     <Style Selector="Border.mentions">
-      <Setter Property="MaxWidth" Value="780" />
+      <Setter Property="MaxWidth" Value="760" />
       <Setter Property="Margin" Value="24,0,24,6" />
       <Setter Property="Padding" Value="6" />
       <Setter Property="CornerRadius" Value="10" />
@@ -404,7 +398,7 @@
       <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
     </Style>
     <Style Selector="Button.mention TextBlock">
-      <Setter Property="FontSize" Value="13.5" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     </Style>
@@ -473,7 +467,7 @@
     <Style Selector="StackPanel.tools">
       <Setter Property="Opacity" Value="0" />
     </Style>
-    <Style Selector="Grid.answer:pointerover StackPanel.tools, Grid.answer.last StackPanel.tools">
+    <Style Selector="Grid.answer:pointerover StackPanel.tools, Grid.answer.last StackPanel.tools, StackPanel.tools:focus-within">
       <Setter Property="Opacity" Value="1" />
     </Style>
 
@@ -494,12 +488,12 @@
 
   <DockPanel>
     <Border DockPanel.Dock="Top"
-            Height="44"
-            Padding="24,0"
+            Height="{StaticResource HeaderHeight}"
+            Padding="16,0"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12">
-        <TextBlock VerticalAlignment="Center" FontSize="13.5" FontWeight="SemiBold" MaxWidth="420" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
+        <TextBlock VerticalAlignment="Center" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" MaxWidth="420" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
         <Border Grid.Column="1" Classes="pill waiting" IsVisible="{Binding IsWaiting}">
           <TextBlock Classes="mono" Text="waiting for you" />
         </Border>
@@ -526,7 +520,9 @@
           <Border Classes="pill" IsVisible="{Binding HasModel}">
             <TextBlock Classes="mono" Text="{Binding Model}" />
           </Border>
-          <Button Classes="chip" Classes.on="{Binding IsPanelOpen}" Content="Panel" Command="{Binding TogglePanelCommand}" ToolTip.Tip="Show or hide the panel (Ctrl+J)" />
+          <Button Classes="icon" Classes.on="{Binding IsPanelOpen}" Command="{Binding TogglePanelCommand}" ToolTip.Tip="Toggle Panel · Ctrl+J" AutomationProperties.Name="Toggle Panel">
+            <Path Data="M2.5,3.5 H13.5 V12.5 H2.5 Z M9.5,3.5 V12.5" />
+          </Button>
         </StackPanel>
       </Grid>
     </Border>
@@ -537,7 +533,7 @@
           <TextBlock Classes="empty" Text="Nothing running. Background jobs show up here." IsVisible="{Binding IsPanelEmpty}" />
 
           <StackPanel Spacing="6" IsVisible="{Binding HasJobs}">
-            <TextBlock Classes="heading" Text="BACKGROUND" />
+            <TextBlock Classes="group" Text="Background jobs" />
             <ItemsControl ItemsSource="{Binding Jobs}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="background:JobViewModel">
@@ -578,7 +574,7 @@
       </ScrollViewer>
     </Border>
 
-    <Border DockPanel.Dock="Bottom" Padding="24,12,24,18">
+    <Border DockPanel.Dock="Bottom" Padding="24,8,24,16">
       <Border x:Name="Composer" Classes="composer" DragDrop.AllowDrop="True">
         <StackPanel Spacing="8">
           <ItemsControl ItemsSource="{Binding Attached}" IsVisible="{Binding HasAttached}" Margin="0,6,6,0">
@@ -619,7 +615,7 @@
                  Text="{Binding ProjectName, StringFormat='Start a chat in {0}.'}" />
 
       <ScrollViewer x:Name="Scroller" IsVisible="{Binding HasMessages}" ScrollChanged="Follow">
-        <StackPanel MaxWidth="780" Margin="24,28,24,12">
+        <StackPanel MaxWidth="760" Margin="24,24,24,12">
           <Button Classes="earlier" Content="{Binding EarlierLabel}" Command="{Binding ShowEarlierCommand}" IsVisible="{Binding HasEarlier}" />
           <ItemsControl ItemsSource="{Binding Messages}">
             <ItemsControl.ItemsPanel>
@@ -635,7 +631,7 @@
                       <TextBlock HorizontalAlignment="Center"
                                  VerticalAlignment="Center"
                                  FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                 FontSize="8.5"
+                                 FontSize="10"
                                  FontWeight="SemiBold"
                                  Foreground="{DynamicResource ForegroundMutedBrush}"
                                  Text="YOU" />
@@ -643,7 +639,7 @@
                     <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
                   </DockPanel>
                   <Border Grid.Column="1"
-                          Margin="0,0,0,22"
+                          Margin="0,0,0,24"
                           Padding="16,12"
                           CornerRadius="10"
                           BorderThickness="1"
@@ -664,7 +660,7 @@
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
-                      <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14.5" LineHeight="22" IsVisible="{Binding HasText}" />
+                      <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" LineHeight="22" IsVisible="{Binding HasText}" />
                     </StackPanel>
                   </Border>
                 </Grid>
@@ -688,7 +684,7 @@
                     </Border>
                     <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
                   </DockPanel>
-                  <StackPanel Grid.Column="1" Margin="0,0,0,30" Spacing="10">
+                  <StackPanel Grid.Column="1" Margin="0,0,0,32" Spacing="{StaticResource Space3}">
                     <TextBlock Classes="mono" Margin="8,3,0,0" Text="woke up · a background job reported" IsVisible="{Binding IsWoken}" />
                     <ItemsControl ItemsSource="{Binding Items}">
                       <ItemsControl.DataTemplates>
@@ -730,7 +726,7 @@
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                       <controls:HighlightedCode Margin="14,12"
                                                                      FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                                                     FontSize="12.5"
+                                                                     FontSize="{StaticResource FontSizeCallout}"
                                                                      LineHeight="20"
                                                                      Tokens="{Binding Tokens}" />
                                     </ScrollViewer>
@@ -767,7 +763,7 @@
                         <DataTemplate DataType="messages:ApprovalItemViewModel">
                           <Border Classes="approval" Classes.open="{Binding IsOpen}">
                             <StackPanel Spacing="10">
-                              <TextBlock FontSize="13.5" Text="{Binding Asking}" />
+                              <TextBlock FontSize="{StaticResource FontSizeBody}" Text="{Binding Asking}" />
                               <Border Padding="12,9"
                                       CornerRadius="7"
                                       BorderThickness="1"
@@ -778,7 +774,7 @@
                                                      TextWrapping="Wrap"
                                                      Text="{Binding Summary}" />
                               </Border>
-                              <TextBlock FontSize="12.5"
+                              <TextBlock FontSize="{StaticResource FontSizeCallout}"
                                          TextWrapping="Wrap"
                                          Foreground="{DynamicResource ForegroundMutedBrush}"
                                          Text="{Binding Reason}"
@@ -803,7 +799,7 @@
                         <DataTemplate DataType="messages:QuestionItemViewModel">
                           <Border Classes="approval" Classes.open="{Binding IsOpen}">
                             <StackPanel Spacing="14">
-                              <TextBlock FontSize="13.5" Text="{Binding Asking}" />
+                              <TextBlock FontSize="{StaticResource FontSizeBody}" Text="{Binding Asking}" />
                               <ItemsControl ItemsSource="{Binding Questions}">
                                 <ItemsControl.ItemsPanel>
                                   <ItemsPanelTemplate>
@@ -814,9 +810,9 @@
                                   <DataTemplate DataType="messages:QuestionCardViewModel">
                                     <StackPanel Spacing="8">
                                       <TextBlock Classes="mono" Text="{Binding Header}" IsVisible="{Binding HasHeader}" />
-                                      <TextBlock FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding Text}" />
+                                      <TextBlock FontSize="{StaticResource FontSizeContent}" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding Text}" />
                                       <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
-                                        <TextBlock FontSize="12.5" Foreground="{DynamicResource ForegroundMutedBrush}" Text="{Binding Hint}" />
+                                        <TextBlock FontSize="{StaticResource FontSizeCallout}" Foreground="{DynamicResource ForegroundMutedBrush}" Text="{Binding Hint}" />
                                         <ItemsControl ItemsSource="{Binding Picks}">
                                           <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -830,8 +826,8 @@
                                                       Command="{Binding ToggleCommand}"
                                                       AutomationProperties.Name="{Binding Label}">
                                                 <StackPanel Spacing="2">
-                                                  <TextBlock FontSize="13.5" TextWrapping="Wrap" Text="{Binding Label}" />
-                                                  <TextBlock FontSize="12.5"
+                                                  <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" Text="{Binding Label}" />
+                                                  <TextBlock FontSize="{StaticResource FontSizeCallout}"
                                                              TextWrapping="Wrap"
                                                              Foreground="{DynamicResource ForegroundMutedBrush}"
                                                              Text="{Binding Description}"
