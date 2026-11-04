@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Crafter.Core.Agents;
+using Crafter.Core.Conversations.Decisions;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Presentation.Platform;
 

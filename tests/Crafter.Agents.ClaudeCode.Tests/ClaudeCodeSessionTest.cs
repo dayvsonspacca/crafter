@@ -1,5 +1,6 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Core.Conversations.Decisions;
 using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Agents.ClaudeCode.Tests;
@@ -170,7 +171,7 @@ public sealed class ClaudeCodeSessionTest
             replies.Add(reply);
             if (reply is NeedsApproval approval)
             {
-                session.Decide(approval.Id, allow ? new Crafter.Core.Agents.Allow() : new Crafter.Core.Agents.Deny());
+                session.Decide(approval.Id, allow ? new Allow() : new Deny());
             }
         }
 
@@ -191,8 +192,8 @@ public sealed class ClaudeCodeSessionTest
             + FakeClaude.Writes("$first") + "\n" + FakeClaude.Success);
         var session = claude.Session();
 
-        var first = await Decided(session, new Crafter.Core.Agents.AlwaysAllow());
-        var second = await Decided(session, new Crafter.Core.Agents.Allow());
+        var first = await Decided(session, new AlwaysAllow());
+        var second = await Decided(session, new Allow());
 
         Assert.Equal("Bash(touch:*) in this chat", first.OfType<NeedsApproval>().Single().Remembers);
         Assert.Contains(new Wrote("always"), first);
@@ -210,8 +211,8 @@ public sealed class ClaudeCodeSessionTest
             + FakeClaude.Writes("$first") + "\n" + FakeClaude.Success);
         var session = claude.Session();
 
-        await Decided(session, new Crafter.Core.Agents.Allow());
-        var second = await Decided(session, new Crafter.Core.Agents.Allow());
+        await Decided(session, new Allow());
+        var second = await Decided(session, new Allow());
 
         Assert.Contains(new Wrote("once"), second);
     }
@@ -224,7 +225,7 @@ public sealed class ClaudeCodeSessionTest
             + "if [[ \"$answer\" == *'\"message\":\"The user denied this in Crafter and said: use mkdir\"'* ]]; then why=told; else why=silent; fi\n"
             + FakeClaude.Writes("$why") + "\n" + FakeClaude.Success);
 
-        var replies = await Decided(claude.Session(), new Crafter.Core.Agents.Deny("  use mkdir "));
+        var replies = await Decided(claude.Session(), new Deny("  use mkdir "));
 
         Assert.Contains(new Wrote("told"), replies);
     }
@@ -246,7 +247,7 @@ public sealed class ClaudeCodeSessionTest
             replies.Add(reply);
             if (reply is NeedsAnswers asked)
             {
-                session.Decide(asked.Id, new Crafter.Core.Agents.Answers(new Dictionary<string, string> { ["Which?"] = "A, B" }));
+                session.Decide(asked.Id, new Answers(new Dictionary<string, string> { ["Which?"] = "A, B" }));
             }
         }
 
@@ -279,7 +280,7 @@ public sealed class ClaudeCodeSessionTest
             + "read -r answer\n"
             + FakeClaude.Writes(" after") + "\n" + FakeClaude.Success);
 
-        var replies = await Decided(claude.Session(), new Crafter.Core.Agents.Allow());
+        var replies = await Decided(claude.Session(), new Allow());
 
         Assert.Equal([new Wrote("meanwhile"), new Wrote(" after"), new Finished()], replies[1..]);
     }
@@ -308,14 +309,14 @@ public sealed class ClaudeCodeSessionTest
     {
         var session = new ClaudeCodeSession(Path.GetTempPath());
 
-        session.Decide("r-404", new Crafter.Core.Agents.Allow());
+        session.Decide("r-404", new Allow());
 
         Assert.Null(session.SessionId);
     }
 
     private const string Suggested = "[{\"type\":\"addRules\",\"rules\":[{\"toolName\":\"Bash\",\"ruleContent\":\"touch:*\"}],\"behavior\":\"allow\",\"destination\":\"session\"}]";
 
-    private static async Task<List<Reply>> Decided(ClaudeCodeSession session, Crafter.Core.Agents.Decision decision)
+    private static async Task<List<Reply>> Decided(ClaudeCodeSession session, Decision decision)
     {
         List<Reply> replies = [];
         await foreach (var reply in session.Answer(new Prompt("toca"), Configuration.Empty, Stop))
