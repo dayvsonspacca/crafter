@@ -182,7 +182,7 @@ public sealed partial class ConversationView : UserControl
         {
             Dropped(viewModel, Local(items));
         }
-        else if (e.DataTransfer.TryGetText() is { Length: > 0 } text)
+        else if (e.DataTransfer.TryGetText() is { Length: > 0 } text && DroppedText.IsReadable(text))
         {
             if (DroppedText.Paths(text) is { Count: > 0 } paths)
             {

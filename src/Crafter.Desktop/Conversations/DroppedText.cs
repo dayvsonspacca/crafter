@@ -29,4 +29,10 @@ public static class DroppedText
     }
 
     public static IReadOnlyList<string> Paths(string text) => Paths(text, path => File.Exists(path) || Directory.Exists(path));
+
+    // Hyprland can hand an XWayland window the clipboard instead of what was dragged, so a
+    // copied picture arrives as its raw bytes read as text. Text with nulls, control characters
+    // or undecodable bytes (U+FFFD) is not something anyone meant to type.
+    public static bool IsReadable(string text) =>
+        !text.Any(letter => letter == '\uFFFD' || (char.IsControl(letter) && letter is not ('\t' or '\r' or '\n')));
 }

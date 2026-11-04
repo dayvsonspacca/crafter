@@ -90,6 +90,20 @@ public sealed class ConversationDropTest : IDisposable
         });
     }
 
+    [Fact]
+    public void IgnoresAPictureThatArrivesAsBytesInText()
+    {
+        TestApp.Run(() =>
+        {
+            var (window, _, chat) = Show();
+
+            Drop(window, Text("\uFFFDPNG\r\n\u001A\n\0\0\0\rIHDR\uFFFD\uFFFDIEND\uFFFDB`\uFFFD"));
+
+            Assert.Empty(chat.Attached);
+            Assert.Equal(string.Empty, chat.Draft);
+        });
+    }
+
     public void Dispose() => Directory.Delete(folder, recursive: true);
 
     private (Window Window, ConversationView View, ConversationViewModel Chat) Show()

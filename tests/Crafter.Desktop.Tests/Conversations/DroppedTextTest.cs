@@ -36,4 +36,15 @@ public sealed class DroppedTextTest
     {
         Assert.Empty(DroppedText.Paths(text, OnDisk.Contains));
     }
+
+    [Theory]
+    [InlineData("fix the table", true)]
+    [InlineData("line one\r\n\tline two", true)]
+    [InlineData("Olá, bão? ✓", true)]
+    [InlineData("\uFFFDPNG\r\n\u001A\n", false)]
+    [InlineData("a\0b", false)]
+    public void TellsTextFromBytesReadAsText(string text, bool readable)
+    {
+        Assert.Equal(readable, DroppedText.IsReadable(text));
+    }
 }
