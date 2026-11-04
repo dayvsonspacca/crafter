@@ -10,7 +10,8 @@ using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode;
 
-public sealed class ClaudeCode(string executable = "claude", string? home = null) : IAgent, IKeepsHistory
+// Servers says which tool servers a project's sessions connect to; none unless Crafter grants them.
+public sealed class ClaudeCode(string executable = "claude", string? home = null, Func<Project, IReadOnlyList<ToolServer>>? servers = null) : IAgent, IKeepsHistory
 {
     public const string Install = "curl -fsSL https://claude.ai/install.sh | bash";
 
@@ -57,7 +58,7 @@ public sealed class ClaudeCode(string executable = "claude", string? home = null
     ];
 
     public IAgentSession Begin(Project project, string? resumeFrom = null) =>
-        new ClaudeCodeSession(project.Folder, Options, resumeFrom);
+        new ClaudeCodeSession(project.Folder, Options, resumeFrom, () => servers?.Invoke(project) ?? []);
 
     public Task<Recollection> History(Project project, int latest, CancellationToken stop = default) => history.List(project, latest, stop);
 

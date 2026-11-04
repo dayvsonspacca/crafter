@@ -10,7 +10,11 @@ using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Agents.ClaudeCode;
 
-public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuration, ClaudeCodeOptions> options, string? resumeFrom = null) : IAgentSession, IWorksInBackground
+public sealed class ClaudeCodeSession(
+    string workingDirectory,
+    Func<Configuration, ClaudeCodeOptions> options,
+    string? resumeFrom = null,
+    Func<IReadOnlyList<ToolServer>>? servers = null) : IAgentSession, IWorksInBackground
 {
     private readonly List<string> allowed = [];
 
@@ -146,12 +150,21 @@ public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuratio
         return run = started;
     }
 
+    // Asked for again on every start, so a server granted or revoked since takes effect then.
     private IEnumerable<string> Granted()
     {
-        if (allowed.Count > 0)
+        var connected = servers?.Invoke() ?? [];
+        if (connected.Count > 0)
+        {
+            yield return "--mcp-config";
+            yield return ClaudeCodeMcp.Config(connected);
+        }
+
+        string[] rules = [.. allowed, .. connected.SelectMany(server => server.FreeTools.Select(tool => $"mcp__{server.Name}__{tool}"))];
+        if (rules.Length > 0)
         {
             yield return "--allowedTools";
-            foreach (var rule in allowed)
+            foreach (var rule in rules)
             {
                 yield return rule;
             }

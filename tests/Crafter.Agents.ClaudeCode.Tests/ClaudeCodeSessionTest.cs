@@ -1,3 +1,5 @@
+using Crafter.Agents.ClaudeCode.Cli;
+using Crafter.Core.Agents;
 using Crafter.Core.Agents.Background;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
@@ -18,6 +20,33 @@ public sealed class ClaudeCodeSessionTest
         var replies = await claude.Session().Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
 
         Assert.Equal([new Began("Opus 5.5"), new Wrote("Olá"), new Finished()], replies);
+    }
+
+    [Fact]
+    public async Task ConnectsTheProjectsToolServersAndLetsTheirReadingToolsRunUnasked()
+    {
+        using var claude = new FakeClaude($"printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");
+        ToolServer[] servers = [new("crafter", new Uri("http://127.0.0.1:4100/mcp"), "t0ken", ["list_projects", "read_skill"])];
+        var session = new ClaudeCodeSession(claude.Folder, _ => new ClaudeCodeOptions(claude.Executable), servers: () => servers);
+
+        await session.Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
+
+        var arguments = File.ReadAllLines(Path.Combine(claude.Folder, "arguments"));
+        var config = arguments[Array.IndexOf(arguments, "--mcp-config") + 1];
+        Assert.Equal(
+            """{"mcpServers":{"crafter":{"type":"http","url":"http://127.0.0.1:4100/mcp","headers":{"Authorization":"Bearer t0ken"}}}}""",
+            config);
+        Assert.Equal(["mcp__crafter__list_projects", "mcp__crafter__read_skill"], arguments.SkipWhile(each => each != "--allowedTools").Skip(1).Take(2));
+    }
+
+    [Fact]
+    public async Task ConnectsNoServerToAProjectWithoutOne()
+    {
+        using var claude = new FakeClaude($"printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");
+
+        await claude.Session().Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
+
+        Assert.DoesNotContain("--mcp-config", File.ReadAllLines(Path.Combine(claude.Folder, "arguments")));
     }
 
     [Fact]
