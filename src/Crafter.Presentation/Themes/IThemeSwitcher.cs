@@ -7,4 +7,7 @@ public interface IThemeSwitcher
     event EventHandler? AppearanceChanged;
 
     void Apply(Theme theme);
+
+    // Paint with this appearance until the system reports its own, which can take a moment.
+    void Assume(Appearance appearance);
 }

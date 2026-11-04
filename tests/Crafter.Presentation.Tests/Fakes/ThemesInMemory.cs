@@ -12,6 +12,14 @@ internal sealed class ThemesInMemory : IThemeSwitcher
 
     public void Apply(Theme theme) => Applied.Add(theme);
 
+    public Appearance? Assumed { get; private set; }
+
+    public void Assume(Appearance appearance)
+    {
+        Assumed = appearance;
+        Appearance = appearance;
+    }
+
     public void Turn(Appearance appearance)
     {
         Appearance = appearance;
