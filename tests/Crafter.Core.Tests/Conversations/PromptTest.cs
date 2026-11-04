@@ -17,4 +17,23 @@ public sealed class PromptTest
     {
         Assert.ThrowsAny<ArgumentException>(() => new Prompt(text));
     }
+
+    [Fact]
+    public void ComesWithoutPicturesByDefault()
+    {
+        Assert.Empty(new Prompt("oi").Pictures);
+    }
+
+    [Fact]
+    public void EqualsAnotherWithTheSamePictures()
+    {
+        Assert.Equal(new Prompt("[Image #1]", [new Picture("image/png", [1, 2])]), new Prompt("[Image #1]", [new Picture("image/png", [1, 2])]));
+        Assert.NotEqual(new Prompt("[Image #1]", [new Picture("image/png", [1, 2])]), new Prompt("[Image #1]", [new Picture("image/png", [3])]));
+    }
+
+    [Fact]
+    public void RefusesAnEmptyPicture()
+    {
+        Assert.ThrowsAny<ArgumentException>(() => new Picture("image/png", []));
+    }
 }

@@ -110,7 +110,7 @@ public sealed partial class CrafterMessageViewModel : MessageViewModel
             return segment;
         }
 
-        var started = new TextSegmentViewModel(clipboard);
+        var started = new TextSegmentViewModel(clipboard, followsActivity: Items.Count > 0);
         Items.Add(started);
 
         return started;

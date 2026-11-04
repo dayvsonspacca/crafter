@@ -6,6 +6,7 @@ using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Preferences;
+using Crafter.Presentation.Conversations.Composing;
 using Crafter.Presentation.Conversations.Messages;
 using Crafter.Presentation.Platform;
 
@@ -33,18 +34,24 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private readonly List<MessageViewModel> earlier = [];
 
+    private readonly Attachments attachments = new();
+
+    private readonly IProjectFiles files;
+
     private readonly ITimer clock;
 
     private DateTimeOffset started;
 
-    public ConversationViewModel(Chat chat, IAgent agent, PreferenceBook preferences, string projectName, IChatKeeper keeper, IClipboard clipboard, TimeProvider time, string? resumed = null)
+    public ConversationViewModel(Chat chat, IAgent agent, PreferenceBook preferences, string projectName, IChatKeeper keeper, IClipboard clipboard, IProjectFiles files, TimeProvider time, string? resumed = null)
     {
         this.chat = chat;
         this.agent = agent;
         this.preferences = preferences;
         this.keeper = keeper;
         this.clipboard = clipboard;
+        this.files = files;
         this.time = time;
+        Mentions = new MentionsViewModel(files);
         AgentName = agent.Name;
         ProjectName = projectName;
         Draft = string.Empty;
@@ -57,6 +64,12 @@ public sealed partial class ConversationViewModel : ObservableObject
     public event EventHandler? Concluded;
 
     public ObservableCollection<MessageViewModel> Messages { get; } = [];
+
+    public ObservableCollection<AttachmentViewModel> Attached { get; } = [];
+
+    public MentionsViewModel Mentions { get; }
+
+    public bool HasAttached => Attached.Count > 0;
 
     [ObservableProperty]
     public partial string ProjectName { get; set; }
@@ -130,6 +143,32 @@ public sealed partial class ConversationViewModel : ObservableObject
         }
     }
 
+    public string Paste(string text) => attachments.Paste(text);
+
+    public void Attach(Picture picture)
+    {
+        attachments.Attach(picture);
+        Attached.Add(new AttachmentViewModel(picture, Detach));
+        OnPropertyChanged(nameof(HasAttached));
+    }
+
+    public void DetachLast()
+    {
+        if (Attached.Count > 0)
+        {
+            Detach(Attached[^1]);
+        }
+    }
+
+    public string Mention(string path)
+    {
+        var relative = Path.GetRelativePath(files.Folder, path);
+        var inside = !Path.IsPathRooted(relative) && relative != ".." && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal);
+        var shown = (inside ? relative : path).Replace(Path.DirectorySeparatorChar, '/');
+
+        return $"@{(shown.Any(char.IsWhiteSpace) ? $"\"{shown}\"" : shown)} ";
+    }
+
     partial void OnIsInViewChanged(bool value)
     {
         if (!value)
@@ -166,14 +205,14 @@ public sealed partial class ConversationViewModel : ObservableObject
     }
 
     [RelayCommand(IncludeCancelCommand = true)]
-    private async Task Craft(CancellationToken stop)
+    private async Task Craft(YourMessageViewModel? again, CancellationToken stop)
     {
-        if (IsCrafting || string.IsNullOrWhiteSpace(Draft))
+        if (IsCrafting || (again is null ? attachments.Compose(Draft) : again.Prompt) is not { } prompt)
         {
             return;
         }
 
-        var prompt = new Prompt(Draft.Trim());
+        var asked = again is null ? new YourMessageViewModel(prompt, Draft.Trim()) : new YourMessageViewModel(prompt, again.Text);
         var answer = new CrafterMessageViewModel(clipboard, Retry, AgentName, chat.Decide);
         answer.PropertyChanged += (_, changed) =>
         {
@@ -183,8 +222,16 @@ public sealed partial class ConversationViewModel : ObservableObject
             }
         };
 
-        Draft = string.Empty;
-        Messages.Add(new YourMessageViewModel(prompt.Text));
+        if (again is null)
+        {
+            Draft = string.Empty;
+            attachments.Clear();
+            Attached.Clear();
+            OnPropertyChanged(nameof(HasAttached));
+            Mentions.Close();
+        }
+
+        Messages.Add(asked);
         Messages.Add(answer);
         Mark();
         HasMessages = true;
@@ -230,8 +277,14 @@ public sealed partial class ConversationViewModel : ObservableObject
             return;
         }
 
-        Draft = asked.Text;
-        CraftCommand.Execute(null);
+        CraftCommand.Execute(asked);
+    }
+
+    private void Detach(AttachmentViewModel attachment)
+    {
+        attachments.Detach(attachment.Picture);
+        Attached.Remove(attachment);
+        OnPropertyChanged(nameof(HasAttached));
     }
 
     private void Tick()
@@ -260,7 +313,7 @@ public sealed partial class ConversationViewModel : ObservableObject
             switch (turn)
             {
                 case Asked asked:
-                    told.Add(new YourMessageViewModel(asked.Prompt.Text));
+                    told.Add(new YourMessageViewModel(asked.Prompt));
                     break;
                 case Answered answered:
                     told.Add(new CrafterMessageViewModel(answered.Text, answered.Ending, clipboard, Retry));

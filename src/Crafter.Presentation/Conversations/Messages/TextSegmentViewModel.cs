@@ -4,8 +4,10 @@ using Crafter.Presentation.Platform;
 
 namespace Crafter.Presentation.Conversations.Messages;
 
-public sealed partial class TextSegmentViewModel(IClipboard clipboard) : ObservableObject
+public sealed partial class TextSegmentViewModel(IClipboard clipboard, bool followsActivity = false) : ObservableObject
 {
+    public bool FollowsActivity { get; } = followsActivity;
+
     public ObservableCollection<AnswerPieceViewModel> Pieces { get; } = [];
 
     [ObservableProperty]

@@ -19,7 +19,15 @@ public static class ClaudeCodeProtocol
             writer.WriteString("type", "user");
             writer.WriteStartObject("message");
             writer.WriteString("role", "user");
-            writer.WriteString("content", prompt.Text);
+            if (prompt.Pictures.Count == 0)
+            {
+                writer.WriteString("content", prompt.Text);
+            }
+            else
+            {
+                Shown(writer, prompt);
+            }
+
             writer.WriteEndObject();
         });
 
@@ -63,6 +71,28 @@ public static class ClaudeCodeProtocol
         reason?.Trim() is { Length: > 0 } said
             ? $"The user {(asked ? "chose not to answer" : "denied this in Crafter")} and said: {said}"
             : asked ? Silence : Refusal;
+
+    private static void Shown(Utf8JsonWriter writer, Prompt prompt)
+    {
+        writer.WriteStartArray("content");
+        foreach (var picture in prompt.Pictures)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("type", "image");
+            writer.WriteStartObject("source");
+            writer.WriteString("type", "base64");
+            writer.WriteString("media_type", picture.MediaType);
+            writer.WriteBase64String("data", picture.Data);
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+        }
+
+        writer.WriteStartObject();
+        writer.WriteString("type", "text");
+        writer.WriteString("text", prompt.Text);
+        writer.WriteEndObject();
+        writer.WriteEndArray();
+    }
 
     private static void Answered(Utf8JsonWriter writer, string input, Answers answers)
     {

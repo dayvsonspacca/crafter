@@ -7,6 +7,7 @@ using Crafter.Core.Conversations;
 using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
 using Crafter.Presentation.Conversations;
+using Crafter.Presentation.Conversations.Composing;
 using Crafter.Presentation.Platform;
 
 namespace Crafter.Presentation.Desks;
@@ -23,6 +24,8 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     private readonly TimeProvider time;
 
+    private readonly IProjectFiles files;
+
     public ProjectDeskViewModel(Project project, IChatStore store, Crew crew, PreferenceBook preferences, Func<Project, Task> edit, IClipboard clipboard, TimeProvider time)
     {
         Project = project;
@@ -31,6 +34,7 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
         this.preferences = preferences;
         this.clipboard = clipboard;
         this.time = time;
+        files = new FilesOnDisk(project.Folder);
 
         foreach (var record in store.Load(project))
         {
@@ -186,7 +190,7 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     private ConversationViewModel Add(Chat chat, IAgent agent, string? resumed = null)
     {
-        var viewModel = new ConversationViewModel(chat, agent, preferences, Project.Name.Text, this, clipboard, time, resumed);
+        var viewModel = new ConversationViewModel(chat, agent, preferences, Project.Name.Text, this, clipboard, files, time, resumed);
         viewModel.PropertyChanged += Follow;
         viewModel.Concluded += Keep;
         Chats.Add(viewModel);

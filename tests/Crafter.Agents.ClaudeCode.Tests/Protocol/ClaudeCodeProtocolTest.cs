@@ -21,6 +21,20 @@ public sealed class ClaudeCodeProtocolTest
     }
 
     [Fact]
+    public void ShowsThePicturesBeforeTheText()
+    {
+        using var asked = JsonDocument.Parse(ClaudeCodeProtocol.Asking(new Prompt("What is in [Image #1]?", [new Picture("image/png", [1, 2, 3])])));
+        var content = asked.RootElement.GetProperty("message").GetProperty("content");
+
+        Assert.Equal("image", content[0].GetProperty("type").GetString());
+        Assert.Equal("base64", content[0].GetProperty("source").GetProperty("type").GetString());
+        Assert.Equal("image/png", content[0].GetProperty("source").GetProperty("media_type").GetString());
+        Assert.Equal(Convert.ToBase64String([1, 2, 3]), content[0].GetProperty("source").GetProperty("data").GetString());
+        Assert.Equal("text", content[1].GetProperty("type").GetString());
+        Assert.Equal("What is in [Image #1]?", content[1].GetProperty("text").GetString());
+    }
+
+    [Fact]
     public void AllowsWithTheInputItWasAskedFor()
     {
         var response = Response(new Allow(), asked: false);

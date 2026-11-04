@@ -94,6 +94,96 @@ public sealed class ConversationViewModelTest
         Assert.Equal([Configuration.Empty.With("model", "opus")], session.Configurations);
     }
 
+    [Fact]
+    public async Task SendsALongPasteInFullWhileShowingItsLabel()
+    {
+        var session = new ScriptedSession(new Finished());
+        var viewModel = ViewModel(session);
+        var pasted = string.Join('\n', Enumerable.Range(1, 40).Select(line => $"line {line}"));
+
+        var label = viewModel.Paste(pasted);
+        await Ask(viewModel, $"Explain {label}");
+
+        Assert.Equal("[Pasted text #1 +39 lines]", label);
+        Assert.Equal($"Explain {pasted}", session.Heard.Single().Text);
+        Assert.Equal("Explain [Pasted text #1 +39 lines]", viewModel.Messages.OfType<YourMessageViewModel>().Single().Text);
+    }
+
+    [Fact]
+    public void KeepsAShortPasteAsItIs()
+    {
+        Assert.Equal("just test", ViewModel(new ScriptedSession()).Paste("just test"));
+    }
+
+    [Fact]
+    public async Task SendsTheAttachedPictures()
+    {
+        var session = new ScriptedSession(new Finished());
+        var viewModel = ViewModel(session);
+        var picture = new Picture("image/png", [1, 2, 3]);
+
+        viewModel.Attach(picture);
+        await Ask(viewModel, "What is in it?");
+
+        Assert.Equal(new Prompt("What is in it?", [picture]), session.Heard.Single());
+        Assert.Empty(viewModel.Attached);
+        Assert.False(viewModel.HasAttached);
+    }
+
+    [Fact]
+    public async Task SendsAPictureWithoutWords()
+    {
+        var session = new ScriptedSession(new Finished());
+        var viewModel = ViewModel(session);
+
+        viewModel.Attach(new Picture("image/png", [1]));
+        await viewModel.CraftCommand.ExecuteAsync(null);
+
+        Assert.Equal("(1 picture attached)", session.Heard.Single().Text);
+        Assert.False(viewModel.Messages.OfType<YourMessageViewModel>().Single().HasText);
+    }
+
+    [Fact]
+    public async Task ForgetsARemovedPicture()
+    {
+        var session = new ScriptedSession(new Finished());
+        var viewModel = ViewModel(session);
+
+        viewModel.Attach(new Picture("image/png", [1]));
+        viewModel.Attach(new Picture("image/png", [2]));
+        viewModel.Attached[0].RemoveCommand.Execute(null);
+        viewModel.DetachLast();
+        await Ask(viewModel, "look");
+
+        Assert.Empty(session.Heard.Single().Pictures);
+    }
+
+    [Fact]
+    public async Task RetriesTheSamePrompt()
+    {
+        var session = new ScriptedSession(new Finished());
+        var viewModel = ViewModel(session);
+
+        viewModel.Attach(new Picture("image/png", [1]));
+        await Ask(viewModel, "Look at this");
+        viewModel.Draft = "half typed";
+        viewModel.Messages.OfType<CrafterMessageViewModel>().Single().RetryCommand.Execute(null);
+        await viewModel.CraftCommand.ExecutionTask!;
+
+        Assert.Equal(2, session.Heard.Count);
+        Assert.Equal(session.Heard[0], session.Heard[1]);
+        Assert.Equal("half typed", viewModel.Draft);
+    }
+
+    [Fact]
+    public void MentionsAFileInsideTheProjectByItsRelativePath()
+    {
+        var viewModel = ViewModel(new ScriptedSession());
+
+        Assert.Equal("@src/Prompt.cs ", viewModel.Mention("/home/hero/crafter/src/Prompt.cs"));
+        Assert.Equal("@/tmp/shot.png ", viewModel.Mention("/tmp/shot.png"));
+    }
+
     private static Task Ask(ConversationViewModel viewModel, string prompt)
     {
         viewModel.Draft = prompt;
@@ -106,6 +196,6 @@ public sealed class ConversationViewModelTest
         var agent = new ScriptedAgent { Sessions = () => session };
         var chat = new Chat(ChatId.New(), agent.Id, ChatTitle.Untitled, new Conversation(session));
 
-        return new ConversationViewModel(chat, agent, preferences, "crafter", new KeeperInMemory(), clipboard, time);
+        return new ConversationViewModel(chat, agent, preferences, "crafter", new KeeperInMemory(), clipboard, new FilesInMemory("README.md", "src/", "src/Prompt.cs"), time);
     }
 }

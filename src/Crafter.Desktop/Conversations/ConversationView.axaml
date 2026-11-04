@@ -5,6 +5,10 @@
              xmlns:mdc="clr-namespace:Markdown.Avalonia.StyleCollections;assembly=Markdown.Avalonia"
              xmlns:conversations="using:Crafter.Presentation.Conversations"
              xmlns:messages="using:Crafter.Presentation.Conversations.Messages"
+             xmlns:composing="using:Crafter.Presentation.Conversations.Composing"
+             xmlns:folders="using:Crafter.Presentation.Folders"
+             xmlns:core="using:Crafter.Core.Conversations"
+             xmlns:conversationViews="using:Crafter.Desktop.Conversations"
              xmlns:controls="using:Crafter.Desktop.Controls"
              x:Class="Crafter.Desktop.Conversations.ConversationView"
              x:DataType="conversations:ConversationViewModel">
@@ -60,6 +64,9 @@
     <Style Selector="Border.pill.waiting TextBlock">
       <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
     </Style>
+    <Style Selector="ItemsControl.aside">
+      <Setter Property="Margin" Value="8,10,0,12" />
+    </Style>
     <Style Selector="StackPanel.activity">
       <Setter Property="Margin" Value="0,0,0,2" />
     </Style>
@@ -81,7 +88,7 @@
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     </Style>
     <Style Selector="Border.output">
-      <Setter Property="Margin" Value="84,2,0,8" />
+      <Setter Property="Margin" Value="0,2,0,8" />
       <Setter Property="Padding" Value="12,10" />
       <Setter Property="CornerRadius" Value="8" />
       <Setter Property="BorderThickness" Value="1" />
@@ -385,6 +392,78 @@
       <Setter Property="BorderBrush" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
     </Style>
+    <Style Selector="Border.mentions">
+      <Setter Property="MaxWidth" Value="780" />
+      <Setter Property="Margin" Value="24,0,24,6" />
+      <Setter Property="Padding" Value="6" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="VerticalAlignment" Value="Bottom" />
+      <Setter Property="BoxShadow" Value="0 6 18 0 #40000000" />
+    </Style>
+    <Style Selector="Button.mention">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Focusable" Value="False" />
+    </Style>
+    <Style Selector="Button.mention:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.mention:pressed /template/ ContentPresenter#PART_ContentPresenter, Button.mention.chosen /template/ ContentPresenter#PART_ContentPresenter, Button.mention.chosen:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Button.mention TextBlock">
+      <Setter Property="FontSize" Value="13.5" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    </Style>
+    <Style Selector="Button.mention TextBlock.hit">
+      <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.mention TextBlock.where">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Border.picture">
+      <Setter Property="Width" Value="64" />
+      <Setter Property="Height" Value="64" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="ClipToBounds" Value="True" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+    <Style Selector="Border.picture.sent">
+      <Setter Property="Width" Value="120" />
+      <Setter Property="Height" Value="90" />
+    </Style>
+    <Style Selector="Button.unattach">
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,-6,-6,0" />
+      <Setter Property="CornerRadius" Value="99" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Focusable" Value="False" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Button.unattach:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.unattach:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
     <Style Selector="Button.craft, Button.stop">
       <Setter Property="Height" Value="34" />
       <Setter Property="Padding" Value="14,0" />
@@ -499,8 +578,25 @@
     </Border>
 
     <Border DockPanel.Dock="Bottom" Padding="24,12,24,18">
-      <Border Classes="composer">
+      <Border x:Name="Composer" Classes="composer" DragDrop.AllowDrop="True">
         <StackPanel Spacing="8">
+          <ItemsControl ItemsSource="{Binding Attached}" IsVisible="{Binding HasAttached}" Margin="0,6,6,0">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel ItemSpacing="10" LineSpacing="10" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="composing:AttachmentViewModel">
+                <Panel>
+                  <Border Classes="picture">
+                    <Image Source="{Binding Picture, Converter={x:Static conversationViews:PictureConverter.Instance}}" Stretch="UniformToFill" />
+                  </Border>
+                  <Button Classes="unattach" Content="×" Command="{Binding RemoveCommand}" AutomationProperties.Name="Remove picture" />
+                </Panel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
           <TextBox x:Name="PromptBox"
                    Classes="prompt"
                    Text="{Binding Draft}"
@@ -552,7 +648,23 @@
                           BorderThickness="1"
                           BorderBrush="{DynamicResource BorderBrush}"
                           Background="{DynamicResource SurfaceBrush}">
-                    <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14.5" LineHeight="22" />
+                    <StackPanel Spacing="10">
+                      <ItemsControl ItemsSource="{Binding Pictures}" IsVisible="{Binding HasPictures}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel ItemSpacing="8" LineSpacing="8" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate DataType="core:Picture">
+                            <Border Classes="picture sent">
+                              <Image Source="{Binding, Converter={x:Static conversationViews:PictureConverter.Instance}}" Stretch="UniformToFill" />
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                      <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14.5" LineHeight="22" IsVisible="{Binding HasText}" />
+                    </StackPanel>
                   </Border>
                 </Grid>
               </DataTemplate>
@@ -579,7 +691,7 @@
                     <ItemsControl ItemsSource="{Binding Items}">
                       <ItemsControl.DataTemplates>
                         <DataTemplate DataType="messages:TextSegmentViewModel">
-                          <ItemsControl ItemsSource="{Binding Pieces}">
+                          <ItemsControl ItemsSource="{Binding Pieces}" Classes.aside="{Binding FollowsActivity}">
                             <ItemsControl.DataTemplates>
                               <DataTemplate DataType="messages:ProseViewModel">
                                 <md:MarkdownScrollViewer Markdown="{Binding Text}">
@@ -771,6 +883,46 @@
           </ItemsControl>
         </StackPanel>
       </ScrollViewer>
+
+      <Border Classes="mentions" IsVisible="{Binding Mentions.IsOpen}">
+        <ItemsControl ItemsSource="{Binding Mentions.Choices}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="composing:MentionViewModel">
+              <Button Classes="mention" Classes.chosen="{Binding IsSelected}" Click="Mention" AutomationProperties.Name="{Binding Path}">
+                <Grid ColumnDefinitions="16,Auto,*" ColumnSpacing="10">
+                  <Path Width="16"
+                        Height="16"
+                        StrokeThickness="1"
+                        VerticalAlignment="Center"
+                        Stroke="{DynamicResource ForegroundMutedBrush}"
+                        Data="M1.5,4.5 H5.5 L7,6 H14.5 V13 H1.5 Z"
+                        IsVisible="{Binding IsFolder}" />
+                  <Path Width="16"
+                        Height="16"
+                        StrokeThickness="1"
+                        VerticalAlignment="Center"
+                        Stroke="{DynamicResource ForegroundMutedBrush}"
+                        Data="M3.5,1.5 H9.5 L12.5,4.5 V14.5 H3.5 Z M9.5,1.5 V4.5 H12.5"
+                        IsVisible="{Binding IsFile}" />
+                  <ItemsControl Grid.Column="1" ItemsSource="{Binding Name}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="folders:NamePart">
+                        <TextBlock Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Grid.Column="2" Classes="where" TextTrimming="LeadingCharacterEllipsis" Text="{Binding Folder}" IsVisible="{Binding HasFolder}" />
+                </Grid>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
 
       <Button x:Name="Jump"
               Classes="jump"
