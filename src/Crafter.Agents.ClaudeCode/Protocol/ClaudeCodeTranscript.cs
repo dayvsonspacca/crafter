@@ -250,12 +250,14 @@ public sealed partial class ClaudeCodeTranscript(string? folder = null)
             return [new NeedsAnswers(request, questions)];
         }
 
+        var (shown, summary, _) = ClaudeCodeTools.Shown(tool, input, folder);
+
         return
         [
             new NeedsApproval(
                 request,
-                Text(asked, "display_name") ?? tool,
-                ClaudeCodeTools.Describe(tool, input, folder).Summary,
+                Text(asked, "display_name") ?? shown,
+                summary,
                 Text(asked, "description"),
                 ClaudeCodePermissions.Remembers(suggestions)),
         ];
@@ -293,9 +295,9 @@ public sealed partial class ClaudeCodeTranscript(string? folder = null)
     private Acting Acting(string id, string tool, JsonElement input)
     {
         tools[id] = tool;
-        var (summary, stat) = ClaudeCodeTools.Describe(tool, input, folder);
+        var (shown, summary, stat) = ClaudeCodeTools.Shown(tool, input, folder);
 
-        return new Acting(id, tool, summary, stat);
+        return new Acting(id, shown, summary, stat);
     }
 
     private static JsonElement Input(JsonElement holder) =>

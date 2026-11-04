@@ -30,6 +30,22 @@ public sealed class ClaudeCodeToolsTest
         Assert.Equal((summary, stat), ClaudeCodeTools.Describe(tool, document.RootElement, "/home/hero/crafter"));
     }
 
+    [Theory]
+    [InlineData("mcp__crafter__list_projects", """{}""", "crafter", "list projects")]
+    [InlineData("mcp__crafter__set_project_icon", """{"folder":"/home/hero/crafter/hyprland","image":"/tmp/icon.png"}""", "crafter", "set project icon · hyprland")]
+    [InlineData("mcp__claude_ai_Claude_Docs__batch", """{"opId":7,"container":{"kind":"project"}}""", "Claude Docs", "batch")]
+    [InlineData("mcp__plugin-miro__get-board", """{"board":"b1\nmore"}""", "plugin-miro", "get board · b1")]
+    [InlineData("Bash", """{"command":"ls"}""", "Bash", "ls")]
+    [InlineData("mcp__broken", """{}""", "mcp__broken", "mcp__broken")]
+    public void NamesAToolServersToolByItsServerAndWhatItDid(string tool, string input, string shown, string summary)
+    {
+        using var document = JsonDocument.Parse(input);
+
+        var named = ClaudeCodeTools.Shown(tool, document.RootElement, "/home/hero/crafter");
+
+        Assert.Equal((shown, summary), (named.Tool, named.Summary));
+    }
+
     [Fact]
     public void KeepsFullPathsWithoutAFolder()
     {

@@ -730,13 +730,13 @@
                           <DataTemplate DataType="messages:ActivityItemViewModel">
                             <StackPanel Classes="activity">
                               <Button Classes="act" Command="{Binding ToggleCommand}" AutomationProperties.Name="{Binding Summary}">
-                                <Grid ColumnDefinitions="14,52,*,Auto" ColumnSpacing="10">
+                                <Grid ColumnDefinitions="14,84,*,Auto" ColumnSpacing="10">
                                   <Panel Width="8" Height="8" VerticalAlignment="Center">
                                     <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsRunning}" />
                                     <Ellipse Fill="{DynamicResource AddedBrush}" IsVisible="{Binding IsFine}" />
                                     <Ellipse Fill="{DynamicResource RemovedBrush}" IsVisible="{Binding IsFailed}" />
                                   </Panel>
-                                  <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Tool}" />
+                                  <TextBlock Grid.Column="1" Classes="mono" TextTrimming="CharacterEllipsis" Text="{Binding Tool}" ToolTip.Tip="{Binding Tool}" />
                                   <TextBlock Grid.Column="2" Classes="mono what" TextTrimming="CharacterEllipsis" Text="{Binding Summary}" />
                                   <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Result}" IsVisible="{Binding ShowsResult}" />
                                   <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowsChanges}">

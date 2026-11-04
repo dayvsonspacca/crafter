@@ -27,6 +27,50 @@ public static class ClaudeCodeTools
         };
     }
 
+    // The name a tool goes by in the chat. A tool server's tool, mcp__<server>__<tool>, goes by its
+    // server, and what it did reads as words with its first argument: "crafter", "set project icon · …".
+    public static (string Tool, string Summary, string? Stat) Shown(string tool, JsonElement input, string? folder)
+    {
+        if (Served(tool) is not { } served)
+        {
+            var (summary, stat) = Describe(tool, input, folder);
+
+            return (tool, summary, stat);
+        }
+
+        var action = served.Tool.Replace('_', ' ').Replace('-', ' ').Trim();
+        var argument = FirstArgument(input) is { } first ? Relative(FirstLine(first), folder) : null;
+
+        return (served.Server, argument is { Length: > 0 } ? $"{action} · {argument}" : action, null);
+    }
+
+    private static (string Server, string Tool)? Served(string tool)
+    {
+        if (!tool.StartsWith("mcp__", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var parts = tool["mcp__".Length..].Split("__", 2);
+        if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0)
+        {
+            return null;
+        }
+
+        // Connectors from claude.ai arrive as claude_ai_<Name>; the name is enough.
+        var server = parts[0].StartsWith("claude_ai_", StringComparison.Ordinal) ? parts[0]["claude_ai_".Length..] : parts[0];
+
+        return (server.Replace('_', ' '), parts[1]);
+    }
+
+    private static string? FirstArgument(JsonElement input) =>
+        input.ValueKind == JsonValueKind.Object
+            ? input.EnumerateObject()
+                .Where(field => field.Value.ValueKind == JsonValueKind.String)
+                .Select(field => field.Value.GetString()!.Trim())
+                .FirstOrDefault(text => text.Length > 0)
+            : null;
+
     private static string Relative(string path, string? folder) =>
         folder is not null && path.StartsWith(folder + Path.DirectorySeparatorChar, StringComparison.Ordinal) ? path[(folder.Length + 1)..] : path;
 
