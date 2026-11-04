@@ -2,8 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conversations="using:Crafter.Presentation.Conversations"
              xmlns:projects="using:Crafter.Desktop.Projects"
+             xmlns:desks="using:Crafter.Presentation.Desks"
              x:Class="Crafter.Desktop.Conversations.ChatTabs"
-             x:DataType="conversations:ProjectDesk"
+             x:DataType="desks:ProjectDesk"
              Height="35">
   <UserControl.Styles>
     <Style Selector="Button.tab">

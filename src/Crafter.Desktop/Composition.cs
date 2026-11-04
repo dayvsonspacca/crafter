@@ -6,11 +6,11 @@ using Crafter.Desktop.Platform;
 using Crafter.Desktop.Themes;
 using Crafter.Desktop.WindowManagers;
 using Crafter.Presentation;
-using Crafter.Presentation.Conversations;
+using Crafter.Presentation.Agents;
+using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
-using Crafter.Presentation.Projects;
-using Crafter.Presentation.Settings;
-using Crafter.Presentation.Setup;
+using Crafter.Presentation.Preferences;
+using Crafter.Presentation.Projects.Namer;
 using Crafter.Storage;
 
 namespace Crafter.Desktop;

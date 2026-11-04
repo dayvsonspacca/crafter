@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Crafter.Desktop"
-             xmlns:projects="using:Crafter.Presentation.Projects"
              xmlns:projectsViews="using:Crafter.Desktop.Projects"
+             xmlns:namer="using:Crafter.Presentation.Projects.Namer"
              x:Class="Crafter.Desktop.Projects.ProjectNamerView"
-             x:DataType="projects:ProjectNamer"
+             x:DataType="namer:ProjectNamer"
              IsVisible="{Binding IsOpen}">
   <UserControl.Styles>
     <Style Selector="TextBlock.kicker">

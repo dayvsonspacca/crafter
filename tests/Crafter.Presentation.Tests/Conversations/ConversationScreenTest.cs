@@ -4,6 +4,7 @@ using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Preferences;
 using Crafter.Presentation.Conversations;
+using Crafter.Presentation.Conversations.Messages;
 using Microsoft.Extensions.Time.Testing;
 
 namespace Crafter.Presentation.Tests.Conversations;

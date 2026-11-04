@@ -2,7 +2,7 @@ using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Projects;
-using Crafter.Presentation.Conversations;
+using Crafter.Presentation.Desks;
 using Crafter.Presentation.Keyboard;
 
 namespace Crafter.Presentation.Projects;

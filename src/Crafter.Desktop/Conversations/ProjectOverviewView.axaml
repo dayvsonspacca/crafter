@@ -1,9 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:conversations="using:Crafter.Presentation.Conversations"
              xmlns:projects="using:Crafter.Desktop.Projects"
+             xmlns:desks="using:Crafter.Presentation.Desks"
              x:Class="Crafter.Desktop.Conversations.ProjectOverviewView"
-             x:DataType="conversations:ProjectOverview">
+             x:DataType="desks:ProjectOverview">
   <UserControl.Styles>
     <Style Selector="TextBlock.kicker">
       <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
@@ -137,10 +137,10 @@
         <Border Classes="recents" IsVisible="{Binding HasRecent}">
           <ItemsControl ItemsSource="{Binding Recent}">
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="conversations:RecentChat">
+              <DataTemplate x:DataType="desks:RecentChat">
                 <Button Classes="recent"
                         Classes.last="{Binding IsLast}"
-                        Command="{Binding $parent[UserControl].((conversations:ProjectOverview)DataContext).ResumeCommand}"
+                        Command="{Binding $parent[UserControl].((desks:ProjectOverview)DataContext).ResumeCommand}"
                         CommandParameter="{Binding}"
                         AutomationProperties.Name="{Binding Title}">
                   <Grid ColumnDefinitions="10,*,Auto" ColumnSpacing="14">

@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using Crafter.Presentation.Settings;
+using Crafter.Presentation.Preferences;
 
 namespace Crafter.Desktop.Settings;
 

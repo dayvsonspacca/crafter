@@ -3,7 +3,6 @@
              xmlns:local="using:Crafter.Desktop"
              xmlns:folders="using:Crafter.Presentation.Folders"
              xmlns:folderViews="using:Crafter.Desktop.Folders"
-             xmlns:projects="using:Crafter.Presentation.Projects"
              x:Class="Crafter.Desktop.Folders.FolderPickerView"
              x:DataType="folders:FolderPicker"
              IsVisible="{Binding IsOpen}">
@@ -115,7 +114,7 @@
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="projects:Piece">
+                    <DataTemplate DataType="folders:Piece">
                       <TextBlock FontSize="13.5" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
@@ -148,7 +147,7 @@
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
-                  <DataTemplate DataType="projects:Piece">
+                  <DataTemplate DataType="folders:Piece">
                     <TextBlock FontSize="13.5" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

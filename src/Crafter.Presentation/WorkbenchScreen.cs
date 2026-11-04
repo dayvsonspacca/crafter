@@ -4,12 +4,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
-using Crafter.Presentation.Conversations;
+using Crafter.Presentation.Agents;
+using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
+using Crafter.Presentation.Keyboard;
 using Crafter.Presentation.Platform;
+using Crafter.Presentation.Preferences;
 using Crafter.Presentation.Projects;
-using Crafter.Presentation.Settings;
-using Crafter.Presentation.Setup;
+using Crafter.Presentation.Projects.Namer;
 
 namespace Crafter.Presentation;
 

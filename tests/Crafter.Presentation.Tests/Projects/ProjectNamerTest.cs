@@ -1,5 +1,5 @@
 using Crafter.Core.Projects;
-using Crafter.Presentation.Projects;
+using Crafter.Presentation.Projects.Namer;
 
 namespace Crafter.Presentation.Tests.Projects;
 

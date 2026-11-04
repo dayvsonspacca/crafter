@@ -5,6 +5,7 @@
              xmlns:mdc="clr-namespace:Markdown.Avalonia.StyleCollections;assembly=Markdown.Avalonia"
              xmlns:conversations="using:Crafter.Presentation.Conversations"
              xmlns:conversationsViews="using:Crafter.Desktop.Conversations"
+             xmlns:messages="using:Crafter.Presentation.Conversations.Messages"
              x:Class="Crafter.Desktop.Conversations.ConversationView"
              x:DataType="conversations:ConversationScreen">
   <UserControl.Styles>
@@ -530,7 +531,7 @@
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.DataTemplates>
-              <DataTemplate DataType="conversations:YourMessage">
+              <DataTemplate DataType="messages:YourMessage">
                 <Grid ColumnDefinitions="28,*" ColumnSpacing="16">
                   <DockPanel>
                     <Border DockPanel.Dock="Top" Classes="slot">
@@ -556,7 +557,7 @@
                 </Grid>
               </DataTemplate>
 
-              <DataTemplate DataType="conversations:CrafterMessage">
+              <DataTemplate DataType="messages:CrafterMessage">
                 <Grid Classes="answer" Classes.last="{Binding IsLast}" ColumnDefinitions="28,*" ColumnSpacing="16" Background="Transparent">
                   <DockPanel>
                     <Border DockPanel.Dock="Top" Classes="slot">
@@ -577,10 +578,10 @@
                   <StackPanel Grid.Column="1" Margin="0,0,0,30" Spacing="10">
                     <ItemsControl ItemsSource="{Binding Items}">
                       <ItemsControl.DataTemplates>
-                        <DataTemplate DataType="conversations:TextSegment">
+                        <DataTemplate DataType="messages:TextSegment">
                           <ItemsControl ItemsSource="{Binding Pieces}">
                             <ItemsControl.DataTemplates>
-                              <DataTemplate DataType="conversations:Prose">
+                              <DataTemplate DataType="messages:Prose">
                                 <md:MarkdownScrollViewer Markdown="{Binding Text}">
                                   <md:MarkdownScrollViewer.MarkdownStyle>
                                     <Styles>
@@ -594,7 +595,7 @@
                                   </md:MarkdownScrollViewer.MarkdownStyle>
                                 </md:MarkdownScrollViewer>
                               </DataTemplate>
-                              <DataTemplate DataType="conversations:CodeBlock">
+                              <DataTemplate DataType="messages:CodeBlock">
                                 <Border Margin="0,4,0,12"
                                         CornerRadius="9"
                                         ClipToBounds="True"
@@ -625,7 +626,7 @@
                             </ItemsControl.DataTemplates>
                           </ItemsControl>
                         </DataTemplate>
-                        <DataTemplate DataType="conversations:ActivityItem">
+                        <DataTemplate DataType="messages:ActivityItem">
                           <StackPanel Classes="activity">
                             <Button Classes="act" Command="{Binding ToggleCommand}" AutomationProperties.Name="{Binding Summary}">
                               <Grid ColumnDefinitions="14,52,*,Auto" ColumnSpacing="10">
@@ -649,7 +650,7 @@
                             </Border>
                           </StackPanel>
                         </DataTemplate>
-                        <DataTemplate DataType="conversations:ApprovalItem">
+                        <DataTemplate DataType="messages:ApprovalItem">
                           <Border Classes="approval" Classes.open="{Binding IsOpen}">
                             <StackPanel Spacing="10">
                               <TextBlock FontSize="13.5" Text="{Binding Asking}" />
@@ -687,7 +688,7 @@
                             </StackPanel>
                           </Border>
                         </DataTemplate>
-                        <DataTemplate DataType="conversations:QuestionItem">
+                        <DataTemplate DataType="messages:QuestionItem">
                           <Border Classes="approval" Classes.open="{Binding IsOpen}">
                             <StackPanel Spacing="14">
                               <TextBlock FontSize="13.5" Text="{Binding Asking}" />
@@ -698,7 +699,7 @@
                                   </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
-                                  <DataTemplate DataType="conversations:QuestionCard">
+                                  <DataTemplate DataType="messages:QuestionCard">
                                     <StackPanel Spacing="8">
                                       <TextBlock Classes="mono" Text="{Binding Header}" IsVisible="{Binding HasHeader}" />
                                       <TextBlock FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding Text}" />
@@ -711,7 +712,7 @@
                                             </ItemsPanelTemplate>
                                           </ItemsControl.ItemsPanel>
                                           <ItemsControl.ItemTemplate>
-                                            <DataTemplate DataType="conversations:PickItem">
+                                            <DataTemplate DataType="messages:PickItem">
                                               <Button Classes="pick"
                                                       Classes.chosen="{Binding IsChosen}"
                                                       Command="{Binding ToggleCommand}"
@@ -759,7 +760,7 @@
                 </Grid>
               </DataTemplate>
 
-              <DataTemplate DataType="conversations:ResumedMark">
+              <DataTemplate DataType="messages:ResumedMark">
                 <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12" Margin="0,0,0,26">
                   <Rectangle Height="1" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Text}" />

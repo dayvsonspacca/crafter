@@ -6,6 +6,7 @@ using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Preferences;
+using Crafter.Presentation.Conversations.Messages;
 using Crafter.Presentation.Platform;
 
 namespace Crafter.Presentation.Conversations;

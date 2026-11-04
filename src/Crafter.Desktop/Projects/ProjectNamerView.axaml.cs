@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using Crafter.Presentation.Projects;
+using Crafter.Presentation.Projects.Namer;
 
 namespace Crafter.Desktop.Projects;
 

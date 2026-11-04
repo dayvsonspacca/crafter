@@ -5,8 +5,7 @@ using Avalonia.Interactivity;
 using Crafter.Desktop.Keyboard;
 using Crafter.Desktop.WindowManagers;
 using Crafter.Presentation;
-using Crafter.Presentation.Conversations;
-using Crafter.Presentation.Projects;
+using Crafter.Presentation.Keyboard;
 
 namespace Crafter.Desktop;
 
