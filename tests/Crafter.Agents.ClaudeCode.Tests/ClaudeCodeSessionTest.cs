@@ -62,6 +62,37 @@ public sealed class ClaudeCodeSessionTest
     }
 
     [Fact]
+    public async Task HandsOverTheProjectsAxiomsBesideItsSkillsInOneSystemPrompt()
+    {
+        using var claude = new FakeClaude($"printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");
+        var library = Directory.CreateDirectory(Path.Combine(claude.Folder, "library", "commit")).FullName;
+        File.WriteAllText(Path.Combine(library, "instructions.md"), "Use conventional commits.");
+        var shelf = ClaudeCodeSkills.Write(Path.Combine(claude.Folder, "shelf"), [new Skill("commit", "Commit", "Writes commits.", null, library)]);
+        var session = new ClaudeCodeSession(claude.Folder, _ => new ClaudeCodeOptions(claude.Executable), skills: () => shelf, axioms: () => ["Never add comments", "Always write tests"]);
+
+        await session.Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
+
+        var arguments = File.ReadAllText(Path.Combine(claude.Folder, "arguments"));
+        Assert.Single(arguments.Split('\n'), line => line == "--append-system-prompt");
+        Assert.Contains("# Skills", arguments);
+        Assert.Contains("# Axioms", arguments);
+        Assert.Contains("- Never add comments", arguments);
+        Assert.Contains("- Always write tests", arguments);
+    }
+
+    [Fact]
+    public async Task StartsClaudeCodeWithoutItsMemoryOrInstructionFiles()
+    {
+        using var claude = new FakeClaude($"env > \"$(dirname \"$0\")/environment\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");
+
+        await claude.Session().Answer(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
+
+        var environment = File.ReadAllLines(Path.Combine(claude.Folder, "environment"));
+        Assert.Contains("CLAUDE_CODE_DISABLE_CLAUDE_MDS=1", environment);
+        Assert.Contains("CLAUDE_CODE_DISABLE_AUTO_MEMORY=1", environment);
+    }
+
+    [Fact]
     public async Task ConnectsNoServerToAProjectWithoutOne()
     {
         using var claude = new FakeClaude($"printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments\"\nread -r line\n{FakeClaude.Init}\n{FakeClaude.Success}");

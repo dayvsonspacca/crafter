@@ -264,6 +264,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public IReadOnlyList<Skill> SkillsFor(Project project) =>
         [.. Preferences.Library.Skills.Where(skill => Preferences.Library.IsDefault(skill) || bookshelf.Has(project, skill.Id))];
 
+    public IReadOnlyList<string> AxiomsOf(Project project) => bookshelf.AxiomsOf(project);
+
     public void Give(Project project, Skill skill, bool given)
     {
         bookshelf.Give(project, skill.Id, given);

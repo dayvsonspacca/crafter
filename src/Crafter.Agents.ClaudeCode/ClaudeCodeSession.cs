@@ -15,7 +15,8 @@ public sealed class ClaudeCodeSession(
     Func<Configuration, ClaudeCodeOptions> options,
     string? resumeFrom = null,
     Func<IReadOnlyList<ToolServer>>? servers = null,
-    Func<ClaudeCodeSkillShelf?>? skills = null) : IAgentSession, IWorksInBackground
+    Func<ClaudeCodeSkillShelf?>? skills = null,
+    Func<IReadOnlyList<string>>? axioms = null) : IAgentSession, IWorksInBackground
 {
     private readonly List<string> allowed = [];
 
@@ -29,6 +30,9 @@ public sealed class ClaudeCodeSession(
 
     // The skills the running session was started with.
     private ClaudeCodeSkillShelf? shelf;
+
+    // The axioms the running session was started with.
+    private IReadOnlyList<string> held = [];
 
     private string? sessionId = resumeFrom;
 
@@ -149,6 +153,7 @@ public sealed class ClaudeCodeSession(
         }
 
         shelf = skills?.Invoke();
+        held = axioms?.Invoke() ?? [];
         var started = ClaudeCodeRun.Start(wanted, workingDirectory, [.. wanted.Arguments(sessionId), .. Granted()]);
         if (started is null)
         {
@@ -163,15 +168,16 @@ public sealed class ClaudeCodeSession(
         return run = started;
     }
 
-    // Asked for again on every start, so a server or a skill granted or revoked since takes effect then.
-    // Claude Code's own skills and slash commands stay off: Crafter's skills are the only ones.
+    // Asked for again on every start, so a server, a skill or an axiom granted or revoked since takes
+    // effect then. Claude Code's own skills and slash commands stay off: Crafter's skills are the only ones.
     private IEnumerable<string> Granted()
     {
         yield return "--disable-slash-commands";
-        if (shelf is { } given)
+        string[] briefs = [.. shelf is { } given ? [ClaudeCodeSkills.Catalog(given)] : Array.Empty<string>(), .. held.Count > 0 ? [ClaudeCodeAxioms.Brief(held)] : Array.Empty<string>()];
+        if (briefs.Length > 0)
         {
             yield return "--append-system-prompt";
-            yield return ClaudeCodeSkills.Catalog(given);
+            yield return string.Join('\n', briefs);
         }
 
         var connected = servers?.Invoke() ?? [];

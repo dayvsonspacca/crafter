@@ -39,6 +39,11 @@ internal static class ClaudeCodeProcess
             start.Environment.Remove(variable);
         }
 
+        // Crafter's axioms stand in for Claude Code's memory and its CLAUDE.md and AGENTS.md files,
+        // so those stay off, for the sessions Crafter starts only.
+        start.Environment["CLAUDE_CODE_DISABLE_CLAUDE_MDS"] = "1";
+        start.Environment["CLAUDE_CODE_DISABLE_AUTO_MEMORY"] = "1";
+
         try
         {
             return Process.Start(start);
