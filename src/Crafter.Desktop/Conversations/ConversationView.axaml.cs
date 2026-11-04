@@ -38,6 +38,7 @@ public sealed partial class ConversationView : UserControl
         AddHandler(DragDrop.DragLeaveEvent, Leave);
         AddHandler(DragDrop.DropEvent, Drop);
         Composer.AddHandler(Button.ClickEvent, Refocus);
+        AddHandler(KeyDownEvent, Stop, RoutingStrategies.Bubble);
     }
 
     private ConversationViewModel? Conversation => DataContext as ConversationViewModel;
@@ -49,6 +50,14 @@ public sealed partial class ConversationView : UserControl
         if (Mentions is { IsOpen: true } mentions && Steer(mentions, e))
         {
             e.Handled = true;
+
+            return;
+        }
+
+        if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None && Conversation is { } escaping)
+        {
+            e.Handled = true;
+            escaping.Escape();
 
             return;
         }
@@ -151,6 +160,18 @@ public sealed partial class ConversationView : UserControl
                     viewModel.Attach(picture);
                 }
             }
+        }
+    }
+
+    // With the agent at work, Escape stops it wherever the focus is in the chat, and the prompt
+    // comes back to the composer to be edited.
+    private void Stop(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && !e.Handled && Conversation is { IsAsking: true } asking)
+        {
+            e.Handled = true;
+            asking.Escape();
+            PromptBox.Focus();
         }
     }
 

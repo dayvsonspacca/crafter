@@ -301,6 +301,81 @@ public sealed class ConversationViewModelTest
     }
 
     [Fact]
+    public async Task EscapeStopsTheAgentAndHandsThePromptBack()
+    {
+        var session = new ScriptedSession(new Wrote("Thinking")) { Hangs = true };
+        var viewModel = ViewModel(session);
+        var picture = new Picture("image/png", [1]);
+        viewModel.Attach(picture);
+
+        var crafting = Ask(viewModel, "fix the table");
+        viewModel.Escape();
+        await crafting;
+
+        Assert.False(viewModel.IsAsking);
+        Assert.Equal("fix the table", viewModel.Draft);
+        Assert.Equal([picture], viewModel.Attached.Select(each => each.Picture));
+        Assert.Single(viewModel.Messages.OfType<YourMessageViewModel>());
+    }
+
+    [Fact]
+    public async Task EscapeKeepsWhatWasTypedWhileTheAgentWorked()
+    {
+        var viewModel = ViewModel(new ScriptedSession { Hangs = true });
+
+        var crafting = Ask(viewModel, "fix the table");
+        viewModel.Draft = "and the copy";
+        viewModel.Escape();
+        await crafting;
+
+        Assert.Equal("and the copy", viewModel.Draft);
+    }
+
+    [Fact]
+    public void EscapeTwiceClearsTheDraftAndItsAttachments()
+    {
+        var viewModel = ViewModel(new ScriptedSession());
+        viewModel.Draft = "half a thought";
+        viewModel.Attach(new Picture("image/png", [1]));
+
+        viewModel.Escape();
+        Assert.True(viewModel.IsClearArmed);
+        Assert.Equal("half a thought", viewModel.Draft);
+
+        viewModel.Escape();
+        Assert.Equal(string.Empty, viewModel.Draft);
+        Assert.Empty(viewModel.Attached);
+        Assert.False(viewModel.IsClearArmed);
+    }
+
+    [Fact]
+    public void ASecondEscapeTooLateOrAfterTypingKeepsTheDraft()
+    {
+        var viewModel = ViewModel(new ScriptedSession());
+        viewModel.Draft = "half a thought";
+
+        viewModel.Escape();
+        time.Advance(ConversationViewModel.ClearWindow);
+        Assert.False(viewModel.IsClearArmed);
+        viewModel.Escape();
+        Assert.Equal("half a thought", viewModel.Draft);
+
+        viewModel.Draft = "half a thought, more";
+        viewModel.Escape();
+        Assert.Equal("half a thought, more", viewModel.Draft);
+    }
+
+    [Fact]
+    public void EscapeOnAnEmptyComposerDoesNothing()
+    {
+        var viewModel = ViewModel(new ScriptedSession());
+
+        viewModel.Escape();
+
+        Assert.False(viewModel.IsClearArmed);
+    }
+
+    [Fact]
     public void OpensAndClosesTheJobsWindow()
     {
         var viewModel = ViewModel(new ScriptedSession());

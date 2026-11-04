@@ -16,7 +16,7 @@ using Crafter.Testing;
 
 namespace Crafter.Desktop.Tests.Conversations;
 
-public sealed class ConversationDropTest : IDisposable
+public sealed class ConversationViewTest : IDisposable
 {
     private readonly string folder = Directory.CreateTempSubdirectory("crafter-drop").FullName;
 
@@ -101,6 +101,29 @@ public sealed class ConversationDropTest : IDisposable
 
             Assert.Empty(chat.Attached);
             Assert.Equal(string.Empty, chat.Draft);
+        });
+    }
+
+    [Fact]
+    public void EscapeTwiceInThePromptClearsTheDraft()
+    {
+        TestApp.Run(() =>
+        {
+            var (window, view, chat) = Show();
+            var prompt = view.GetVisualDescendants().OfType<TextBox>().Single(box => box.Name == "PromptBox");
+            prompt.Focus();
+            chat.Draft = "half a thought";
+            Settle();
+
+            window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+            Settle();
+            Assert.True(chat.IsClearArmed);
+            Assert.Contains(view.GetVisualDescendants().OfType<TextBlock>(), text => text.Text == "Press Esc again to clear" && text.IsEffectivelyVisible);
+
+            window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+            Settle();
+            Assert.Equal(string.Empty, chat.Draft);
+            Assert.Equal(string.Empty, prompt.Text);
         });
     }
 

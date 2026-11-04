@@ -334,6 +334,11 @@
         </Transitions>
       </Setter>
     </Style>
+    <Style Selector="Border.composer TextBlock.hint.armed">
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+    </Style>
     <Style Selector="Border.composer:focus-within TextBlock.hint">
       <Setter Property="Opacity" Value="1" />
     </Style>
@@ -564,7 +569,11 @@
               <Button Classes="icon" Click="Browse" ToolTip.Tip="Attach files" AutomationProperties.Name="Attach files">
                 <Path Data="M13,7.6 L8.1,12.5 A3,3 0 0 1 3.9,8.3 L9.3,2.9 A2,2 0 0 1 12.1,5.7 L6.8,11 A1,1 0 0 1 5.4,9.6 L10.2,4.8" />
               </Button>
-              <TextBlock Grid.Column="1" Classes="hint" Text="Enter to craft · Shift+Enter for a new line" />
+              <Panel Grid.Column="1">
+                <TextBlock Classes="hint" Text="Enter to craft · Shift+Enter for a new line" IsVisible="{Binding !IsAsking}" />
+                <TextBlock Classes="hint" Text="Esc to stop and edit the prompt" IsVisible="{Binding IsAsking}" />
+                <TextBlock Classes="hint armed" Text="Press Esc again to clear" IsVisible="{Binding IsClearArmed}" />
+              </Panel>
               <Panel Grid.Column="2">
                 <Button Classes="primary" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsAsking}" />
                 <Button Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsAsking}" />

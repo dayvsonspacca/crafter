@@ -31,6 +31,8 @@ public static class ShortcutCatalog
         [
             new("Craft", "Enter"),
             new("New line", "Shift+Enter"),
+            new("Stop the agent and edit the prompt", "Escape"),
+            new("Clear the draft", "Escape Escape"),
             new("Mention a file", "@"),
             new("Remove the last attachment, at the start of the draft", "Backspace"),
         ]),

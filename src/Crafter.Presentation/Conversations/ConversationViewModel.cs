@@ -44,6 +44,13 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private DateTimeOffset started;
 
+    // A second Escape within this clears the draft, as in Claude Code.
+    public static readonly TimeSpan ClearWindow = TimeSpan.FromSeconds(1);
+
+    private ITimer? disarm;
+
+    private YourMessageViewModel? lastAsked;
+
     private int turning;
 
     public ConversationViewModel(Chat chat, IAgent agent, PreferenceBook preferences, string projectName, IChatKeeper keeper, IClipboard clipboard, IProjectFiles files, TimeProvider time, string? resumed = null)
@@ -190,6 +197,37 @@ public sealed partial class ConversationViewModel : ObservableObject
         OnPropertyChanged(nameof(HasAttached));
     }
 
+    // Escape stops the agent and hands the prompt back to edit; with nothing running, a second
+    // Escape soon after the first clears the draft and its attachments.
+    public void Escape()
+    {
+        if (IsAsking)
+        {
+            Interrupt();
+
+            return;
+        }
+
+        if (Draft.Length == 0 && Attached.Count == 0)
+        {
+            return;
+        }
+
+        if (IsClearArmed)
+        {
+            ClearDraft();
+
+            return;
+        }
+
+        IsClearArmed = true;
+        disarm?.Dispose();
+        disarm = time.CreateTimer(_ => OnUi(() => IsClearArmed = false), null, ClearWindow, Timeout.InfiniteTimeSpan);
+    }
+
+    [ObservableProperty]
+    public partial bool IsClearArmed { get; private set; }
+
     public void DetachLast()
     {
         if (Attached.Count > 0)
@@ -270,6 +308,7 @@ public sealed partial class ConversationViewModel : ObservableObject
         }
 
         Messages.Add(asked);
+        lastAsked = asked;
         IsAsking = true;
         started = time.GetUtcNow();
 
@@ -361,6 +400,37 @@ public sealed partial class ConversationViewModel : ObservableObject
         else
         {
             clock.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    // Typing after the first Escape means the draft is wanted after all.
+    partial void OnDraftChanged(string value) => IsClearArmed = false;
+
+    private void Interrupt()
+    {
+        CraftCancelCommand.Execute(null);
+
+        // What was typed meanwhile stays; otherwise the prompt comes back to be edited.
+        if (lastAsked is not { } asked || Draft.Length > 0 || Attached.Count > 0)
+        {
+            return;
+        }
+
+        Draft = asked.Text;
+        foreach (var picture in asked.Pictures)
+        {
+            Attach(picture);
+        }
+    }
+
+    private void ClearDraft()
+    {
+        disarm?.Dispose();
+        IsClearArmed = false;
+        Draft = string.Empty;
+        while (Attached.Count > 0)
+        {
+            DetachLast();
         }
     }
 
