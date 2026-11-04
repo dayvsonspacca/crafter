@@ -31,6 +31,19 @@ public sealed class PreferenceBookTest
     }
 
     [Fact]
+    public void RemembersTheSystemAppearanceAndSavesOnlyAChange()
+    {
+        var store = new PreferencesInMemory(Stored);
+        var book = new PreferenceBook(store);
+
+        book.RememberSystem(dark: true);
+        book.RememberSystem(dark: true);
+
+        Assert.True(store.Saved.SystemDark);
+        Assert.Equal(1, store.Saves);
+    }
+
+    [Fact]
     public void KeepsTheHiredAgents()
     {
         var store = new PreferencesInMemory(Stored);

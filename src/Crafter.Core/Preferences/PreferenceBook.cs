@@ -23,6 +23,8 @@ public sealed class PreferenceBook
 
     public void ChooseTheme(string theme) => Change(Current with { Theme = theme });
 
+    public void RememberSystem(bool dark) => Change(Current with { SystemDark = dark });
+
     private void Change(UserPreferences changed)
     {
         if (changed == Current)

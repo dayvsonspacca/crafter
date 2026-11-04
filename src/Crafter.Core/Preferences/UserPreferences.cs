@@ -38,6 +38,10 @@ public sealed record UserPreferences
         init => field = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
+    // Whether the system looked dark the last time Crafter saw it, so the next start can paint
+    // the right variant before the system answers.
+    public bool? SystemDark { get; init; }
+
     public IReadOnlyDictionary<AgentId, Configuration> Configurations
     {
         get => configurations;
@@ -55,9 +59,10 @@ public sealed record UserPreferences
         other is not null
         && ProjectsRoot == other.ProjectsRoot
         && Theme == other.Theme
+        && SystemDark == other.SystemDark
         && Agents.SequenceEqual(other.Agents)
         && configurations.Count == other.configurations.Count
         && configurations.All(each => other.ConfigurationOf(each.Key).Equals(each.Value));
 
-    public override int GetHashCode() => HashCode.Combine(ProjectsRoot, Theme, Agents.Count, configurations.Count);
+    public override int GetHashCode() => HashCode.Combine(ProjectsRoot, Theme, SystemDark, Agents.Count, configurations.Count);
 }
