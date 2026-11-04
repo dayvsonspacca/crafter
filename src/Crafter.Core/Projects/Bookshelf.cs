@@ -27,7 +27,7 @@ public sealed class Bookshelf
         var icon = settings.Load(folder)?.Icon;
         var project = new Project(folder, name, icon);
 
-        settings.Save(project.Folder, new ProjectSettings(name, project.Icon));
+        settings.Save(project.Folder, new ProjectSettings(name, project.Icon) { Axioms = settings.Load(folder)?.Axioms ?? [] });
         Open(project);
 
         return project;
@@ -66,36 +66,35 @@ public sealed class Bookshelf
         store.Save(shelf);
     }
 
+    // A shelved project's axioms, kept in its own .crafter folder so they travel with it.
     public IReadOnlyList<string> AxiomsOf(Project project) =>
-        shelf.Find(shelved => shelved.Project == project)?.Axioms ?? [];
+        Shelves(project) ? settings.Load(project.Folder)?.Axioms ?? [] : [];
 
     // Adds an axiom at the end; a blank one or one the project already holds changes nothing.
     public bool Hold(Project project, string axiom)
     {
-        var place = shelf.FindIndex(shelved => shelved.Project == project);
         var text = axiom.Trim();
-        if (place < 0 || text.Length == 0 || shelf[place].Axioms.Contains(text))
+        var held = AxiomsOf(project);
+        if (!Shelves(project) || text.Length == 0 || held.Contains(text))
         {
             return false;
         }
 
-        shelf[place] = shelf[place] with { Axioms = [.. shelf[place].Axioms, text] };
-        store.Save(shelf);
+        Keep(project, [.. held, text]);
 
         return true;
     }
 
     public bool Drop(Project project, string axiom)
     {
-        var place = shelf.FindIndex(shelved => shelved.Project == project);
         var text = axiom.Trim();
-        if (place < 0 || !shelf[place].Axioms.Contains(text))
+        var held = AxiomsOf(project);
+        if (!held.Contains(text))
         {
             return false;
         }
 
-        shelf[place] = shelf[place] with { Axioms = [.. shelf[place].Axioms.Where(each => each != text)] };
-        store.Save(shelf);
+        Keep(project, [.. held.Where(each => each != text)]);
 
         return true;
     }
@@ -111,7 +110,7 @@ public sealed class Bookshelf
         var edited = new Project(project.Folder, name, icon);
         var place = shelf.FindIndex(shelved => shelved.Project == project);
 
-        settings.Save(edited.Folder, new ProjectSettings(name, edited.Icon));
+        settings.Save(edited.Folder, new ProjectSettings(name, edited.Icon) { Axioms = settings.Load(edited.Folder)?.Axioms ?? [] });
         if (place >= 0)
         {
             shelf[place] = shelf[place] with { Project = edited };
@@ -126,6 +125,14 @@ public sealed class Bookshelf
         {
             store.Save(shelf);
         }
+    }
+
+    private bool Shelves(Project project) => shelf.Exists(shelved => shelved.Project == project);
+
+    private void Keep(Project project, IReadOnlyList<string> axioms)
+    {
+        var kept = settings.Load(project.Folder) ?? new ProjectSettings(project.Name, project.Icon);
+        settings.Save(project.Folder, kept with { Axioms = axioms });
     }
 
     private string? Dropped(string folder)

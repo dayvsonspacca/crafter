@@ -176,10 +176,10 @@ public sealed class BookshelfTest
     }
 
     [Fact]
-    public void HoldsAndDropsAxiomsInOrderAndKeepsThemThroughReopening()
+    public void HoldsAndDropsAxiomsInOrderInTheProjectsOwnSettings()
     {
-        var store = new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning));
-        var bookshelf = new Bookshelf(store, new SettingsInMemory(), () => Morning.AddHours(1));
+        var settings = new SettingsInMemory();
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning)), settings, () => Morning.AddHours(1));
 
         Assert.True(bookshelf.Hold(Crafter, " Never add comments "));
         Assert.True(bookshelf.Hold(Crafter, "Always write tests"));
@@ -189,12 +189,37 @@ public sealed class BookshelfTest
 
         Assert.Equal(["Never add comments", "Always write tests"], bookshelf.AxiomsOf(Crafter));
         Assert.Empty(bookshelf.AxiomsOf(Beacon));
-        Assert.Equal(["Never add comments", "Always write tests"], store.Saved[0].Axioms);
+        Assert.Equal(["Never add comments", "Always write tests"], settings.Load(Crafter.Folder)!.Axioms);
 
         Assert.True(bookshelf.Drop(Crafter, "Never add comments"));
         Assert.False(bookshelf.Drop(Crafter, "Never add comments"));
 
-        Assert.Equal(["Always write tests"], store.Saved[0].Axioms);
+        Assert.Equal(["Always write tests"], settings.Load(Crafter.Folder)!.Axioms);
+    }
+
+    [Fact]
+    public void KeepsTheAxiomsThroughARenameAndANewIcon()
+    {
+        var settings = new SettingsInMemory();
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning)), settings, () => Morning);
+        bookshelf.Hold(Crafter, "Never add comments");
+
+        var renamed = bookshelf.Edit(Crafter, new ProjectName("Crafter · desktop"), new NewIcon("/tmp/logo.png"));
+
+        Assert.Equal(["Never add comments"], bookshelf.AxiomsOf(renamed));
+        Assert.Equal(new ProjectName("Crafter · desktop"), settings.Load(Crafter.Folder)!.Name);
+    }
+
+    [Fact]
+    public void AddingAProjectKeepsTheAxiomsItsFolderBrings()
+    {
+        var settings = new SettingsInMemory();
+        settings.Save(Beacon.Folder, new ProjectSettings(new ProjectName("Beacon")) { Axioms = ["Always write tests"] });
+        var bookshelf = new Bookshelf(new ShelfInMemory(), settings, () => Morning);
+
+        var added = bookshelf.Add(Beacon.Folder, new ProjectName("Beacon · web"));
+
+        Assert.Equal(["Always write tests"], bookshelf.AxiomsOf(added));
     }
 
     [Fact]

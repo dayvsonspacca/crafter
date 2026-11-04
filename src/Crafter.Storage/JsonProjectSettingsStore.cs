@@ -29,6 +29,9 @@ public sealed class JsonProjectSettingsStore : IProjectSettingsStore
         {
             return JsonSerializer.Deserialize(File.ReadAllText(file), Shape) is { } entry
                 ? new ProjectSettings(new ProjectName(entry.Name), entry.Icon)
+                {
+                    Axioms = [.. (entry.Axioms ?? []).Where(axiom => !string.IsNullOrWhiteSpace(axiom)).Select(axiom => axiom.Trim()).Distinct()],
+                }
                 : null;
         }
         catch (Exception unreadable) when (unreadable is JsonException or ArgumentException)
@@ -45,7 +48,7 @@ public sealed class JsonProjectSettingsStore : IProjectSettingsStore
 
     public void Save(string folder, ProjectSettings settings)
     {
-        JsonFile.Write(FileIn(folder), JsonSerializer.Serialize(new SettingsEntry(settings.Name.Text, settings.Icon), Shape));
+        JsonFile.Write(FileIn(folder), JsonSerializer.Serialize(new SettingsEntry(settings.Name.Text, settings.Icon, settings.Axioms.Count > 0 ? [.. settings.Axioms] : null), Shape));
     }
 
     public string AdoptIcon(string folder, string image)
@@ -80,7 +83,7 @@ public sealed class JsonProjectSettingsStore : IProjectSettingsStore
     private static string FileIn(string folder) => Path.Combine(folder, Home, "settings.json");
 }
 
-internal sealed record SettingsEntry(string Name, string? Icon);
+internal sealed record SettingsEntry(string Name, string? Icon, List<string>? Axioms = null);
 
 [JsonSourceGenerationOptions(
     WriteIndented = true,

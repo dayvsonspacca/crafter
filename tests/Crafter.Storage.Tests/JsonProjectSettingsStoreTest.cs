@@ -27,6 +27,20 @@ public sealed class JsonProjectSettingsStoreTest : IDisposable
     }
 
     [Fact]
+    public void KeepsTheAxiomsInOrder()
+    {
+        var store = new JsonProjectSettingsStore();
+        var settings = new ProjectSettings(new ProjectName("Crafter")) { Axioms = ["Never add comments", "Always write tests"] };
+
+        store.Save(folder, settings);
+
+        Assert.Equal(settings, store.Load(folder));
+        Assert.Contains("\"Never add comments\"", System.IO.File.ReadAllText(File));
+        store.Save(folder, new ProjectSettings(new ProjectName("Crafter")));
+        Assert.DoesNotContain("axioms", System.IO.File.ReadAllText(File));
+    }
+
+    [Fact]
     public void KeepsTheIcon()
     {
         var store = new JsonProjectSettingsStore();
