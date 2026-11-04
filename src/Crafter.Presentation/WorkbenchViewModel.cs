@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
 using Crafter.Presentation.Agents;
+using Crafter.Presentation.Capabilities;
 using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
 using Crafter.Presentation.Keyboard;
@@ -48,6 +49,14 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         Setup = setup;
         Preferences = preferencesScreen;
         Status = status;
+        Capabilities = new CapabilitiesViewModel(bookshelf.Can, Allow);
+        Status.CapabilitiesWanted += (_, _) =>
+        {
+            if (Current is { } current)
+            {
+                Capabilities.Open(current);
+            }
+        };
         Preferences.PropertyChanged += Follow;
         Setup.PropertyChanged += Follow;
         if (!Setup.IsPicking)
@@ -73,6 +82,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public SetupViewModel Setup { get; }
 
     public StatusBarViewModel Status { get; }
+
+    public CapabilitiesViewModel Capabilities { get; }
 
     public ObservableCollection<ShelfItemViewModel> Shelf { get; } = [];
 
@@ -107,7 +118,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         {
             field = value;
             Status.Watch(value);
-            Status.ManagesCrafter = value is not null && bookshelf.Can(value, Capability.ManageCrafter);
+            Status.Granted = Granted(value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(Heading));
         }
@@ -221,8 +232,11 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public void Allow(Project project, Capability capability, bool allowed)
     {
         bookshelf.Allow(project, capability, allowed);
-        Status.ManagesCrafter = Current is { } current && bookshelf.Can(current, Capability.ManageCrafter);
+        Status.Granted = Granted(Current);
     }
+
+    private int Granted(Project? project) =>
+        project is null ? 0 : CapabilityCatalog.All.Count(info => bookshelf.Can(project, info.Capability));
 
     public int OpenChats(Project project) => desks.GetValueOrDefault(project)?.Count ?? 0;
 

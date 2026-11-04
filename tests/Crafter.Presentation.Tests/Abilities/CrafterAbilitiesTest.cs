@@ -120,16 +120,36 @@ public sealed class CrafterAbilitiesTest : IDisposable
     }
 
     [Fact]
-    public void ShowsTheProjectThatManagesCrafterInTheStatusBar()
+    public void CountsTheCapabilitiesOfTheProjectInFront()
     {
-        Assert.True(workbench.Status.ManagesCrafter);
+        Assert.Equal("1 capability", workbench.Status.CapabilitiesLabel);
 
         workbench.Open(lorekeeper);
-        Assert.False(workbench.Status.ManagesCrafter);
+        Assert.Equal("No capabilities", workbench.Status.CapabilitiesLabel);
+    }
 
-        workbench.Open(crafter);
-        workbench.Allow(crafter, Capability.ManageCrafter, allowed: false);
-        Assert.False(workbench.Status.ManagesCrafter);
+    [Fact]
+    public void OpensTheCapabilitiesOfTheProjectInFrontFromTheStatusBar()
+    {
+        workbench.Status.ShowCapabilitiesCommand.Execute(null);
+
+        Assert.True(workbench.Capabilities.IsOpen);
+        Assert.Equal("Capabilities · Crafter", workbench.Capabilities.Title);
+        var choice = Assert.Single(workbench.Capabilities.Choices);
+        Assert.Equal("Manages Crafter", choice.Info.Name);
+        Assert.True(choice.IsGranted);
+        Assert.Equal(["rename_project", "save_skill"], choice.Info.Tools.Where(tool => tool.Asks).Select(tool => tool.Name));
+    }
+
+    [Fact]
+    public void RevokesFromTheCapabilitiesWindow()
+    {
+        workbench.Status.ShowCapabilitiesCommand.Execute(null);
+
+        workbench.Capabilities.Choices[0].IsGranted = false;
+
+        Assert.False(workbench.Can(crafter, Capability.ManageCrafter));
+        Assert.Equal("No capabilities", workbench.Status.CapabilitiesLabel);
     }
 
     public void Dispose() => Directory.Delete(home, recursive: true);

@@ -10,6 +10,7 @@ using Crafter.Desktop.Mcp;
 using Crafter.Presentation;
 using Crafter.Presentation.Abilities;
 using Crafter.Presentation.Agents;
+using Crafter.Presentation.Capabilities;
 using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
 using Crafter.Presentation.Library;
@@ -52,6 +53,27 @@ public sealed class CrafterMcpTest : IDisposable
             workbench.Allow(crafter, Capability.ManageCrafter, allowed: false);
             Assert.Equal(HttpStatusCode.Unauthorized, (await Post(http, server, "tools/list")).StatusCode);
             Assert.Empty(mcp.ServersFor(crafter));
+        });
+    }
+
+    [Fact]
+    public async Task OffersExactlyTheToolsTheCapabilitiesWindowShows()
+    {
+        await TestApp.RunAsync(async () =>
+        {
+            var (workbench, crafter, _) = Workbench();
+            workbench.Allow(crafter, Capability.ManageCrafter, allowed: true);
+            using var mcp = new CrafterMcp(workbench, new CrafterAbilities(workbench, Library(), new NoBranches()));
+            mcp.Start();
+            using var http = new HttpClient();
+            var server = mcp.ServersFor(crafter)[0];
+
+            var offered = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray()
+                .Select(tool => (tool!["name"]!.GetValue<string>(), !tool["annotations"]!["readOnlyHint"]!.GetValue<bool>()));
+            var shown = CapabilityCatalog.All.Single(info => info.Capability == Capability.ManageCrafter).Tools;
+
+            Assert.Equal(shown.Select(tool => tool.Name).Order(), offered.Select(tool => tool.Item1).Order());
+            Assert.Equal(shown.Where(tool => !tool.Asks).Select(tool => tool.Name).Order(), server.FreeTools.Order());
         });
     }
 

@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:capabilities="using:Crafter.Presentation.Capabilities"
+             xmlns:controls="using:Crafter.Desktop.Controls"
+             x:Class="Crafter.Desktop.Projects.CapabilitiesView"
+             x:DataType="capabilities:CapabilitiesViewModel"
+             IsVisible="{Binding IsOpen}"
+             Focusable="True">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.about">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="Border.tool">
+      <Setter Property="Padding" Value="0,6" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <controls:Modal Title="{Binding Title}" IsCompact="True" Dismissed="Dismiss">
+    <StackPanel Margin="20,18,20,20" Spacing="18">
+      <ItemsControl ItemsSource="{Binding Choices}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="capabilities:CapabilityChoiceViewModel">
+            <StackPanel Spacing="12">
+              <CheckBox IsChecked="{Binding IsGranted}" AutomationProperties.Name="{Binding Info.Name}">
+                <StackPanel Spacing="2">
+                  <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Info.Name}" />
+                  <TextBlock Classes="about" Text="{Binding Info.Description}" />
+                </StackPanel>
+              </CheckBox>
+              <ItemsControl Margin="28,0,0,0" ItemsSource="{Binding Info.Tools}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="capabilities:ToolInfo">
+                    <Border Classes="tool">
+                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <StackPanel Spacing="1">
+                          <TextBlock Classes="mono" HorizontalAlignment="Left" Foreground="{DynamicResource ForegroundBrush}" Text="{Binding Name}" />
+                          <TextBlock Classes="about" Text="{Binding What}" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Top" Text="{Binding Approval}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <TextBlock Classes="about"
+                 Text="Granted here in Crafter, never in the project's files. New chats get the change; an open chat gets it when its session starts again, and loses it at once." />
+    </StackPanel>
+  </controls:Modal>
+</UserControl>

@@ -48,7 +48,7 @@ public sealed class StatusBarTest
             var jobs = window.GetVisualDescendants().OfType<JobsView>().Single();
             Assert.False(jobs.IsVisible);
 
-            var button = bar.GetVisualDescendants().OfType<Button>().Single();
+            var button = bar.GetVisualDescendants().OfType<Button>().Single(each => Avalonia.Automation.AutomationProperties.GetName(each) == "Background jobs");
             window.MouseDown(button.TranslatePoint(new Point(8, 8), window)!.Value, MouseButton.Left);
             window.MouseUp(button.TranslatePoint(new Point(8, 8), window)!.Value, MouseButton.Left);
             Settle();

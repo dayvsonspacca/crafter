@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Projects;
 using Crafter.Presentation.Conversations;
 
@@ -30,9 +31,24 @@ public sealed partial class StatusBarViewModel : ObservableObject, IDisposable
 
     public bool HasBranch => Branch is not null;
 
-    // The project in front can manage Crafter through its agent.
+    // How many capabilities the project in front holds; the bar opens them in a window.
     [ObservableProperty]
-    public partial bool ManagesCrafter { get; set; }
+    [NotifyPropertyChangedFor(nameof(CapabilitiesLabel))]
+    public partial int Granted { get; set; }
+
+    public string CapabilitiesLabel => Granted switch
+    {
+        0 => "No capabilities",
+        1 => "1 capability",
+        var count => $"{count} capabilities",
+    };
+
+    public bool HasProject => project is not null;
+
+    public event EventHandler? CapabilitiesWanted;
+
+    [RelayCommand]
+    private void ShowCapabilities() => CapabilitiesWanted?.Invoke(this, EventArgs.Empty);
 
     // The chat in front, whose background jobs the bar counts and opens.
     [ObservableProperty]
@@ -44,6 +60,7 @@ public sealed partial class StatusBarViewModel : ObservableObject, IDisposable
     public void Watch(Project? watched)
     {
         project = watched;
+        OnPropertyChanged(nameof(HasProject));
         Refresh();
     }
 
