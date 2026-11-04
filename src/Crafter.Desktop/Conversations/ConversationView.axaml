@@ -531,466 +531,485 @@
     </Style>
   </UserControl.Styles>
 
-  <DockPanel>
-    <Border DockPanel.Dock="Top"
-            Height="{StaticResource HeaderHeight}"
-            Padding="16,0"
-            BorderBrush="{DynamicResource BorderBrush}"
-            BorderThickness="0,0,0,1">
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12">
-        <TextBlock VerticalAlignment="Center" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" MaxWidth="420" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
-        <Border Grid.Column="1" Classes="pill waiting" IsVisible="{Binding IsWaiting}">
-          <TextBlock Classes="mono" Text="waiting for you" />
-        </Border>
-        <Border Grid.Column="1" Classes="pill crafting" IsVisible="{Binding ShowsClock}">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <UniformGrid Classes="cells crafting" Rows="3" Columns="3" Width="13" Height="13">
-              <Border Classes="cell c0" Width="3" Height="3" />
-              <Border Classes="cell c1" Width="3" Height="3" />
-              <Border Classes="cell c2" Width="3" Height="3" />
-              <Border Classes="cell c3" Width="3" Height="3" />
-              <Border Classes="cell c4" Width="3" Height="3" />
-              <Border Classes="cell c5" Width="3" Height="3" />
-              <Border Classes="cell c6" Width="3" Height="3" />
-              <Border Classes="cell c7" Width="3" Height="3" />
-              <Border Classes="cell c8" Width="3" Height="3" />
-            </UniformGrid>
-            <TextBlock Classes="mono" Text="{Binding Elapsed}" />
+  <!-- The whole chat takes dropped files, so a drop lands even when the pointer misses the composer. -->
+  <Panel DragDrop.AllowDrop="True" Background="Transparent">
+    <DockPanel>
+      <Border DockPanel.Dock="Top"
+              Height="{StaticResource HeaderHeight}"
+              Padding="16,0"
+              BorderBrush="{DynamicResource BorderBrush}"
+              BorderThickness="0,0,0,1">
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12">
+          <TextBlock VerticalAlignment="Center" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" MaxWidth="420" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
+          <Border Grid.Column="1" Classes="pill waiting" IsVisible="{Binding IsWaiting}">
+            <TextBlock Classes="mono" Text="waiting for you" />
+          </Border>
+          <Border Grid.Column="1" Classes="pill crafting" IsVisible="{Binding ShowsClock}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <UniformGrid Classes="cells crafting" Rows="3" Columns="3" Width="13" Height="13">
+                <Border Classes="cell c0" Width="3" Height="3" />
+                <Border Classes="cell c1" Width="3" Height="3" />
+                <Border Classes="cell c2" Width="3" Height="3" />
+                <Border Classes="cell c3" Width="3" Height="3" />
+                <Border Classes="cell c4" Width="3" Height="3" />
+                <Border Classes="cell c5" Width="3" Height="3" />
+                <Border Classes="cell c6" Width="3" Height="3" />
+                <Border Classes="cell c7" Width="3" Height="3" />
+                <Border Classes="cell c8" Width="3" Height="3" />
+              </UniformGrid>
+              <TextBlock Classes="mono" Text="{Binding Elapsed}" />
+            </StackPanel>
+          </Border>
+          <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
+            <Border Classes="pill agent">
+              <TextBlock Classes="mono" Text="{Binding AgentName}" />
+            </Border>
+            <Border Classes="pill" IsVisible="{Binding HasModel}">
+              <TextBlock Classes="mono" Text="{Binding Model}" />
+            </Border>
+            <Button Classes="icon" Classes.on="{Binding IsPanelOpen}" Command="{Binding TogglePanelCommand}" ToolTip.Tip="Toggle Panel · Ctrl+J" AutomationProperties.Name="Toggle Panel">
+              <Path Data="M2.5,3.5 H13.5 V12.5 H2.5 Z M9.5,3.5 V12.5" />
+            </Button>
           </StackPanel>
-        </Border>
-        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
-          <Border Classes="pill agent">
-            <TextBlock Classes="mono" Text="{Binding AgentName}" />
-          </Border>
-          <Border Classes="pill" IsVisible="{Binding HasModel}">
-            <TextBlock Classes="mono" Text="{Binding Model}" />
-          </Border>
-          <Button Classes="icon" Classes.on="{Binding IsPanelOpen}" Command="{Binding TogglePanelCommand}" ToolTip.Tip="Toggle Panel · Ctrl+J" AutomationProperties.Name="Toggle Panel">
-            <Path Data="M2.5,3.5 H13.5 V12.5 H2.5 Z M9.5,3.5 V12.5" />
-          </Button>
-        </StackPanel>
-      </Grid>
-    </Border>
+        </Grid>
+      </Border>
 
-    <Border DockPanel.Dock="Right" Classes="sidebar" IsVisible="{Binding IsPanelOpen}">
-      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="14,16,14,16" Spacing="22">
-          <TextBlock Classes="empty" Text="Nothing running. Background jobs show up here." IsVisible="{Binding IsPanelEmpty}" />
+      <Border DockPanel.Dock="Right" Classes="sidebar" IsVisible="{Binding IsPanelOpen}">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="14,16,14,16" Spacing="22">
+            <TextBlock Classes="empty" Text="Nothing running. Background jobs show up here." IsVisible="{Binding IsPanelEmpty}" />
 
-          <StackPanel Spacing="6" IsVisible="{Binding HasJobs}">
-            <TextBlock Classes="group" Text="Background jobs" />
-            <ItemsControl ItemsSource="{Binding Jobs}">
+            <StackPanel Spacing="6" IsVisible="{Binding HasJobs}">
+              <TextBlock Classes="group" Text="Background jobs" />
+              <ItemsControl ItemsSource="{Binding Jobs}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="background:JobViewModel">
+                    <StackPanel>
+                      <Grid ColumnDefinitions="*,Auto">
+                        <Button Classes="job" Command="{Binding ToggleCommand}" AutomationProperties.Name="{Binding Description}">
+                          <Grid ColumnDefinitions="8,16,*,Auto" ColumnSpacing="8">
+                            <Ellipse Classes="pulse" Width="7" Height="7" VerticalAlignment="Center" Fill="{DynamicResource AccentBrush}" />
+                            <Path Grid.Column="1" Classes="glyph" Data="M2.5,3.5 H13.5 V12.5 H2.5 Z M4.5,6 L6.5,8 L4.5,10 M8,10 H11" IsVisible="{Binding IsShell}" />
+                            <Path Grid.Column="1" Classes="glyph" Data="M1.5,8 H4.5 L6,4.5 L8.5,11.5 L10,8 H14.5" IsVisible="{Binding IsMonitor}" />
+                            <Path Grid.Column="1" Classes="glyph" Data="M8,2 L9.5,6.5 L14,8 L9.5,9.5 L8,14 L6.5,9.5 L2,8 L6.5,6.5 Z" IsVisible="{Binding IsAgent}" />
+                            <TextBlock Grid.Column="2" Classes="what" TextTrimming="CharacterEllipsis" Text="{Binding Description}" ToolTip.Tip="{Binding Kind}" />
+                            <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Elapsed}" />
+                          </Grid>
+                        </Button>
+                        <Button Grid.Column="1"
+                                Classes="chip"
+                                Margin="4,0,0,0"
+                                Content="Stop"
+                                Command="{Binding StopCommand}"
+                                IsEnabled="{Binding !IsStopping}"
+                                AutomationProperties.Name="Stop this job" />
+                      </Grid>
+                      <Border Classes="output" IsVisible="{Binding IsOpen}">
+                        <SelectableTextBlock FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                             FontSize="12"
+                                             LineHeight="19"
+                                             TextWrapping="Wrap"
+                                             Foreground="{DynamicResource ForegroundMutedBrush}"
+                                             Text="{Binding Output}" />
+                      </Border>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+
+      <Border DockPanel.Dock="Bottom" Padding="24,8,24,16">
+        <Border x:Name="Composer" Classes="composer">
+          <StackPanel Spacing="8">
+            <ItemsControl ItemsSource="{Binding Attached}" IsVisible="{Binding HasAttached}" Padding="0,6,6,0">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel ItemSpacing="10" LineSpacing="10" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="background:JobViewModel">
-                  <StackPanel>
-                    <Grid ColumnDefinitions="*,Auto">
-                      <Button Classes="job" Command="{Binding ToggleCommand}" AutomationProperties.Name="{Binding Description}">
-                        <Grid ColumnDefinitions="8,16,*,Auto" ColumnSpacing="8">
-                          <Ellipse Classes="pulse" Width="7" Height="7" VerticalAlignment="Center" Fill="{DynamicResource AccentBrush}" />
-                          <Path Grid.Column="1" Classes="glyph" Data="M2.5,3.5 H13.5 V12.5 H2.5 Z M4.5,6 L6.5,8 L4.5,10 M8,10 H11" IsVisible="{Binding IsShell}" />
-                          <Path Grid.Column="1" Classes="glyph" Data="M1.5,8 H4.5 L6,4.5 L8.5,11.5 L10,8 H14.5" IsVisible="{Binding IsMonitor}" />
-                          <Path Grid.Column="1" Classes="glyph" Data="M8,2 L9.5,6.5 L14,8 L9.5,9.5 L8,14 L6.5,9.5 L2,8 L6.5,6.5 Z" IsVisible="{Binding IsAgent}" />
-                          <TextBlock Grid.Column="2" Classes="what" TextTrimming="CharacterEllipsis" Text="{Binding Description}" ToolTip.Tip="{Binding Kind}" />
-                          <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Elapsed}" />
-                        </Grid>
-                      </Button>
-                      <Button Grid.Column="1"
-                              Classes="chip"
-                              Margin="4,0,0,0"
-                              Content="Stop"
-                              Command="{Binding StopCommand}"
-                              IsEnabled="{Binding !IsStopping}"
-                              AutomationProperties.Name="Stop this job" />
-                    </Grid>
-                    <Border Classes="output" IsVisible="{Binding IsOpen}">
-                      <SelectableTextBlock FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                           FontSize="12"
-                                           LineHeight="19"
-                                           TextWrapping="Wrap"
-                                           Foreground="{DynamicResource ForegroundMutedBrush}"
-                                           Text="{Binding Output}" />
+                <DataTemplate DataType="composing:AttachmentViewModel">
+                  <Panel VerticalAlignment="Center">
+                    <Border Classes="picture" IsVisible="{Binding IsPicture}">
+                      <Image Source="{Binding Picture, Converter={x:Static conversationViews:PictureConverter.Instance}}" Stretch="UniformToFill" />
                     </Border>
-                  </StackPanel>
+                    <Border Classes="file" IsVisible="{Binding IsFile}" ToolTip.Tip="{Binding File}">
+                      <DockPanel>
+                        <Path DockPanel.Dock="Left" Data="M4.5,1.5 H9.5 L12.5,4.5 V14.5 H4.5 Z M9.5,1.5 V4.5 H12.5" />
+                        <TextBlock Text="{Binding Name}" />
+                      </DockPanel>
+                    </Border>
+                    <Button Classes="unattach" Content="×" Command="{Binding RemoveCommand}" AutomationProperties.Name="{Binding Name, StringFormat='Remove {0}'}" />
+                  </Panel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <controls:PromptBox x:Name="PromptBox"
+                                Classes="prompt"
+                                Text="{Binding Draft}"
+                                PlaceholderText="Describe the recipe…"
+                                AutomationProperties.Name="Message" />
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource Space2}">
+              <Button Classes="icon" Click="Browse" ToolTip.Tip="Attach files" AutomationProperties.Name="Attach files">
+                <Path Data="M13,7.6 L8.1,12.5 A3,3 0 0 1 3.9,8.3 L9.3,2.9 A2,2 0 0 1 12.1,5.7 L6.8,11 A1,1 0 0 1 5.4,9.6 L10.2,4.8" />
+              </Button>
+              <TextBlock Grid.Column="1" Classes="hint" Text="Enter to craft · Shift+Enter for a new line" />
+              <Panel Grid.Column="2">
+                <Button Classes="primary" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsAsking}" />
+                <Button Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsAsking}" />
+              </Panel>
+            </Grid>
           </StackPanel>
-        </StackPanel>
-      </ScrollViewer>
-    </Border>
-
-    <Border DockPanel.Dock="Bottom" Padding="24,8,24,16">
-      <Border x:Name="Composer" Classes="composer" DragDrop.AllowDrop="True">
-        <StackPanel Spacing="8">
-          <ItemsControl ItemsSource="{Binding Attached}" IsVisible="{Binding HasAttached}" Padding="0,6,6,0">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <WrapPanel ItemSpacing="10" LineSpacing="10" />
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate DataType="composing:AttachmentViewModel">
-                <Panel VerticalAlignment="Center">
-                  <Border Classes="picture" IsVisible="{Binding IsPicture}">
-                    <Image Source="{Binding Picture, Converter={x:Static conversationViews:PictureConverter.Instance}}" Stretch="UniformToFill" />
-                  </Border>
-                  <Border Classes="file" IsVisible="{Binding IsFile}" ToolTip.Tip="{Binding File}">
-                    <DockPanel>
-                      <Path DockPanel.Dock="Left" Data="M4.5,1.5 H9.5 L12.5,4.5 V14.5 H4.5 Z M9.5,1.5 V4.5 H12.5" />
-                      <TextBlock Text="{Binding Name}" />
-                    </DockPanel>
-                  </Border>
-                  <Button Classes="unattach" Content="×" Command="{Binding RemoveCommand}" AutomationProperties.Name="{Binding Name, StringFormat='Remove {0}'}" />
-                </Panel>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-          <controls:PromptBox x:Name="PromptBox"
-                              Classes="prompt"
-                              Text="{Binding Draft}"
-                              PlaceholderText="Describe the recipe…"
-                              AutomationProperties.Name="Message" />
-          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource Space2}">
-            <Button Classes="icon" Click="Browse" ToolTip.Tip="Attach files" AutomationProperties.Name="Attach files">
-              <Path Data="M13,7.6 L8.1,12.5 A3,3 0 0 1 3.9,8.3 L9.3,2.9 A2,2 0 0 1 12.1,5.7 L6.8,11 A1,1 0 0 1 5.4,9.6 L10.2,4.8" />
-            </Button>
-            <TextBlock Grid.Column="1" Classes="hint" Text="Enter to craft · Shift+Enter for a new line" />
-            <Panel Grid.Column="2">
-              <Button Classes="primary" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsAsking}" />
-              <Button Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsAsking}" />
-            </Panel>
-          </Grid>
-        </StackPanel>
+        </Border>
       </Border>
-    </Border>
 
-    <Panel>
-      <TextBlock IsVisible="{Binding !HasMessages}"
-                 HorizontalAlignment="Center"
-                 VerticalAlignment="Center"
-                 FontSize="15"
-                 Text="{Binding ProjectName, StringFormat='Start a chat in {0}.'}" />
+      <Panel>
+        <TextBlock IsVisible="{Binding !HasMessages}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="15"
+                   Text="{Binding ProjectName, StringFormat='Start a chat in {0}.'}" />
 
-      <ScrollViewer x:Name="Scroller" IsVisible="{Binding HasMessages}" ScrollChanged="Follow">
-        <StackPanel MaxWidth="760" Margin="24,24,24,12">
-          <Button Classes="earlier" Content="{Binding EarlierLabel}" Command="{Binding ShowEarlierCommand}" IsVisible="{Binding HasEarlier}" />
-          <ItemsControl ItemsSource="{Binding Messages}">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <VirtualizingStackPanel />
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.DataTemplates>
-              <DataTemplate DataType="messages:YourMessageViewModel">
-                <Grid ColumnDefinitions="28,*" ColumnSpacing="16">
-                  <DockPanel>
-                    <Border DockPanel.Dock="Top" Classes="slot">
-                      <TextBlock HorizontalAlignment="Center"
-                                 VerticalAlignment="Center"
-                                 FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                 FontSize="10"
-                                 FontWeight="SemiBold"
-                                 Foreground="{DynamicResource ForegroundMutedBrush}"
-                                 Text="YOU" />
+        <ScrollViewer x:Name="Scroller" IsVisible="{Binding HasMessages}" ScrollChanged="Follow">
+          <StackPanel MaxWidth="760" Margin="24,24,24,12">
+            <Button Classes="earlier" Content="{Binding EarlierLabel}" Command="{Binding ShowEarlierCommand}" IsVisible="{Binding HasEarlier}" />
+            <ItemsControl ItemsSource="{Binding Messages}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.DataTemplates>
+                <DataTemplate DataType="messages:YourMessageViewModel">
+                  <Grid ColumnDefinitions="28,*" ColumnSpacing="16">
+                    <DockPanel>
+                      <Border DockPanel.Dock="Top" Classes="slot">
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource ForegroundMutedBrush}"
+                                   Text="YOU" />
+                      </Border>
+                      <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
+                    </DockPanel>
+                    <Border Grid.Column="1"
+                            Margin="0,0,0,24"
+                            Padding="16,12"
+                            CornerRadius="10"
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Background="{DynamicResource SurfaceBrush}">
+                      <StackPanel Spacing="10">
+                        <ItemsControl ItemsSource="{Binding Pictures}" IsVisible="{Binding HasPictures}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                              <WrapPanel ItemSpacing="8" LineSpacing="8" />
+                            </ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="core:Picture">
+                              <Border Classes="picture sent">
+                                <Image Source="{Binding, Converter={x:Static conversationViews:PictureConverter.Instance}}" Stretch="UniformToFill" />
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl ItemsSource="{Binding Files}" IsVisible="{Binding HasFiles}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                              <WrapPanel ItemSpacing="8" LineSpacing="8" />
+                            </ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                              <Border Classes="file">
+                                <DockPanel>
+                                  <Path DockPanel.Dock="Left" Data="M4.5,1.5 H9.5 L12.5,4.5 V14.5 H4.5 Z M9.5,1.5 V4.5 H12.5" />
+                                  <TextBlock Text="{Binding}" />
+                                </DockPanel>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <prose:ProseText Text="{Binding Text}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" LineHeight="22" IsVisible="{Binding HasText}" />
+                      </StackPanel>
                     </Border>
-                    <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
-                  </DockPanel>
-                  <Border Grid.Column="1"
-                          Margin="0,0,0,24"
-                          Padding="16,12"
-                          CornerRadius="10"
-                          BorderThickness="1"
-                          BorderBrush="{DynamicResource BorderBrush}"
-                          Background="{DynamicResource SurfaceBrush}">
-                    <StackPanel Spacing="10">
-                      <ItemsControl ItemsSource="{Binding Pictures}" IsVisible="{Binding HasPictures}">
-                        <ItemsControl.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <WrapPanel ItemSpacing="8" LineSpacing="8" />
-                          </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate DataType="core:Picture">
-                            <Border Classes="picture sent">
-                              <Image Source="{Binding, Converter={x:Static conversationViews:PictureConverter.Instance}}" Stretch="UniformToFill" />
-                            </Border>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                      <ItemsControl ItemsSource="{Binding Files}" IsVisible="{Binding HasFiles}">
-                        <ItemsControl.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <WrapPanel ItemSpacing="8" LineSpacing="8" />
-                          </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="x:String">
-                            <Border Classes="file">
-                              <DockPanel>
-                                <Path DockPanel.Dock="Left" Data="M4.5,1.5 H9.5 L12.5,4.5 V14.5 H4.5 Z M9.5,1.5 V4.5 H12.5" />
-                                <TextBlock Text="{Binding}" />
-                              </DockPanel>
-                            </Border>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                      <prose:ProseText Text="{Binding Text}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" LineHeight="22" IsVisible="{Binding HasText}" />
-                    </StackPanel>
-                  </Border>
-                </Grid>
-              </DataTemplate>
+                  </Grid>
+                </DataTemplate>
 
-              <DataTemplate DataType="messages:CrafterMessageViewModel">
-                <Grid Classes="answer" Classes.last="{Binding IsLast}" ColumnDefinitions="28,*" ColumnSpacing="16" Background="Transparent">
-                  <DockPanel>
-                    <Border DockPanel.Dock="Top" Classes="slot">
-                      <UniformGrid Classes="cells" Classes.crafting="{Binding IsCrafting}" Classes.done="{Binding !IsCrafting}" Rows="3" Columns="3">
-                        <Border Classes="cell c0 lit" />
-                        <Border Classes="cell c1 lit" />
-                        <Border Classes="cell c2 lit" />
-                        <Border Classes="cell c3 lit" />
-                        <Border Classes="cell c4" />
-                        <Border Classes="cell c5 lit" />
-                        <Border Classes="cell c6 lit" />
-                        <Border Classes="cell c7 lit" />
-                        <Border Classes="cell c8 lit" />
-                      </UniformGrid>
-                    </Border>
-                    <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
-                  </DockPanel>
-                  <StackPanel Grid.Column="1" Margin="0,0,0,32" Spacing="{StaticResource Space3}">
-                    <TextBlock Classes="mono" Margin="8,3,0,0" Text="woke up · a background job reported" IsVisible="{Binding IsWoken}" />
-                    <ItemsControl ItemsSource="{Binding Items}">
-                      <ItemsControl.DataTemplates>
-                        <DataTemplate DataType="messages:TextSegmentViewModel">
-                          <ItemsControl ItemsSource="{Binding Pieces}" Classes.aside="{Binding FollowsActivity}">
-                            <ItemsControl.DataTemplates>
-                              <DataTemplate DataType="messages:ProseViewModel">
-                                <prose:ProseView Markdown="{Binding Text}" />
-                              </DataTemplate>
-                              <DataTemplate DataType="messages:CodeBlockViewModel">
-                                <Border Margin="0,4,0,12"
-                                        CornerRadius="9"
-                                        ClipToBounds="True"
+                <DataTemplate DataType="messages:CrafterMessageViewModel">
+                  <Grid Classes="answer" Classes.last="{Binding IsLast}" ColumnDefinitions="28,*" ColumnSpacing="16" Background="Transparent">
+                    <DockPanel>
+                      <Border DockPanel.Dock="Top" Classes="slot">
+                        <UniformGrid Classes="cells" Classes.crafting="{Binding IsCrafting}" Classes.done="{Binding !IsCrafting}" Rows="3" Columns="3">
+                          <Border Classes="cell c0 lit" />
+                          <Border Classes="cell c1 lit" />
+                          <Border Classes="cell c2 lit" />
+                          <Border Classes="cell c3 lit" />
+                          <Border Classes="cell c4" />
+                          <Border Classes="cell c5 lit" />
+                          <Border Classes="cell c6 lit" />
+                          <Border Classes="cell c7 lit" />
+                          <Border Classes="cell c8 lit" />
+                        </UniformGrid>
+                      </Border>
+                      <Rectangle Classes="wire" IsVisible="{Binding !IsLast}" />
+                    </DockPanel>
+                    <StackPanel Grid.Column="1" Margin="0,0,0,32" Spacing="{StaticResource Space3}">
+                      <TextBlock Classes="mono" Margin="8,3,0,0" Text="woke up · a background job reported" IsVisible="{Binding IsWoken}" />
+                      <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.DataTemplates>
+                          <DataTemplate DataType="messages:TextSegmentViewModel">
+                            <ItemsControl ItemsSource="{Binding Pieces}" Classes.aside="{Binding FollowsActivity}">
+                              <ItemsControl.DataTemplates>
+                                <DataTemplate DataType="messages:ProseViewModel">
+                                  <prose:ProseView Markdown="{Binding Text}" />
+                                </DataTemplate>
+                                <DataTemplate DataType="messages:CodeBlockViewModel">
+                                  <Border Margin="0,4,0,12"
+                                          CornerRadius="9"
+                                          ClipToBounds="True"
+                                          BorderThickness="1"
+                                          BorderBrush="{DynamicResource BorderBrush}"
+                                          Background="{DynamicResource BackgroundBrush}">
+                                    <DockPanel>
+                                      <Border DockPanel.Dock="Top"
+                                              Padding="12,5,6,5"
+                                              Background="{DynamicResource SurfaceBrush}"
+                                              BorderBrush="{DynamicResource BorderBrush}"
+                                              BorderThickness="0,0,0,1">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                          <TextBlock Classes="mono" Text="{Binding Language}" />
+                                          <Button Grid.Column="1" Classes="chip" Content="Copy" Command="{Binding CopyCommand}" />
+                                        </Grid>
+                                      </Border>
+                                      <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                        <controls:HighlightedCode Margin="14,12"
+                                                                       FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                                                       FontSize="{StaticResource FontSizeCallout}"
+                                                                       LineHeight="20"
+                                                                       Tokens="{Binding Tokens}" />
+                                      </ScrollViewer>
+                                    </DockPanel>
+                                  </Border>
+                                </DataTemplate>
+                              </ItemsControl.DataTemplates>
+                            </ItemsControl>
+                          </DataTemplate>
+                          <DataTemplate DataType="messages:ActivityItemViewModel">
+                            <StackPanel Classes="activity">
+                              <Button Classes="act" Command="{Binding ToggleCommand}" AutomationProperties.Name="{Binding Summary}">
+                                <Grid ColumnDefinitions="14,52,*,Auto" ColumnSpacing="10">
+                                  <Panel Width="8" Height="8" VerticalAlignment="Center">
+                                    <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsRunning}" />
+                                    <Ellipse Fill="{DynamicResource AddedBrush}" IsVisible="{Binding IsFine}" />
+                                    <Ellipse Fill="{DynamicResource RemovedBrush}" IsVisible="{Binding IsFailed}" />
+                                  </Panel>
+                                  <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Tool}" />
+                                  <TextBlock Grid.Column="2" Classes="mono what" TextTrimming="CharacterEllipsis" Text="{Binding Summary}" />
+                                  <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Result}" />
+                                </Grid>
+                              </Button>
+                              <Border Classes="output" IsVisible="{Binding IsExpanded}">
+                                <prose:ProseText FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                                 FontSize="12"
+                                                 LineHeight="19"
+                                                 TextWrapping="Wrap"
+                                                 Foreground="{DynamicResource ForegroundMutedBrush}"
+                                                 Text="{Binding Output}" />
+                              </Border>
+                            </StackPanel>
+                          </DataTemplate>
+                          <DataTemplate DataType="messages:ApprovalItemViewModel">
+                            <Border Classes="approval" Classes.open="{Binding IsOpen}">
+                              <StackPanel Spacing="10">
+                                <TextBlock FontSize="{StaticResource FontSizeBody}" Text="{Binding Asking}" />
+                                <Border Padding="12,9"
+                                        CornerRadius="7"
                                         BorderThickness="1"
                                         BorderBrush="{DynamicResource BorderBrush}"
                                         Background="{DynamicResource BackgroundBrush}">
-                                  <DockPanel>
-                                    <Border DockPanel.Dock="Top"
-                                            Padding="12,5,6,5"
-                                            Background="{DynamicResource SurfaceBrush}"
-                                            BorderBrush="{DynamicResource BorderBrush}"
-                                            BorderThickness="0,0,0,1">
-                                      <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Classes="mono" Text="{Binding Language}" />
-                                        <Button Grid.Column="1" Classes="chip" Content="Copy" Command="{Binding CopyCommand}" />
-                                      </Grid>
-                                    </Border>
-                                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                      <controls:HighlightedCode Margin="14,12"
-                                                                     FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                                                     FontSize="{StaticResource FontSizeCallout}"
-                                                                     LineHeight="20"
-                                                                     Tokens="{Binding Tokens}" />
-                                    </ScrollViewer>
-                                  </DockPanel>
+                                  <prose:ProseText FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+                                                   FontSize="13"
+                                                   TextWrapping="Wrap"
+                                                   Text="{Binding Summary}" />
                                 </Border>
-                              </DataTemplate>
-                            </ItemsControl.DataTemplates>
-                          </ItemsControl>
-                        </DataTemplate>
-                        <DataTemplate DataType="messages:ActivityItemViewModel">
-                          <StackPanel Classes="activity">
-                            <Button Classes="act" Command="{Binding ToggleCommand}" AutomationProperties.Name="{Binding Summary}">
-                              <Grid ColumnDefinitions="14,52,*,Auto" ColumnSpacing="10">
-                                <Panel Width="8" Height="8" VerticalAlignment="Center">
-                                  <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsRunning}" />
-                                  <Ellipse Fill="{DynamicResource AddedBrush}" IsVisible="{Binding IsFine}" />
-                                  <Ellipse Fill="{DynamicResource RemovedBrush}" IsVisible="{Binding IsFailed}" />
-                                </Panel>
-                                <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Tool}" />
-                                <TextBlock Grid.Column="2" Classes="mono what" TextTrimming="CharacterEllipsis" Text="{Binding Summary}" />
-                                <TextBlock Grid.Column="3" Classes="mono" Text="{Binding Result}" />
-                              </Grid>
-                            </Button>
-                            <Border Classes="output" IsVisible="{Binding IsExpanded}">
-                              <prose:ProseText FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                               FontSize="12"
-                                               LineHeight="19"
-                                               TextWrapping="Wrap"
-                                               Foreground="{DynamicResource ForegroundMutedBrush}"
-                                               Text="{Binding Output}" />
-                            </Border>
-                          </StackPanel>
-                        </DataTemplate>
-                        <DataTemplate DataType="messages:ApprovalItemViewModel">
-                          <Border Classes="approval" Classes.open="{Binding IsOpen}">
-                            <StackPanel Spacing="10">
-                              <TextBlock FontSize="{StaticResource FontSizeBody}" Text="{Binding Asking}" />
-                              <Border Padding="12,9"
-                                      CornerRadius="7"
-                                      BorderThickness="1"
-                                      BorderBrush="{DynamicResource BorderBrush}"
-                                      Background="{DynamicResource BackgroundBrush}">
-                                <prose:ProseText FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                                                 FontSize="13"
-                                                 TextWrapping="Wrap"
-                                                 Text="{Binding Summary}" />
-                              </Border>
-                              <TextBlock FontSize="{StaticResource FontSizeCallout}"
-                                         TextWrapping="Wrap"
-                                         Foreground="{DynamicResource ForegroundMutedBrush}"
-                                         Text="{Binding Reason}"
-                                         IsVisible="{Binding HasReason}" />
-                              <TextBox Classes="feedback"
-                                       Text="{Binding Feedback}"
-                                       PlaceholderText="{Binding FeedbackHint}"
-                                       AutomationProperties.Name="Why you deny"
-                                       IsVisible="{Binding IsOpen}" />
-                              <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8" IsVisible="{Binding IsOpen}">
-                                <Button Classes="primary" Content="Allow" Command="{Binding AllowCommand}" />
-                                <Button Classes="ghost"
-                                        Content="{Binding AlwaysLabel}"
-                                        Command="{Binding AlwaysAllowCommand}"
-                                        IsVisible="{Binding CanAlwaysAllow}" />
-                                <Button Classes="ghost" Content="Deny" Command="{Binding DenyCommand}" />
-                              </WrapPanel>
-                              <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
-                            </StackPanel>
-                          </Border>
-                        </DataTemplate>
-                        <DataTemplate DataType="messages:QuestionItemViewModel">
-                          <Border Classes="approval" Classes.open="{Binding IsOpen}">
-                            <StackPanel Spacing="14">
-                              <TextBlock FontSize="{StaticResource FontSizeBody}" Text="{Binding Asking}" />
-                              <ItemsControl ItemsSource="{Binding Questions}">
-                                <ItemsControl.ItemsPanel>
-                                  <ItemsPanelTemplate>
-                                    <StackPanel Spacing="16" />
-                                  </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                  <DataTemplate DataType="messages:QuestionCardViewModel">
-                                    <StackPanel Spacing="8">
-                                      <TextBlock Classes="mono" Text="{Binding Header}" IsVisible="{Binding HasHeader}" />
-                                      <TextBlock FontSize="{StaticResource FontSizeContent}" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding Text}" />
-                                      <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
-                                        <TextBlock FontSize="{StaticResource FontSizeCallout}" Foreground="{DynamicResource ForegroundMutedBrush}" Text="{Binding Hint}" />
-                                        <ItemsControl ItemsSource="{Binding Picks}">
-                                          <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                              <StackPanel Spacing="6" />
-                                            </ItemsPanelTemplate>
-                                          </ItemsControl.ItemsPanel>
-                                          <ItemsControl.ItemTemplate>
-                                            <DataTemplate DataType="messages:PickItemViewModel">
-                                              <Button Classes="pick"
-                                                      Classes.chosen="{Binding IsChosen}"
-                                                      Command="{Binding ToggleCommand}"
-                                                      AutomationProperties.Name="{Binding Label}">
-                                                <StackPanel Spacing="2">
-                                                  <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" Text="{Binding Label}" />
-                                                  <TextBlock FontSize="{StaticResource FontSizeCallout}"
-                                                             TextWrapping="Wrap"
-                                                             Foreground="{DynamicResource ForegroundMutedBrush}"
-                                                             Text="{Binding Description}"
-                                                             IsVisible="{Binding HasDescription}" />
-                                                </StackPanel>
-                                              </Button>
-                                            </DataTemplate>
-                                          </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                        <TextBox Classes="feedback"
-                                                 Text="{Binding Other}"
-                                                 PlaceholderText="Something else…"
-                                                 AutomationProperties.Name="Your own answer" />
-                                      </StackPanel>
-                                      <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Answer}" IsVisible="{Binding !IsOpen}" />
-                                    </StackPanel>
-                                  </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                              </ItemsControl>
-                              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsOpen}">
-                                <Button Classes="primary" Content="Answer" Command="{Binding SubmitCommand}" />
-                                <Button Classes="ghost" Content="Skip" Command="{Binding SkipCommand}" />
+                                <TextBlock FontSize="{StaticResource FontSizeCallout}"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource ForegroundMutedBrush}"
+                                           Text="{Binding Reason}"
+                                           IsVisible="{Binding HasReason}" />
+                                <TextBox Classes="feedback"
+                                         Text="{Binding Feedback}"
+                                         PlaceholderText="{Binding FeedbackHint}"
+                                         AutomationProperties.Name="Why you deny"
+                                         IsVisible="{Binding IsOpen}" />
+                                <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8" IsVisible="{Binding IsOpen}">
+                                  <Button Classes="primary" Content="Allow" Command="{Binding AllowCommand}" />
+                                  <Button Classes="ghost"
+                                          Content="{Binding AlwaysLabel}"
+                                          Command="{Binding AlwaysAllowCommand}"
+                                          IsVisible="{Binding CanAlwaysAllow}" />
+                                  <Button Classes="ghost" Content="Deny" Command="{Binding DenyCommand}" />
+                                </WrapPanel>
+                                <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
                               </StackPanel>
-                              <TextBlock Classes="mono" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
-                            </StackPanel>
-                          </Border>
-                        </DataTemplate>
-                      </ItemsControl.DataTemplates>
-                    </ItemsControl>
-                    <Border Classes="note" Classes.failure="{Binding HasFailed}" IsVisible="{Binding HasNote}">
-                      <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Note}" />
-                    </Border>
-                    <StackPanel Classes="tools" Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsDone}">
-                      <Button Classes="chip" Content="Copy" Command="{Binding CopyCommand}" />
-                      <Button Classes="chip" Content="Retry" Command="{Binding RetryCommand}" />
+                            </Border>
+                          </DataTemplate>
+                          <DataTemplate DataType="messages:QuestionItemViewModel">
+                            <Border Classes="approval" Classes.open="{Binding IsOpen}">
+                              <StackPanel Spacing="14">
+                                <TextBlock FontSize="{StaticResource FontSizeBody}" Text="{Binding Asking}" />
+                                <ItemsControl ItemsSource="{Binding Questions}">
+                                  <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                      <StackPanel Spacing="16" />
+                                    </ItemsPanelTemplate>
+                                  </ItemsControl.ItemsPanel>
+                                  <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="messages:QuestionCardViewModel">
+                                      <StackPanel Spacing="8">
+                                        <TextBlock Classes="mono" Text="{Binding Header}" IsVisible="{Binding HasHeader}" />
+                                        <TextBlock FontSize="{StaticResource FontSizeContent}" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding Text}" />
+                                        <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
+                                          <TextBlock FontSize="{StaticResource FontSizeCallout}" Foreground="{DynamicResource ForegroundMutedBrush}" Text="{Binding Hint}" />
+                                          <ItemsControl ItemsSource="{Binding Picks}">
+                                            <ItemsControl.ItemsPanel>
+                                              <ItemsPanelTemplate>
+                                                <StackPanel Spacing="6" />
+                                              </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                              <DataTemplate DataType="messages:PickItemViewModel">
+                                                <Button Classes="pick"
+                                                        Classes.chosen="{Binding IsChosen}"
+                                                        Command="{Binding ToggleCommand}"
+                                                        AutomationProperties.Name="{Binding Label}">
+                                                  <StackPanel Spacing="2">
+                                                    <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" Text="{Binding Label}" />
+                                                    <TextBlock FontSize="{StaticResource FontSizeCallout}"
+                                                               TextWrapping="Wrap"
+                                                               Foreground="{DynamicResource ForegroundMutedBrush}"
+                                                               Text="{Binding Description}"
+                                                               IsVisible="{Binding HasDescription}" />
+                                                  </StackPanel>
+                                                </Button>
+                                              </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                          </ItemsControl>
+                                          <TextBox Classes="feedback"
+                                                   Text="{Binding Other}"
+                                                   PlaceholderText="Something else…"
+                                                   AutomationProperties.Name="Your own answer" />
+                                        </StackPanel>
+                                        <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Answer}" IsVisible="{Binding !IsOpen}" />
+                                      </StackPanel>
+                                    </DataTemplate>
+                                  </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsOpen}">
+                                  <Button Classes="primary" Content="Answer" Command="{Binding SubmitCommand}" />
+                                  <Button Classes="ghost" Content="Skip" Command="{Binding SkipCommand}" />
+                                </StackPanel>
+                                <TextBlock Classes="mono" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
+                              </StackPanel>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.DataTemplates>
+                      </ItemsControl>
+                      <Border Classes="note" Classes.failure="{Binding HasFailed}" IsVisible="{Binding HasNote}">
+                        <TextBlock Classes="mono" TextWrapping="Wrap" Text="{Binding Note}" />
+                      </Border>
+                      <StackPanel Classes="tools" Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsDone}">
+                        <Button Classes="chip" Content="Copy" Command="{Binding CopyCommand}" />
+                        <Button Classes="chip" Content="Retry" Command="{Binding RetryCommand}" />
+                      </StackPanel>
                     </StackPanel>
-                  </StackPanel>
-                </Grid>
-              </DataTemplate>
+                  </Grid>
+                </DataTemplate>
 
-              <DataTemplate DataType="messages:ResumedMarkViewModel">
-                <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12" Margin="0,0,0,26">
-                  <Rectangle Height="1" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center" />
-                  <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Text}" />
-                  <Rectangle Grid.Column="2" Height="1" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center" />
-                </Grid>
+                <DataTemplate DataType="messages:ResumedMarkViewModel">
+                  <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12" Margin="0,0,0,26">
+                    <Rectangle Height="1" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Text}" />
+                    <Rectangle Grid.Column="2" Height="1" Fill="{DynamicResource BorderBrush}" VerticalAlignment="Center" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.DataTemplates>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+
+        <Border Classes="mentions" IsVisible="{Binding Mentions.IsOpen}">
+          <ItemsControl ItemsSource="{Binding Mentions.Choices}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="composing:MentionViewModel">
+                <Button Classes="mention" Classes.chosen="{Binding IsSelected}" Click="Mention" AutomationProperties.Name="{Binding Path}">
+                  <Grid ColumnDefinitions="16,Auto,*" ColumnSpacing="10">
+                    <Path Width="16"
+                          Height="16"
+                          StrokeThickness="1"
+                          VerticalAlignment="Center"
+                          Stroke="{DynamicResource ForegroundMutedBrush}"
+                          Data="M1.5,4.5 H5.5 L7,6 H14.5 V13 H1.5 Z"
+                          IsVisible="{Binding IsFolder}" />
+                    <Path Width="16"
+                          Height="16"
+                          StrokeThickness="1"
+                          VerticalAlignment="Center"
+                          Stroke="{DynamicResource ForegroundMutedBrush}"
+                          Data="M3.5,1.5 H9.5 L12.5,4.5 V14.5 H3.5 Z M9.5,1.5 V4.5 H12.5"
+                          IsVisible="{Binding IsFile}" />
+                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Name}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="folders:NamePart">
+                          <TextBlock Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Grid.Column="2" Classes="where" TextTrimming="LeadingCharacterEllipsis" Text="{Binding Folder}" IsVisible="{Binding HasFolder}" />
+                  </Grid>
+                </Button>
               </DataTemplate>
-            </ItemsControl.DataTemplates>
+            </ItemsControl.ItemTemplate>
           </ItemsControl>
-        </StackPanel>
-      </ScrollViewer>
+        </Border>
 
-      <Border Classes="mentions" IsVisible="{Binding Mentions.IsOpen}">
-        <ItemsControl ItemsSource="{Binding Mentions.Choices}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="composing:MentionViewModel">
-              <Button Classes="mention" Classes.chosen="{Binding IsSelected}" Click="Mention" AutomationProperties.Name="{Binding Path}">
-                <Grid ColumnDefinitions="16,Auto,*" ColumnSpacing="10">
-                  <Path Width="16"
-                        Height="16"
-                        StrokeThickness="1"
-                        VerticalAlignment="Center"
-                        Stroke="{DynamicResource ForegroundMutedBrush}"
-                        Data="M1.5,4.5 H5.5 L7,6 H14.5 V13 H1.5 Z"
-                        IsVisible="{Binding IsFolder}" />
-                  <Path Width="16"
-                        Height="16"
-                        StrokeThickness="1"
-                        VerticalAlignment="Center"
-                        Stroke="{DynamicResource ForegroundMutedBrush}"
-                        Data="M3.5,1.5 H9.5 L12.5,4.5 V14.5 H3.5 Z M9.5,1.5 V4.5 H12.5"
-                        IsVisible="{Binding IsFile}" />
-                  <ItemsControl Grid.Column="1" ItemsSource="{Binding Name}">
-                    <ItemsControl.ItemsPanel>
-                      <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" />
-                      </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate DataType="folders:NamePart">
-                        <TextBlock Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                  <TextBlock Grid.Column="2" Classes="where" TextTrimming="LeadingCharacterEllipsis" Text="{Binding Folder}" IsVisible="{Binding HasFolder}" />
-                </Grid>
-              </Button>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </Border>
+        <Button x:Name="Jump"
+                Classes="jump"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="0,0,0,12"
+                Content="↓ Latest"
+                IsVisible="False"
+                Click="ToLatest" />
+      </Panel>
+    </DockPanel>
 
-      <Button x:Name="Jump"
-              Classes="jump"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Bottom"
-              Margin="0,0,0,12"
-              Content="↓ Latest"
-              IsVisible="False"
-              Click="ToLatest" />
+    <Panel x:Name="DropZone" IsVisible="False" IsHitTestVisible="False">
+      <Border Background="{DynamicResource ScrimBrush}" />
+      <Rectangle Margin="16"
+                 RadiusX="10"
+                 RadiusY="10"
+                 Stroke="{DynamicResource AccentBrush}"
+                 StrokeThickness="2"
+                 StrokeDashArray="4,3" />
+      <TextBlock HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 FontSize="{StaticResource FontSizeTitle3}"
+                 FontWeight="SemiBold"
+                 Foreground="{DynamicResource ForegroundBrush}"
+                 Text="Drop files to attach" />
     </Panel>
-  </DockPanel>
+  </Panel>
 </UserControl>

@@ -33,8 +33,10 @@ public sealed partial class ConversationView : UserControl
         PromptBox.AddHandler(KeyDownEvent, Submit, RoutingStrategies.Tunnel);
         PromptBox.AddHandler(TextBox.PastingFromClipboardEvent, Paste);
         PromptBox.PropertyChanged += Look;
-        Composer.AddHandler(DragDrop.DragOverEvent, Hover);
-        Composer.AddHandler(DragDrop.DropEvent, Drop);
+        AddHandler(DragDrop.DragEnterEvent, Hover);
+        AddHandler(DragDrop.DragOverEvent, Hover);
+        AddHandler(DragDrop.DragLeaveEvent, Leave);
+        AddHandler(DragDrop.DropEvent, Drop);
         Composer.AddHandler(Button.ClickEvent, Refocus);
     }
 
@@ -134,7 +136,7 @@ public sealed partial class ConversationView : UserControl
 
         if (await clipboard.TryGetFilesAsync() is { Length: > 0 } items)
         {
-            Dropped(viewModel, items);
+            Dropped(viewModel, Local(items));
         }
         else if (await clipboard.TryGetTextAsync() is { Length: > 0 } text)
         {
@@ -155,23 +157,50 @@ public sealed partial class ConversationView : UserControl
     // Craft, attach and remove buttons hand the keyboard back to the prompt.
     private void Refocus(object? sender, RoutedEventArgs e) => Dispatcher.UIThread.Post(() => PromptBox.Focus());
 
-    private void Hover(object? sender, DragEventArgs e) =>
-        e.DragEffects = e.DataTransfer.Contains(DataFormat.File) ? DragDropEffects.Copy : DragDropEffects.None;
+    // Files, or text that may name them: the drop zone shows while either hovers the chat.
+    private void Hover(object? sender, DragEventArgs e)
+    {
+        var takes = Conversation is not null && (e.DataTransfer.Contains(DataFormat.File) || e.DataTransfer.Contains(DataFormat.Text));
+        e.DragEffects = takes ? DragDropEffects.Copy : DragDropEffects.None;
+        DropZone.IsVisible = takes;
+    }
+
+    private void Leave(object? sender, DragEventArgs e) => DropZone.IsVisible = false;
 
     private void Drop(object? sender, DragEventArgs e)
     {
-        if (Conversation is { } viewModel && e.DataTransfer.TryGetFiles() is { Length: > 0 } items)
+        DropZone.IsVisible = false;
+        if (Conversation is not { } viewModel)
         {
-            e.Handled = true;
-            PromptBox.Focus();
-            Dropped(viewModel, items);
+            return;
+        }
+
+        e.Handled = true;
+        PromptBox.Focus();
+
+        if (e.DataTransfer.TryGetFiles() is { Length: > 0 } items)
+        {
+            Dropped(viewModel, Local(items));
+        }
+        else if (e.DataTransfer.TryGetText() is { Length: > 0 } text)
+        {
+            if (DroppedText.Paths(text) is { Count: > 0 } paths)
+            {
+                Dropped(viewModel, paths);
+            }
+            else
+            {
+                Insert(viewModel.Paste(text));
+            }
         }
     }
 
+    private static IEnumerable<string> Local(IEnumerable<IStorageItem> items) => items.Select(item => item.TryGetLocalPath()).OfType<string>();
+
     // Pictures attach as images; any other file or folder attaches as a reference the agent reads.
-    private static void Dropped(ConversationViewModel viewModel, IEnumerable<IStorageItem> items)
+    private static void Dropped(ConversationViewModel viewModel, IEnumerable<string> paths)
     {
-        foreach (var path in items.Select(item => item.TryGetLocalPath()).OfType<string>())
+        foreach (var path in paths)
         {
             if (Pictures.IsPicture(path) && Pictures.Of(path) is { } picture)
             {
@@ -192,7 +221,7 @@ public sealed partial class ConversationView : UserControl
         }
 
         var picked = await storage.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Attach files", AllowMultiple = true });
-        Dropped(viewModel, picked);
+        Dropped(viewModel, Local(picked));
         PromptBox.Focus();
     }
 
