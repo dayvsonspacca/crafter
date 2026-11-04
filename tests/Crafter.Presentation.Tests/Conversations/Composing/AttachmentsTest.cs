@@ -40,9 +40,40 @@ public sealed class AttachmentsTest
     }
 
     [Fact]
+    public void SendsFilesAsReferencesAfterTheWords()
+    {
+        attachments.Attach("@docs/plan.pdf");
+        attachments.Attach("@\"/tmp/my notes.txt\"");
+
+        Assert.Equal("Read these\n\n@docs/plan.pdf @\"/tmp/my notes.txt\"", attachments.Compose("Read these")?.Text);
+    }
+
+    [Fact]
+    public void SendsFilesWithoutWordsAsTheirReferences()
+    {
+        attachments.Attach(new Picture("image/png", [1]));
+        attachments.Attach("@docs/plan.pdf");
+
+        var prompt = attachments.Compose(" ");
+
+        Assert.Equal("@docs/plan.pdf", prompt?.Text);
+        Assert.Single(prompt!.Pictures);
+    }
+
+    [Fact]
+    public void ForgetsADetachedFile()
+    {
+        attachments.Attach("@docs/plan.pdf");
+        attachments.Detach("@docs/plan.pdf");
+
+        Assert.Null(attachments.Compose(string.Empty));
+    }
+
+    [Fact]
     public void ForgetsEverythingOnceCleared()
     {
         attachments.Attach(new Picture("image/png", [1]));
+        attachments.Attach("@docs/plan.pdf");
         attachments.Clear();
 
         Assert.Null(attachments.Compose(string.Empty));

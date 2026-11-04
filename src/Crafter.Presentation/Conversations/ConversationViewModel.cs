@@ -171,6 +171,20 @@ public sealed partial class ConversationViewModel : ObservableObject
         OnPropertyChanged(nameof(HasAttached));
     }
 
+    // Any file that is not a picture: the agent reads it from its @ reference.
+    public void AttachFile(string path)
+    {
+        var reference = Mention(path).TrimEnd();
+        if (Attached.Any(each => each.File == reference))
+        {
+            return;
+        }
+
+        attachments.Attach(reference);
+        Attached.Add(new AttachmentViewModel(path, reference, Detach));
+        OnPropertyChanged(nameof(HasAttached));
+    }
+
     public void DetachLast()
     {
         if (Attached.Count > 0)
@@ -233,7 +247,9 @@ public sealed partial class ConversationViewModel : ObservableObject
             return;
         }
 
-        var asked = again is null ? new YourMessageViewModel(prompt, Draft.Trim()) : new YourMessageViewModel(prompt, again.Text);
+        var asked = again is null
+            ? new YourMessageViewModel(prompt, Draft.Trim(), [.. Attached.Where(each => each.IsFile).Select(each => each.Name)])
+            : new YourMessageViewModel(prompt, again.Text, again.Files);
         var answer = Answer(woken: false);
 
         if (again is null)
@@ -353,7 +369,15 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private void Detach(AttachmentViewModel attachment)
     {
-        attachments.Detach(attachment.Picture);
+        if (attachment.Picture is { } picture)
+        {
+            attachments.Detach(picture);
+        }
+        else if (attachment.File is { } file)
+        {
+            attachments.Detach(file);
+        }
+
         Attached.Remove(attachment);
         OnPropertyChanged(nameof(HasAttached));
     }

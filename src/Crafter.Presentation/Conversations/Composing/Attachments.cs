@@ -13,9 +13,14 @@ public sealed partial class Attachments
 
     private readonly List<Picture> pictures = [];
 
+    // Files go to the agent as @ references after the words, the way a typed mention does.
+    private readonly List<string> files = [];
+
     private int last;
 
     public IReadOnlyList<Picture> Pictures => pictures;
+
+    public IReadOnlyList<string> Files => files;
 
     public string Paste(string text)
     {
@@ -35,21 +40,35 @@ public sealed partial class Attachments
 
     public void Detach(Picture picture) => pictures.Remove(picture);
 
+    public void Attach(string file) => files.Add(file);
+
+    public void Detach(string file) => files.Remove(file);
+
     public Prompt? Compose(string draft)
     {
         var text = Pastes().Replace(draft, found => pasted.TryGetValue(int.Parse(found.Groups[1].Value), out var full) ? full : found.Value).Trim();
-        if (text.Length == 0 && pictures.Count == 0)
+        if (text.Length == 0 && pictures.Count == 0 && files.Count == 0)
         {
             return null;
         }
 
-        return new Prompt(text.Length > 0 ? text : Unworded(pictures.Count), [.. pictures]);
+        var references = string.Join(' ', files);
+        var words = (text.Length > 0, files.Count > 0) switch
+        {
+            (true, true) => $"{text}\n\n{references}",
+            (true, false) => text,
+            (false, true) => references,
+            _ => Unworded(pictures.Count),
+        };
+
+        return new Prompt(words, [.. pictures]);
     }
 
     public void Clear()
     {
         pasted.Clear();
         pictures.Clear();
+        files.Clear();
     }
 
     private static string Unworded(int count) => count == 1 ? "(1 picture attached)" : $"({count} pictures attached)";

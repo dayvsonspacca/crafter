@@ -179,6 +179,41 @@ public sealed class ConversationViewModelTest
     }
 
     [Fact]
+    public async Task SendsAttachedFilesAndShowsTheirNamesOnTheMessage()
+    {
+        var session = new ScriptedSession(new Finished());
+        var viewModel = ViewModel(session);
+
+        viewModel.AttachFile("/home/hero/crafter/docs/plan.pdf");
+        viewModel.AttachFile("/tmp/report final.xlsx");
+        viewModel.AttachFile("/home/hero/crafter/docs/plan.pdf");
+        Assert.Equal(["plan.pdf", "report final.xlsx"], viewModel.Attached.Select(each => each.Name));
+        Assert.All(viewModel.Attached, each => Assert.True(each.IsFile));
+
+        await Ask(viewModel, "Compare them");
+
+        Assert.Equal("Compare them\n\n@docs/plan.pdf @\"/tmp/report final.xlsx\"", session.Heard.Single().Text);
+        var sent = viewModel.Messages.OfType<YourMessageViewModel>().Single();
+        Assert.Equal("Compare them", sent.Text);
+        Assert.Equal(["plan.pdf", "report final.xlsx"], sent.Files);
+        Assert.Empty(viewModel.Attached);
+    }
+
+    [Fact]
+    public async Task ForgetsARemovedFile()
+    {
+        var session = new ScriptedSession(new Finished());
+        var viewModel = ViewModel(session);
+
+        viewModel.AttachFile("/home/hero/crafter/docs/plan.pdf");
+        viewModel.Attached.Single().RemoveCommand.Execute(null);
+        await Ask(viewModel, "never mind");
+
+        Assert.Equal("never mind", session.Heard.Single().Text);
+        Assert.False(viewModel.Messages.OfType<YourMessageViewModel>().Single().HasFiles);
+    }
+
+    [Fact]
     public void MentionsAFileInsideTheProjectByItsRelativePath()
     {
         var viewModel = ViewModel(new ScriptedSession());
