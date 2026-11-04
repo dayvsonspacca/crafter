@@ -1,8 +1,8 @@
 using Crafter.Core.Preferences;
 
-namespace Crafter.Core.Tests.Preferences;
+namespace Crafter.Testing;
 
-internal sealed class PreferencesInMemory(UserPreferences stored) : IPreferencesStore
+public sealed class PreferencesInMemory(UserPreferences stored) : IPreferencesStore
 {
     public UserPreferences Saved { get; private set; } = stored;
 

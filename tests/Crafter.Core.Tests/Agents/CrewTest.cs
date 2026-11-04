@@ -1,4 +1,5 @@
 using Crafter.Core.Agents;
+using Crafter.Testing;
 
 namespace Crafter.Core.Tests.Agents;
 

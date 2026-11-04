@@ -1,9 +1,9 @@
 using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
 
-namespace Crafter.Presentation.Tests;
+namespace Crafter.Testing;
 
-internal sealed class ArchiveInMemory : IChatArchive
+public sealed class ArchiveInMemory : IChatArchive
 {
     public IReadOnlyList<ChatRecord> Saved { get; private set; } = [];
 

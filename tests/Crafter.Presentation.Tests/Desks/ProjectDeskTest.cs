@@ -6,9 +6,11 @@ using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
 using Crafter.Presentation.Conversations.Messages;
 using Crafter.Presentation.Desks;
+using Crafter.Presentation.Tests.Fakes;
+using Crafter.Testing;
 using Microsoft.Extensions.Time.Testing;
 
-namespace Crafter.Presentation.Tests.Conversations;
+namespace Crafter.Presentation.Tests.Desks;
 
 public sealed class ProjectDeskTest
 {
@@ -24,7 +26,7 @@ public sealed class ProjectDeskTest
 
         await desk.Resume(agent, new PastChat("s-1", ChatTitle.Of("oi"), Noon.AddHours(-2)));
 
-        Assert.Equal("resumed from Stand-in · 2h ago", desk.Selected!.Messages.OfType<ResumedMark>().Single().Text);
+        Assert.Equal("resumed from stand-in · 2h ago", desk.Selected!.Messages.OfType<ResumedMark>().Single().Text);
     }
 
     [Fact]

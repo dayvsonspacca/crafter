@@ -1,6 +1,6 @@
 using Crafter.Presentation.Platform;
 
-namespace Crafter.Presentation.Tests;
+namespace Crafter.Presentation.Tests.Fakes;
 
 internal sealed class ClipboardInMemory : IClipboard
 {

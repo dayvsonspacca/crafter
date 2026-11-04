@@ -5,28 +5,35 @@ using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Decisions;
 using Crafter.Core.Conversations.Replies;
 
-namespace Crafter.Presentation.Tests;
+namespace Crafter.Testing;
 
-internal sealed class ScriptedSession(IReadOnlyList<Reply> replies, bool hangs = false) : IAgentSession
+public sealed class ScriptedSession(params Reply[] replies) : IAgentSession
 {
-    public string? SessionId => null;
+    public List<Prompt> Heard { get; } = [];
+
+    public string? SessionId { get; set; }
 
     public List<Configuration> Configurations { get; } = [];
 
-    public void Decide(string request, Decision decision)
-    {
-    }
+    public List<(string Request, Decision Decision)> Decisions { get; } = [];
+
+    public bool Hangs { get; init; }
+
+    public void Decide(string request, Decision decision) => Decisions.Add((request, decision));
 
     public async IAsyncEnumerable<Reply> Answer(Prompt prompt, Configuration configuration, [EnumeratorCancellation] CancellationToken stop = default)
     {
+        Heard.Add(prompt);
         Configurations.Add(configuration);
 
         foreach (var reply in replies)
         {
+            await Task.Yield();
+
             yield return reply;
         }
 
-        if (!hangs)
+        if (!Hangs)
         {
             yield break;
         }

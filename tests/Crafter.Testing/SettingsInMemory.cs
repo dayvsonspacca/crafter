@@ -1,8 +1,8 @@
 using Crafter.Core.Projects;
 
-namespace Crafter.Core.Tests.Projects;
+namespace Crafter.Testing;
 
-internal sealed class SettingsInMemory : IProjectSettingsStore
+public sealed class SettingsInMemory : IProjectSettingsStore
 {
     private readonly Dictionary<string, ProjectSettings> saved = [];
 

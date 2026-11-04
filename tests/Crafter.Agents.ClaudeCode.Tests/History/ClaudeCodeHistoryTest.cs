@@ -4,7 +4,7 @@ using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Projects;
 
-namespace Crafter.Agents.ClaudeCode.Tests;
+namespace Crafter.Agents.ClaudeCode.Tests.History;
 
 public sealed class ClaudeCodeHistoryTest : IDisposable
 {

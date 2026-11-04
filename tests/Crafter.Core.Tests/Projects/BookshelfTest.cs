@@ -1,4 +1,5 @@
 using Crafter.Core.Projects;
+using Crafter.Testing;
 
 namespace Crafter.Core.Tests.Projects;
 

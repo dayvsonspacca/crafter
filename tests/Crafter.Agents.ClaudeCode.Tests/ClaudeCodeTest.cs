@@ -1,4 +1,5 @@
 using Crafter.Agents.ClaudeCode.Cli;
+using Crafter.Agents.ClaudeCode.Tests.Cli;
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations.Replies;

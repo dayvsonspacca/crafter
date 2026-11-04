@@ -3,7 +3,7 @@ using Crafter.Agents.ClaudeCode.Protocol;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Decisions;
 
-namespace Crafter.Agents.ClaudeCode.Tests;
+namespace Crafter.Agents.ClaudeCode.Tests.Protocol;
 
 public sealed class ClaudeCodeProtocolTest
 {

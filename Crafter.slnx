@@ -20,5 +20,6 @@
     <Project Path="tests/Crafter.Agents.ClaudeCode.Tests/Crafter.Agents.ClaudeCode.Tests.csproj" />
     <Project Path="tests/Crafter.Highlight.Tests/Crafter.Highlight.Tests.csproj" />
     <Project Path="tests/Crafter.Presentation.Tests/Crafter.Presentation.Tests.csproj" />
+    <Project Path="tests/Crafter.Testing/Crafter.Testing.csproj" />
   </Folder>
 </Solution>

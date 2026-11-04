@@ -1,6 +1,8 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Preferences;
 using Crafter.Presentation.Agents;
+using Crafter.Presentation.Tests.Fakes;
+using Crafter.Testing;
 
 namespace Crafter.Presentation.Tests.Agents;
 
@@ -10,7 +12,7 @@ public sealed class AgentPanelTest
     public async Task CopiesTheRemedyOfABlockedAgent()
     {
         var clipboard = new ClipboardInMemory();
-        var agent = new StandInAgent(() => new ScriptedSession([]), new Blocked("Signed out", "Sign in from a terminal.", "claude auth login"));
+        var agent = new StandInAgent { Readiness = new Blocked("Signed out", "Sign in from a terminal.", "claude auth login") };
         var panel = new AgentPanel(agent, new PreferenceBook(new PreferencesInMemory(UserPreferences.Default("/home/hero"))), clipboard);
 
         await panel.CheckCommand.ExecuteAsync(null);

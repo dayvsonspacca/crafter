@@ -1,6 +1,7 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Preferences;
+using Crafter.Testing;
 
 namespace Crafter.Core.Tests.Preferences;
 

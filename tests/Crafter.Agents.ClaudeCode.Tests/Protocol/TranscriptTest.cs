@@ -1,7 +1,7 @@
 using Crafter.Agents.ClaudeCode.Protocol;
 using Crafter.Core.Conversations.Replies;
 
-namespace Crafter.Agents.ClaudeCode.Tests;
+namespace Crafter.Agents.ClaudeCode.Tests.Protocol;
 
 public sealed class TranscriptTest
 {

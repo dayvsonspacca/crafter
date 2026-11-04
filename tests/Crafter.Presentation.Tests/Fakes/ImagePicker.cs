@@ -1,6 +1,6 @@
 using Crafter.Presentation.Folders;
 
-namespace Crafter.Presentation.Tests;
+namespace Crafter.Presentation.Tests.Fakes;
 
 internal sealed class ImagePicker(string? chosen) : IFolderPicker
 {

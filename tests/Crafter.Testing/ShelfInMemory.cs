@@ -1,8 +1,8 @@
 using Crafter.Core.Projects;
 
-namespace Crafter.Core.Tests.Projects;
+namespace Crafter.Testing;
 
-internal sealed class ShelfInMemory(params Shelved[] stored) : IBookshelfStore
+public sealed class ShelfInMemory(params Shelved[] stored) : IBookshelfStore
 {
     public IReadOnlyList<Shelved> Saved { get; private set; } = stored;
 

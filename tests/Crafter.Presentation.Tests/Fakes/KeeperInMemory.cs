@@ -1,6 +1,6 @@
 using Crafter.Presentation.Conversations;
 
-namespace Crafter.Presentation.Tests;
+namespace Crafter.Presentation.Tests.Fakes;
 
 internal sealed class KeeperInMemory : IChatKeeper
 {

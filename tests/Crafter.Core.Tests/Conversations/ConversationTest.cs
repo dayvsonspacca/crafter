@@ -1,6 +1,7 @@
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
+using Crafter.Testing;
 
 namespace Crafter.Core.Tests.Conversations;
 

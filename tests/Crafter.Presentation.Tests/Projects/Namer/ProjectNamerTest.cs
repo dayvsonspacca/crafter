@@ -1,7 +1,8 @@
 using Crafter.Core.Projects;
 using Crafter.Presentation.Projects.Namer;
+using Crafter.Presentation.Tests.Fakes;
 
-namespace Crafter.Presentation.Tests.Projects;
+namespace Crafter.Presentation.Tests.Projects.Namer;
 
 public sealed class ProjectNamerTest : IDisposable
 {
