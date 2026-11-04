@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Text.Json.Serialization;
 using Crafter.Core.Library;
 
@@ -8,7 +9,7 @@ namespace Crafter.Storage;
 
 // The library repository mirrored in one folder. Nobody edits the mirror, so a sync takes the
 // remote as it is: clone the first time or when the repository changes, then fetch and reset.
-public sealed class GitLibrary(string folder) : ILibrary
+public sealed partial class GitLibrary(string folder) : ILibrary
 {
     private static readonly TimeSpan Patience = TimeSpan.FromMinutes(2);
 
@@ -33,6 +34,52 @@ public sealed class GitLibrary(string folder) : ILibrary
         catch (GitFailed failed)
         {
             return new SyncFailed(failed.Message);
+        }
+    }
+
+    public async Task<SyncOutcome> Save(SkillDraft skill, string repository, CancellationToken stop = default)
+    {
+        if (!SkillId().IsMatch(skill.Id))
+        {
+            return new SyncFailed("a skill id is lowercase letters, digits and dashes, like laravel-migrations");
+        }
+
+        if (string.IsNullOrWhiteSpace(skill.Description) || string.IsNullOrWhiteSpace(skill.Instructions))
+        {
+            return new SyncFailed("a skill needs a description and instructions");
+        }
+
+        // Start from the remote as it is, so the commit lands on top of it.
+        if (await Sync(repository, stop) is SyncFailed failed)
+        {
+            return failed;
+        }
+
+        try
+        {
+            var place = Path.Combine(folder, "skills", skill.Id);
+            var known = Directory.Exists(place);
+            Directory.CreateDirectory(place);
+
+            var about = new SkillJson(skill.Name.Trim(), skill.Description.Trim(), string.IsNullOrWhiteSpace(skill.WhenToUse) ? null : skill.WhenToUse.Trim());
+            await File.WriteAllTextAsync(Path.Combine(place, "skill.json"), JsonSerializer.Serialize(about, LibraryJson.Default.SkillJson) + "\n", stop);
+            await File.WriteAllTextAsync(Path.Combine(place, "instructions.md"), skill.Instructions.TrimEnd() + "\n", stop);
+
+            await Git(stop, "-C", folder, "add", "--all", "--", $"skills/{skill.Id}");
+            if (!await HasStaged(stop))
+            {
+                return new Synced((await Git(stop, "-C", folder, "rev-parse", "--short", "HEAD")).Trim());
+            }
+
+            var verb = known ? "Update" : "Add";
+            await Git(stop, "-C", folder, "commit", "--quiet", "-m", $"{verb} skill {about.Name}");
+            await Git(stop, "-C", folder, "push", "--quiet", "origin", "HEAD");
+
+            return new Synced((await Git(stop, "-C", folder, "rev-parse", "--short", "HEAD")).Trim());
+        }
+        catch (GitFailed failure)
+        {
+            return new SyncFailed(failure.Message);
         }
     }
 
@@ -92,6 +139,23 @@ public sealed class GitLibrary(string folder) : ILibrary
             return null;
         }
     }
+
+    private async Task<bool> HasStaged(CancellationToken stop)
+    {
+        try
+        {
+            await Git(stop, "-C", folder, "diff", "--cached", "--quiet");
+
+            return false;
+        }
+        catch (GitFailed)
+        {
+            return true;
+        }
+    }
+
+    [GeneratedRegex("^[a-z0-9]+(-[a-z0-9]+)*$")]
+    private static partial Regex SkillId();
 
     private async Task<bool> IsCloneOf(string repository, CancellationToken stop)
     {
@@ -193,6 +257,11 @@ public sealed class GitLibrary(string folder) : ILibrary
 
 internal sealed record SkillJson(string? Name, string? Description, string? WhenToUse);
 
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, ReadCommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true)]
+[JsonSourceGenerationOptions(
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    ReadCommentHandling = JsonCommentHandling.Skip,
+    AllowTrailingCommas = true,
+    WriteIndented = true,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(SkillJson))]
 internal sealed partial class LibraryJson : JsonSerializerContext;

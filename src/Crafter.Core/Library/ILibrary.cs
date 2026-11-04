@@ -7,4 +7,7 @@ public interface ILibrary
     Task<SyncOutcome> Sync(string repository, CancellationToken stop = default);
 
     LibraryContents Read();
+
+    // Writes a skill on top of what the repository holds now, commits it and pushes it.
+    Task<SyncOutcome> Save(SkillDraft skill, string repository, CancellationToken stop = default);
 }

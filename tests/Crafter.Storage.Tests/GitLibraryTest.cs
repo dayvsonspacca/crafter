@@ -16,6 +16,12 @@ public sealed class GitLibraryTest : IDisposable
 
     public GitLibraryTest()
     {
+        // Saving commits as whoever git says; tests sign as a stand-in so any machine can run them.
+        Environment.SetEnvironmentVariable("GIT_AUTHOR_NAME", "Hero");
+        Environment.SetEnvironmentVariable("GIT_AUTHOR_EMAIL", "hero@example.com");
+        Environment.SetEnvironmentVariable("GIT_COMMITTER_NAME", "Hero");
+        Environment.SetEnvironmentVariable("GIT_COMMITTER_EMAIL", "hero@example.com");
+
         Git(root, "init", "--quiet", "--bare", "remote.git");
         Git(Remote, "symbolic-ref", "HEAD", "refs/heads/main");
         Git(root, "init", "--quiet", "work");
@@ -109,6 +115,56 @@ public sealed class GitLibraryTest : IDisposable
         var outcome = await new GitLibrary(Mirror).Sync(Path.Combine(root, "nowhere.git"), TestContext.Current.CancellationToken);
 
         Assert.Contains("nowhere.git", Assert.IsType<SyncFailed>(outcome).Reason);
+    }
+
+    [Fact]
+    public async Task SavesANewSkillAndPushesIt()
+    {
+        Write("README.md", "library");
+        Publish("start");
+        var library = new GitLibrary(Mirror);
+
+        var outcome = await library.Save(new SkillDraft("pr-review", "PR review", "Reviews a pull request.", "Before merging", "# Review\nRead the diff."), Remote, TestContext.Current.CancellationToken);
+
+        Assert.IsType<Synced>(outcome);
+        Assert.Equal("Add skill PR review", Git(Remote, "log", "-1", "--format=%s").Trim());
+        Assert.Contains("\"whenToUse\": \"Before merging\"", Git(Remote, "show", "HEAD:skills/pr-review/skill.json"));
+        Assert.Equal("# Review\nRead the diff.\n", Git(Remote, "show", "HEAD:skills/pr-review/instructions.md"));
+        Assert.Equal("PR review", Assert.Single(library.Read().Skills).Name);
+    }
+
+    [Fact]
+    public async Task UpdatesASkillOnTopOfWhatOthersPushedAndSkipsAnUnchangedSave()
+    {
+        Write("skills/pr-review/skill.json", """{ "name": "PR review", "description": "Reviews a pull request." }""");
+        Write("skills/pr-review/instructions.md", "v1");
+        Publish("v1");
+        var library = new GitLibrary(Mirror);
+        await library.Sync(Remote, TestContext.Current.CancellationToken);
+
+        Write("skills/other/skill.json", """{ "description": "Pushed from another machine." }""");
+        Write("skills/other/instructions.md", "other");
+        Publish("elsewhere");
+
+        var draft = new SkillDraft("pr-review", "PR review", "Reviews a pull request.", null, "v2");
+        await library.Save(draft, Remote, TestContext.Current.CancellationToken);
+        var commits = Git(Remote, "rev-list", "--count", "HEAD").Trim();
+        await library.Save(draft, Remote, TestContext.Current.CancellationToken);
+
+        Assert.Equal("Update skill PR review", Git(Remote, "log", "-1", "--format=%s").Trim());
+        Assert.Equal(commits, Git(Remote, "rev-list", "--count", "HEAD").Trim());
+        Assert.Equal(["other", "pr-review"], library.Read().Skills.Select(skill => skill.Id).Order());
+    }
+
+    [Theory]
+    [InlineData("PR Review")]
+    [InlineData("../escape")]
+    [InlineData("")]
+    public async Task RefusesAnIdThatIsNotAFolderName(string id)
+    {
+        var outcome = await new GitLibrary(Mirror).Save(new SkillDraft(id, "x", "x", null, "x"), Remote, TestContext.Current.CancellationToken);
+
+        Assert.Contains("lowercase", Assert.IsType<SyncFailed>(outcome).Reason);
     }
 
     [Fact]

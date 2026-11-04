@@ -18,4 +18,13 @@ internal sealed class LibraryInMemory : ILibrary
     }
 
     public LibraryContents Read() => Contents;
+
+    public List<SkillDraft> Saved { get; } = [];
+
+    public Task<SyncOutcome> Save(SkillDraft skill, string repository, CancellationToken stop = default)
+    {
+        Saved.Add(skill);
+
+        return Task.FromResult(Outcome);
+    }
 }
