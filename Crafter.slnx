@@ -11,6 +11,7 @@
     <Project Path="src/Crafter.Agents.ClaudeCode/Crafter.Agents.ClaudeCode.csproj" />
     <Project Path="src/Crafter.Highlight/Crafter.Highlight.csproj" />
     <Project Path="src/Crafter.Markdown/Crafter.Markdown.csproj" />
+    <Project Path="src/Crafter.Mcp/Crafter.Mcp.csproj" />
     <Project Path="src/Crafter.Presentation/Crafter.Presentation.csproj" />
     <Project Path="src/Crafter.Desktop/Crafter.Desktop.csproj" />
   </Folder>
@@ -21,6 +22,7 @@
     <Project Path="tests/Crafter.Agents.ClaudeCode.Tests/Crafter.Agents.ClaudeCode.Tests.csproj" />
     <Project Path="tests/Crafter.Highlight.Tests/Crafter.Highlight.Tests.csproj" />
     <Project Path="tests/Crafter.Markdown.Tests/Crafter.Markdown.Tests.csproj" />
+    <Project Path="tests/Crafter.Mcp.Tests/Crafter.Mcp.Tests.csproj" />
     <Project Path="tests/Crafter.Desktop.Tests/Crafter.Desktop.Tests.csproj" />
     <Project Path="tests/Crafter.Presentation.Tests/Crafter.Presentation.Tests.csproj" />
     <Project Path="tests/Crafter.Testing/Crafter.Testing.csproj" />
