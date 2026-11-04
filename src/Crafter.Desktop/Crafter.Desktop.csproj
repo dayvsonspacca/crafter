@@ -9,6 +9,11 @@
     <NoWarn>$(NoWarn);IL2104;AVLN3001</NoWarn>
   </PropertyGroup>
 
+  <!-- Published builds embed the runtime, so they take the patched one (CVE-2026-111497 is fixed in 10.0.14). -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <RuntimeFrameworkVersion>10.0.14</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
     <TrimmerRootAssembly Include="Markdown.Avalonia" />
