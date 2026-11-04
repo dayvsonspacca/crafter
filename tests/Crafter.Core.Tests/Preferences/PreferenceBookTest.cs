@@ -44,6 +44,19 @@ public sealed class PreferenceBookTest
     }
 
     [Fact]
+    public void LinksAndUnlinksTheLibrary()
+    {
+        var store = new PreferencesInMemory(Stored);
+        var book = new PreferenceBook(store);
+
+        book.LinkLibrary(" git@github.com:hero/crafter-library.git ");
+        Assert.Equal("git@github.com:hero/crafter-library.git", store.Saved.Library);
+
+        book.LinkLibrary(null);
+        Assert.Null(store.Saved.Library);
+    }
+
+    [Fact]
     public void KeepsTheHiredAgents()
     {
         var store = new PreferencesInMemory(Stored);

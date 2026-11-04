@@ -22,7 +22,7 @@ public sealed class JsonPreferencesStoreTest : IDisposable
     [Fact]
     public void LoadsWhatItSaved()
     {
-        var chosen = new UserPreferences("/home/hero/Projetos") { Theme = "warped", SystemDark = true, Agents = [new AgentId("claude-code")] }
+        var chosen = new UserPreferences("/home/hero/Projetos") { Theme = "warped", SystemDark = true, Library = "git@github.com:hero/crafter-library.git", Agents = [new AgentId("claude-code")] }
             .Configure(new AgentId("claude-code"), Configuration.Empty.With("model", "opus").With("tools", "edit"));
 
         new JsonPreferencesStore(File, Defaults).Save(chosen);
