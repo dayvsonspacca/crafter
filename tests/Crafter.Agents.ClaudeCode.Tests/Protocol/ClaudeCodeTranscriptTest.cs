@@ -3,12 +3,12 @@ using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Agents.ClaudeCode.Tests.Protocol;
 
-public sealed class TranscriptTest
+public sealed class ClaudeCodeTranscriptTest
 {
     [Fact]
     public void HearsWhichModelBegan()
     {
-        var replies = new Transcript().Hear("""{"type":"system","subtype":"init","session_id":"s-1","model":"claude-opus-5-5"}""");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"system","subtype":"init","session_id":"s-1","model":"claude-opus-5-5"}""");
 
         Assert.Equal([new Began("Opus 5.5")], replies);
     }
@@ -16,7 +16,7 @@ public sealed class TranscriptTest
     [Fact]
     public void RemembersTheSession()
     {
-        var transcript = new Transcript();
+        var transcript = new ClaudeCodeTranscript();
 
         transcript.Hear("""{"type":"system","subtype":"init","session_id":"s-1","model":"claude-opus-5-5"}""");
         transcript.Hear("""{"type":"rate_limit_event"}""");
@@ -27,19 +27,19 @@ public sealed class TranscriptTest
     [Fact]
     public void IgnoresAnIntroductionWithoutModel()
     {
-        Assert.Empty(new Transcript().Hear("""{"type":"system","subtype":"init","session_id":"s-1"}"""));
+        Assert.Empty(new ClaudeCodeTranscript().Hear("""{"type":"system","subtype":"init","session_id":"s-1"}"""));
     }
 
     [Fact]
     public void IgnoresOtherSystemMessages()
     {
-        Assert.Empty(new Transcript().Hear("""{"type":"system","subtype":"status","status":"requesting"}"""));
+        Assert.Empty(new ClaudeCodeTranscript().Hear("""{"type":"system","subtype":"status","status":"requesting"}"""));
     }
 
     [Fact]
     public void HearsWhatWasWritten()
     {
-        var replies = new Transcript().Hear(
+        var replies = new ClaudeCodeTranscript().Hear(
             """{"type":"stream_event","event":{"type":"content_block_delta","delta":{"type":"text_delta","text":"Olá"}}}""");
 
         Assert.Equal([new Wrote("Olá")], replies);
@@ -53,13 +53,13 @@ public sealed class TranscriptTest
     [InlineData("""{"type":"stream_event","event":{"type":"content_block_delta","delta":{"type":"text_delta","text":""}}}""")]
     public void IgnoresStreamEventsWithoutText(string line)
     {
-        Assert.Empty(new Transcript().Hear(line));
+        Assert.Empty(new ClaudeCodeTranscript().Hear(line));
     }
 
     [Fact]
     public void HearsAFinishedAnswer()
     {
-        var replies = new Transcript().Hear("""{"type":"result","subtype":"success","is_error":false,"stop_reason":"end_turn"}""");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"result","subtype":"success","is_error":false,"stop_reason":"end_turn"}""");
 
         Assert.Equal([new Finished()], replies);
     }
@@ -67,7 +67,7 @@ public sealed class TranscriptTest
     [Fact]
     public void HearsAnAnswerCutShort()
     {
-        var replies = new Transcript().Hear("""{"type":"result","subtype":"success","is_error":false,"stop_reason":"max_tokens"}""");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"result","subtype":"success","is_error":false,"stop_reason":"max_tokens"}""");
 
         Assert.Equal([new CutShort()], replies);
     }
@@ -75,7 +75,7 @@ public sealed class TranscriptTest
     [Fact]
     public void HearsARefusalWithItsCategory()
     {
-        var replies = new Transcript().Hear(
+        var replies = new ClaudeCodeTranscript().Hear(
             """{"type":"result","subtype":"success","is_error":false,"stop_reason":"refusal","stop_details":{"category":"cyber"}}""");
 
         Assert.Equal([new Refused("cyber")], replies);
@@ -84,7 +84,7 @@ public sealed class TranscriptTest
     [Fact]
     public void HearsARefusalWithoutCategory()
     {
-        var replies = new Transcript().Hear("""{"type":"result","subtype":"success","is_error":false,"stop_reason":"refusal","stop_details":null}""");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"result","subtype":"success","is_error":false,"stop_reason":"refusal","stop_details":null}""");
 
         Assert.Equal([new Refused(null)], replies);
     }
@@ -92,7 +92,7 @@ public sealed class TranscriptTest
     [Fact]
     public void HearsAFailureWithWhatClaudeCodeSaid()
     {
-        var replies = new Transcript().Hear("""{"type":"result","subtype":"success","is_error":true,"result":"Not logged in"}""");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"result","subtype":"success","is_error":true,"result":"Not logged in"}""");
 
         Assert.Equal([new Failed("Not logged in")], replies);
     }
@@ -100,7 +100,7 @@ public sealed class TranscriptTest
     [Fact]
     public void HearsAFailureByItsKind()
     {
-        var replies = new Transcript().Hear("""{"type":"result","subtype":"error_during_execution","is_error":true}""");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"result","subtype":"error_during_execution","is_error":true}""");
 
         Assert.Equal([new Failed("error_during_execution")], replies);
     }
@@ -108,7 +108,7 @@ public sealed class TranscriptTest
     [Fact]
     public void HearsAFailureThatSaysNothing()
     {
-        var replies = new Transcript().Hear("""{"type":"result","is_error":true}""");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"result","is_error":true}""");
 
         Assert.Equal([new Failed("Claude Code failed without saying why.")], replies);
     }
@@ -120,13 +120,13 @@ public sealed class TranscriptTest
     [InlineData("""{"session_id":42}""")]
     public void IgnoresWhatItDoesNotUnderstand(string line)
     {
-        Assert.Empty(new Transcript().Hear(line));
+        Assert.Empty(new ClaudeCodeTranscript().Hear(line));
     }
 
     [Fact]
     public void HearsTheToolsItUses()
     {
-        var transcript = new Transcript("/home/hero/crafter");
+        var transcript = new ClaudeCodeTranscript("/home/hero/crafter");
 
         var replies = transcript.Hear("""{"type":"assistant","message":{"content":[{"type":"text","text":"ok"},{"type":"tool_use","id":"t-1","name":"Edit","input":{"file_path":"/home/hero/crafter/a.cs","old_string":"x","new_string":"y"}},{"type":"tool_use","name":"NoId"},"junk"]}}""");
 
@@ -136,7 +136,7 @@ public sealed class TranscriptTest
     [Fact]
     public void HearsWhatTheToolsAnswered()
     {
-        var replies = new Transcript().Hear("""{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t-1","content":"done"},{"type":"tool_result","tool_use_id":"t-2","is_error":true,"content":[{"type":"text","text":"no"},{"type":"image"},"x"]},{"type":"tool_result","tool_use_id":"t-3"},{"type":"tool_result","tool_use_id":"t-4","content":42},{"type":"tool_result"}]}}""");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t-1","content":"done"},{"type":"tool_result","tool_use_id":"t-2","is_error":true,"content":[{"type":"text","text":"no"},{"type":"image"},"x"]},{"type":"tool_result","tool_use_id":"t-3"},{"type":"tool_result","tool_use_id":"t-4","content":42},{"type":"tool_result"}]}}""");
 
         Assert.Equal(
             [new Acted("t-1", false, "done"), new Acted("t-2", true, "no"), new Acted("t-3", false, string.Empty), new Acted("t-4", false, string.Empty)],
@@ -149,13 +149,13 @@ public sealed class TranscriptTest
     [InlineData("""{"type":"assistant"}""")]
     public void HearsNothingFromMessagesWithoutTools(string line)
     {
-        Assert.Empty(new Transcript().Hear(line));
+        Assert.Empty(new ClaudeCodeTranscript().Hear(line));
     }
 
     [Fact]
     public void HearsARequestForApprovalAndKeepsItsInput()
     {
-        var transcript = new Transcript("/home/hero/crafter");
+        var transcript = new ClaudeCodeTranscript("/home/hero/crafter");
 
         var replies = transcript.Hear("""{"type":"control_request","request_id":"r-1","request":{"subtype":"can_use_tool","tool_name":"Bash","display_name":"Bash","input":{"command":"dotnet test"},"description":"Run the tests"}}""");
 
@@ -167,7 +167,7 @@ public sealed class TranscriptTest
     [Fact]
     public void KeepsAnEmptyInputWhenTheRequestHasNone()
     {
-        var transcript = new Transcript();
+        var transcript = new ClaudeCodeTranscript();
 
         var replies = transcript.Hear("""{"type":"control_request","request_id":"r-2","request":{"subtype":"can_use_tool","tool_name":"Mystery"}}""");
 
@@ -182,13 +182,13 @@ public sealed class TranscriptTest
     [InlineData("""{"type":"control_request","request_id":"r-1","request":{"subtype":"can_use_tool"}}""")]
     public void IgnoresOtherControlRequests(string line)
     {
-        Assert.Empty(new Transcript().Hear(line));
+        Assert.Empty(new ClaudeCodeTranscript().Hear(line));
     }
 
     [Fact]
     public void SaysWhatAlwaysAllowingWouldRemember()
     {
-        var transcript = new Transcript();
+        var transcript = new ClaudeCodeTranscript();
 
         var replies = transcript.Hear("""{"type":"control_request","request_id":"r-3","request":{"subtype":"can_use_tool","tool_name":"Bash","input":{"command":"npm test"},"permission_suggestions":[{"type":"addRules","rules":[{"toolName":"Bash","ruleContent":"npm test:*"}],"behavior":"allow","destination":"localSettings"},{"type":"addDirectories","directories":["/tmp/out"],"destination":"localSettings"}]}}""");
 
@@ -205,7 +205,7 @@ public sealed class TranscriptTest
     [InlineData("[]", null)]
     public void DescribesEachKindOfSuggestion(string suggestions, string? remembers)
     {
-        var replies = new Transcript().Hear("""{"type":"control_request","request_id":"r-4","request":{"subtype":"can_use_tool","tool_name":"Bash","permission_suggestions":""" + suggestions + "}}");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"control_request","request_id":"r-4","request":{"subtype":"can_use_tool","tool_name":"Bash","permission_suggestions":""" + suggestions + "}}");
 
         Assert.Equal(remembers, Assert.IsType<NeedsApproval>(Assert.Single(replies)).Remembers);
     }
@@ -213,7 +213,7 @@ public sealed class TranscriptTest
     [Fact]
     public void HearsQuestionsForTheUser()
     {
-        var transcript = new Transcript();
+        var transcript = new ClaudeCodeTranscript();
 
         var replies = transcript.Hear("""{"type":"control_request","request_id":"r-5","request":{"subtype":"can_use_tool","tool_name":"AskUserQuestion","input":{"questions":[{"question":"Which database?","header":"Storage","multiSelect":false,"options":[{"label":"SQLite","description":"A file"},{"label":"Postgres","description":"A server"}]},{"question":"Which extras?","header":"Extras","multiSelect":true,"options":[{"label":"Cache"}]}]}}}""");
 
@@ -230,7 +230,7 @@ public sealed class TranscriptTest
     [Fact]
     public void AsksForApprovalWhenTheQuestionsMakeNoSense()
     {
-        var replies = new Transcript().Hear("""{"type":"control_request","request_id":"r-6","request":{"subtype":"can_use_tool","tool_name":"AskUserQuestion","input":{"questions":"?"}}}""");
+        var replies = new ClaudeCodeTranscript().Hear("""{"type":"control_request","request_id":"r-6","request":{"subtype":"can_use_tool","tool_name":"AskUserQuestion","input":{"questions":"?"}}}""");
 
         Assert.Equal("r-6", Assert.IsType<NeedsApproval>(Assert.Single(replies)).Id);
     }
@@ -240,9 +240,9 @@ public sealed class TranscriptTest
     {
         const string line = """{"type":"control_cancel_request","request_id":"r-1"}""";
 
-        Assert.Equal([new Withdrawn("r-1")], new Transcript().Hear(line));
-        Assert.Equal("r-1", Transcript.Withdraws(line));
-        Assert.Null(Transcript.Withdraws("""{"type":"control_request","request_id":"r-1"}"""));
-        Assert.Null(Transcript.Withdraws("control_cancel_request"));
+        Assert.Equal([new Withdrawn("r-1")], new ClaudeCodeTranscript().Hear(line));
+        Assert.Equal("r-1", ClaudeCodeTranscript.Withdraws(line));
+        Assert.Null(ClaudeCodeTranscript.Withdraws("""{"type":"control_request","request_id":"r-1"}"""));
+        Assert.Null(ClaudeCodeTranscript.Withdraws("control_cancel_request"));
     }
 }

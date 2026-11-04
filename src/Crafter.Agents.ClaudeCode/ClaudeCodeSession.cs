@@ -51,7 +51,7 @@ public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuratio
             var complaints = process.StandardError.ReadToEndAsync(CancellationToken.None);
             await Send(process, ClaudeCodeProtocol.Asking(prompt));
 
-            var transcript = new Transcript(workingDirectory);
+            var transcript = new ClaudeCodeTranscript(workingDirectory);
             var output = new Output(process, stop);
             var ended = false;
             var heardEverything = false;
@@ -147,7 +147,7 @@ public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuratio
         return decided.Task;
     }
 
-    private Task Respond(Process process, Transcript transcript, string request, Decision decision, bool asked)
+    private Task Respond(Process process, ClaudeCodeTranscript transcript, string request, Decision decision, bool asked)
     {
         var suggestions = transcript.SuggestionsOf(request);
         if (decision is AlwaysAllow)
@@ -219,7 +219,7 @@ public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuratio
 
         public async Task<(Decision? Decision, bool Withdrawn)> Await(Task<Decision> decided, string request)
         {
-            if (early.FirstOrDefault(line => Transcript.Withdraws(line) == request) is { } withdrawal)
+            if (early.FirstOrDefault(line => ClaudeCodeTranscript.Withdraws(line) == request) is { } withdrawal)
             {
                 Forget(withdrawal);
 
@@ -239,7 +239,7 @@ public sealed class ClaudeCodeSession(string workingDirectory, Func<Configuratio
                     return (null, false);
                 }
 
-                if (Transcript.Withdraws(line) == request)
+                if (ClaudeCodeTranscript.Withdraws(line) == request)
                 {
                     return (null, true);
                 }

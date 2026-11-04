@@ -2,7 +2,7 @@ using Crafter.Agents.ClaudeCode.Cli;
 
 namespace Crafter.Agents.ClaudeCode.Tests.Cli;
 
-public sealed class ModelNameTest
+public sealed class ClaudeCodeModelTest
 {
     [Theory]
     [InlineData("claude-opus-5-5", "Opus 5.5")]
@@ -11,6 +11,6 @@ public sealed class ModelNameTest
     [InlineData("claude-", "claude-")]
     public void ReadsTheModelId(string id, string name)
     {
-        Assert.Equal(name, ModelName.Of(id));
+        Assert.Equal(name, ClaudeCodeModel.NameOf(id));
     }
 }

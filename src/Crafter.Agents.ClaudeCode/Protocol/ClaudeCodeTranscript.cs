@@ -5,7 +5,7 @@ using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode.Protocol;
 
-public sealed class Transcript(string? folder = null)
+public sealed class ClaudeCodeTranscript(string? folder = null)
 {
     private const string AsksTheUser = "AskUserQuestion";
 
@@ -74,7 +74,7 @@ public sealed class Transcript(string? folder = null)
     }
 
     private static IReadOnlyList<Reply> Introduction(JsonElement root) =>
-        Text(root, "model") is { } model ? [new Began(ModelName.Of(model))] : [];
+        Text(root, "model") is { } model ? [new Began(ClaudeCodeModel.NameOf(model))] : [];
 
     private static IReadOnlyList<Reply> Fragment(JsonElement root)
     {
