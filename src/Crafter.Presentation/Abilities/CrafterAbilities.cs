@@ -24,8 +24,9 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
         ["axioms"] = new JsonArray([.. workbench.AxiomsOf(project).Select(axiom => (JsonNode)axiom)]),
     })]));
 
-    // Home names the project; a project's agent proposes for its own, and only for it.
-    public Told ProposeAxiom(string caller, string? folder, string? axiom)
+    // Home names the project; a project's agent proposes for its own, and only for it. The user
+    // approves every axiom, whatever the chat's mode: approve asks them in the chat that proposed it.
+    public async Task<Told> ProposeAxiom(string caller, string? folder, string? axiom, Func<Project, string, Task<bool>> approve)
     {
         var fromHome = caller == workbench.Home.Folder;
         var project = fromHome ? Find(folder) : workbench.Projects.FirstOrDefault(each => each.Folder == caller);
@@ -44,9 +45,20 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
             return Told.Failed("An axiom needs its text.");
         }
 
-        return workbench.Hold(project, axiom)
-            ? new Told($"{project.Name.Text} now holds the axiom \"{axiom.Trim()}\"; its chats follow it from their next session.")
-            : new Told($"{project.Name.Text} already holds that axiom.");
+        var text = axiom.Trim();
+        if (workbench.AxiomsOf(project).Contains(text))
+        {
+            return new Told($"{project.Name.Text} already holds that axiom.");
+        }
+
+        if (!await approve(project, text))
+        {
+            return new Told($"The user declined the axiom \"{text}\"; {project.Name.Text} does not hold it.");
+        }
+
+        workbench.Hold(project, text);
+
+        return new Told($"{project.Name.Text} now holds the axiom \"{text}\"; its chats follow it from their next session.");
     }
 
     public Told RemoveAxiom(string? folder, string? axiom)

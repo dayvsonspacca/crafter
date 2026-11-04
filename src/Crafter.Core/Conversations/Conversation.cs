@@ -39,6 +39,8 @@ public sealed class Conversation
 
     public string? SessionId => agent.SessionId;
 
+    public bool Runs(IAgentSession session) => ReferenceEquals(agent, session);
+
     public IReadOnlyList<Job> Jobs => agent is IWorksInBackground background ? background.Jobs : [];
 
     public void Decide(string request, Decision decision) => agent.Decide(request, decision);

@@ -89,9 +89,8 @@ public sealed class McpServer(
             }
 
             var authorization = request.Headers["Authorization"];
-            if (authorization is null
-                || !authorization.StartsWith("Bearer ", StringComparison.Ordinal)
-                || callerOf(authorization["Bearer ".Length..].Trim()) is not { } caller)
+            var token = authorization is not null && authorization.StartsWith("Bearer ", StringComparison.Ordinal) ? authorization["Bearer ".Length..].Trim() : null;
+            if (token is null || callerOf(token) is not { } caller)
             {
                 response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 return;
@@ -105,7 +104,7 @@ public sealed class McpServer(
             }
 
             using var reader = new StreamReader(request.InputStream, Encoding.UTF8);
-            var answer = await Answer(await reader.ReadToEndAsync(closing.Token), caller);
+            var answer = await Answer(await reader.ReadToEndAsync(closing.Token), caller, token);
             if (answer is null)
             {
                 response.StatusCode = (int)HttpStatusCode.Accepted;
@@ -133,7 +132,7 @@ public sealed class McpServer(
     }
 
     // A message, or a batch of them; notifications get no answer.
-    internal async Task<JsonNode?> Answer(string body, string caller)
+    internal async Task<JsonNode?> Answer(string body, string caller, string token = "")
     {
         JsonNode? message;
         try
@@ -150,7 +149,7 @@ public sealed class McpServer(
             var answers = new JsonArray();
             foreach (var each in batch)
             {
-                if (each is JsonObject single && await Reply(single, caller) is { } answer)
+                if (each is JsonObject single && await Reply(single, caller, token) is { } answer)
                 {
                     answers.Add(answer);
                 }
@@ -159,10 +158,10 @@ public sealed class McpServer(
             return answers.Count > 0 ? answers : null;
         }
 
-        return message is JsonObject one ? await Reply(one, caller) : Error(null, -32600, "Invalid Request");
+        return message is JsonObject one ? await Reply(one, caller, token) : Error(null, -32600, "Invalid Request");
     }
 
-    private async Task<JsonNode?> Reply(JsonObject message, string caller)
+    private async Task<JsonNode?> Reply(JsonObject message, string caller, string token)
     {
         var id = message["id"]?.DeepClone();
         var method = message["method"]?.GetValue<string>();
@@ -178,7 +177,7 @@ public sealed class McpServer(
             "initialize" => Result(id, Initialize(parameters, caller)),
             "ping" => Result(id, new JsonObject()),
             "tools/list" => Result(id, new JsonObject { ["tools"] = new JsonArray([.. tools.Where(tool => Reaches(caller, tool)).Select(Describe)]) }),
-            "tools/call" => Result(id, await Call(parameters, caller)),
+            "tools/call" => Result(id, await Call(parameters, caller, token)),
             _ => Error(id, -32601, $"Method not found: {method}"),
         };
     }
@@ -211,7 +210,7 @@ public sealed class McpServer(
         ["annotations"] = new JsonObject { ["readOnlyHint"] = tool.ReadOnly },
     };
 
-    private async Task<JsonObject> Call(JsonObject? parameters, string caller)
+    private async Task<JsonObject> Call(JsonObject? parameters, string caller, string token)
     {
         var wanted = parameters?["name"]?.GetValue<string>();
         McpResult result;
@@ -224,7 +223,7 @@ public sealed class McpServer(
         {
             try
             {
-                result = await tool.Run(new McpCall(parameters?["arguments"] as JsonObject ?? [], caller));
+                result = await tool.Run(new McpCall(parameters?["arguments"] as JsonObject ?? [], caller, token));
             }
             catch (Exception failure)
             {

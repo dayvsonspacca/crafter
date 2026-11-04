@@ -105,6 +105,18 @@ public sealed partial class CrafterMessageViewModel : MessageViewModel
         }
     }
 
+    // Shows the proposal among the steps of this answer and waits for the user.
+    public async Task<bool> Propose(string project, string axiom)
+    {
+        var proposal = new AxiomProposalItemViewModel(agent, project, axiom);
+        Items.Add(proposal);
+        IsWaiting = true;
+        var approved = await proposal.Decision;
+        IsWaiting = Items.OfType<IAwaitsDecision>().Any(each => each.IsOpen);
+
+        return approved;
+    }
+
     [RelayCommand]
     private Task Copy() => clipboard.Copy(Text);
 

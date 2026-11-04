@@ -38,6 +38,8 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
 
     public void Dismiss() => conversation.Dismiss();
 
+    public bool Runs(IAgentSession session) => conversation.Runs(session);
+
     public IAsyncEnumerable<Reply> Ask(Prompt prompt, Configuration preferred, CancellationToken stop = default)
     {
         if (conversation.Turns.Count == 0)

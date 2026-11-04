@@ -13,8 +13,9 @@ using Crafter.Presentation.Abilities;
 namespace Crafter.Desktop.Mcp;
 
 // Crafter as a tool server. Home's agent, the one place Crafter is managed from, gets every tool;
-// a project's agent gets its own token and only propose_axiom, for its own project. Tools run on the
-// UI thread, so the sidebar, the library and the axioms show what they did right away.
+// a project's agent gets only propose_axiom, for its own project. Each session gets a token of its
+// own, so a proposal is asked about in the chat it came from. Tools run on the UI thread, so the
+// sidebar, the library and the axioms show what they did right away.
 public sealed class CrafterMcp : IDisposable
 {
     public const string Name = "crafter";
@@ -33,15 +34,17 @@ public sealed class CrafterMcp : IDisposable
 
     private const string Proposing = "propose_axiom";
 
-    private static readonly string[] Free = ["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill"];
+    // Proposing an axiom is free on the agent's side because Crafter asks the user itself, whatever
+    // the chat's mode lets the agent do unasked.
+    private static readonly string[] Free = ["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill", Proposing];
+
+    private static readonly TimeSpan Patience = TimeSpan.FromMinutes(30);
 
     private readonly WorkbenchViewModel workbench;
 
     private readonly CrafterAbilities abilities;
 
-    private readonly byte[] token = Encoding.ASCII.GetBytes(Convert.ToHexString(RandomNumberGenerator.GetBytes(24)));
-
-    private readonly ConcurrentDictionary<string, string> projectTokens = new();
+    private readonly ConcurrentDictionary<string, Caller> callers = new();
 
     private readonly McpServer server;
 
@@ -54,8 +57,7 @@ public sealed class CrafterMcp : IDisposable
 
     public void Start() => server.Start();
 
-    // Nothing a project's agent can call runs unasked: proposing an axiom waits for the user.
-    public IReadOnlyList<ToolServer> ServersFor(Project project)
+    public IReadOnlyList<ToolServer> ServersFor(Project project, IAgentSession session)
     {
         if (server.Endpoint is not { } endpoint)
         {
@@ -64,40 +66,41 @@ public sealed class CrafterMcp : IDisposable
 
         if (project == workbench.Home)
         {
-            return [new ToolServer(Name, endpoint, Encoding.ASCII.GetString(token), Free)];
+            return [new ToolServer(Name, endpoint, TokenFor(project, session), Free, Patience)];
         }
 
-        return OnUi(() => Shelved(project.Folder)) ? [new ToolServer(Name, endpoint, TokenFor(project), [])] : [];
+        return OnUi(() => Shelved(project.Folder)) ? [new ToolServer(Name, endpoint, TokenFor(project, session), [Proposing], Patience)] : [];
     }
 
     public void Dispose() => server.Dispose();
 
-    private string TokenFor(Project project)
+    private string TokenFor(Project project, IAgentSession session)
     {
-        foreach (var (issued, folder) in projectTokens)
+        foreach (var (issued, caller) in callers)
         {
-            if (folder == project.Folder)
+            if (caller.Session.TryGetTarget(out var known) && known == session)
             {
                 return issued;
             }
         }
 
         var fresh = Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
-        projectTokens[fresh] = project.Folder;
+        callers[fresh] = new Caller(project.Folder, new WeakReference<IAgentSession>(session));
 
         return fresh;
     }
 
     // A project's token stops working once the project leaves the sidebar.
-    private string? CallerOf(string offered)
-    {
-        if (CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(offered), token))
-        {
-            return workbench.Home.Folder;
-        }
+    private string? CallerOf(string offered) =>
+        callers.TryGetValue(offered, out var caller) && (caller.Folder == workbench.Home.Folder || OnUi(() => Shelved(caller.Folder)))
+            ? caller.Folder
+            : null;
 
-        return projectTokens.TryGetValue(offered, out var folder) && OnUi(() => Shelved(folder)) ? folder : null;
-    }
+    // Asks in the chat whose session carries the token; a chat closed since cannot answer.
+    private Func<Project, string, Task<bool>> AskingIn(string token) => (project, axiom) =>
+        callers.TryGetValue(token, out var caller) && caller.Session.TryGetTarget(out var session) && workbench.ChatRunning(session) is { } chat
+            ? chat.ProposeAxiom(project.Name.Text, axiom)
+            : Task.FromResult(false);
 
     private bool Shelved(string folder) => workbench.Projects.Any(project => project.Folder == folder);
 
@@ -165,7 +168,7 @@ public sealed class CrafterMcp : IDisposable
                 ("axiom", "The rule, in one sentence.", true),
                 ("folder", "Home only: the project's folder, as list_projects gives it. A project's agent leaves it out and proposes for its own project.", false)),
             ReadOnly: false,
-            call => Run(() => abilities.ProposeAxiom(call.Caller, call.Text("folder"), call.Text("axiom")))),
+            call => Run(() => abilities.ProposeAxiom(call.Caller, call.Text("folder"), call.Text("axiom"), AskingIn(call.Token)))),
         new(
             "remove_axiom",
             "Removes an axiom from a project; its chats stop following it from their next session.",
@@ -216,6 +219,8 @@ public sealed class CrafterMcp : IDisposable
                 call.Text("whenToUse"),
                 call.Text("instructions") ?? string.Empty)))),
     ];
+
+    private sealed record Caller(string Folder, WeakReference<IAgentSession> Session);
 
     private static T OnUi<T>(Func<T> read) => Dispatcher.UIThread.CheckAccess() ? read() : Dispatcher.UIThread.Invoke(read);
 

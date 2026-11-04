@@ -2,10 +2,12 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Crafter.Core.Agents;
 using Crafter.Core.Library;
 using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
 using Crafter.Presentation.Agents;
+using Crafter.Presentation.Conversations;
 using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
 using Crafter.Presentation.Keyboard;
@@ -298,6 +300,10 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     }
 
     public int OpenChats(Project project) => desks.GetValueOrDefault(project)?.Count ?? 0;
+
+    // The open chat an agent session runs, to ask the user there.
+    public ConversationViewModel? ChatRunning(IAgentSession session) =>
+        desks.Values.SelectMany(desk => desk.Chats).FirstOrDefault(chat => chat.Runs(session));
 
     private Project Apply(Project project, ProjectName name, IconChange icon)
     {

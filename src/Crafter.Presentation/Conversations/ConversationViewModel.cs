@@ -164,6 +164,15 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     public ChatRecord Record() => chat.Record();
 
+    public bool Runs(IAgentSession session) => chat.Runs(session);
+
+    // An axiom the agent proposes mid-answer shows in that answer; with no answer under way there is
+    // no one to ask, so it is declined.
+    public Task<bool> ProposeAxiom(string project, string axiom) =>
+        Messages.OfType<CrafterMessageViewModel>().LastOrDefault(answer => answer.IsCrafting) is { } answering
+            ? answering.Propose(project, axiom)
+            : Task.FromResult(false);
+
     public void Leave()
     {
         if (CraftCommand.IsRunning)

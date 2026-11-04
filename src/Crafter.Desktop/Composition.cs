@@ -39,7 +39,7 @@ public static class Composition
         CrafterMcp? mcp = null;
         WorkbenchViewModel? workbench = null;
         var crew = new Crew([new ClaudeCode(
-            servers: project => mcp?.ServersFor(project) ?? [],
+            servers: (project, session) => mcp?.ServersFor(project, session) ?? [],
             skills: project => workbench is { } shown ? OnUi(() => shown.SkillsFor(project)) : [],
             shelves: Path.Combine(Data, "claude-code", "skills"),
             axioms: project => workbench is { } shown ? OnUi(() => shown.AxiomsOf(project)) : [])]);

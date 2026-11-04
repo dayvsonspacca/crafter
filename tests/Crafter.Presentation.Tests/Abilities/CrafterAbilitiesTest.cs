@@ -159,32 +159,61 @@ public sealed class CrafterAbilitiesTest : IDisposable
     }
 
     [Fact]
-    public void HomeProposesAndRemovesAxiomsForAnyProject()
+    public async Task KeepsAnAxiomOnlyOnceTheUserApprovesIt()
     {
-        var told = abilities.ProposeAxiom(workbench.Home.Folder, lorekeeper.Folder, " Always write tests ");
+        List<string> asked = [];
+        Task<bool> Approve(Project project, string axiom)
+        {
+            asked.Add($"{project.Name.Text}: {axiom}");
+
+            return Task.FromResult(true);
+        }
+
+        var told = await abilities.ProposeAxiom(workbench.Home.Folder, lorekeeper.Folder, " Always write tests ", Approve);
 
         Assert.Equal("Lorekeeper now holds the axiom \"Always write tests\"; its chats follow it from their next session.", told.Text);
+        Assert.Equal(["Lorekeeper: Always write tests"], asked);
         Assert.Equal(["Always write tests"], workbench.AxiomsOf(lorekeeper));
-        Assert.Equal("Lorekeeper already holds that axiom.", abilities.ProposeAxiom(workbench.Home.Folder, lorekeeper.Folder, "Always write tests").Text);
+
+        Assert.Equal("Lorekeeper already holds that axiom.", (await abilities.ProposeAxiom(workbench.Home.Folder, lorekeeper.Folder, "Always write tests", Approve)).Text);
+        Assert.Single(asked);
         var listed = JsonNode.Parse(abilities.ListProjects().Text)!.AsArray();
         Assert.Equal(["Always write tests"], listed[1]!["axioms"]!.AsArray().Select(axiom => axiom!.GetValue<string>()));
+    }
+
+    [Fact]
+    public async Task KeepsNothingTheUserDeclines()
+    {
+        var told = await abilities.ProposeAxiom(crafter.Folder, null, "Never add comments", (_, _) => Task.FromResult(false));
+
+        Assert.False(told.IsError);
+        Assert.Equal("The user declined the axiom \"Never add comments\"; Crafter does not hold it.", told.Text);
+        Assert.Empty(workbench.AxiomsOf(crafter));
+    }
+
+    [Fact]
+    public async Task AProjectsAgentProposesAxiomsForItsOwnProjectOnly()
+    {
+        static Task<bool> Yes(Project project, string axiom) => Task.FromResult(true);
+
+        Assert.False((await abilities.ProposeAxiom(crafter.Folder, null, "Never add comments", Yes)).IsError);
+        Assert.False((await abilities.ProposeAxiom(crafter.Folder, crafter.Folder, "Always write tests", Yes)).IsError);
+        Assert.Equal(["Never add comments", "Always write tests"], workbench.AxiomsOf(crafter));
+
+        Assert.True((await abilities.ProposeAxiom(crafter.Folder, lorekeeper.Folder, "Never add comments", Yes)).IsError);
+        Assert.True((await abilities.ProposeAxiom(crafter.Folder, null, " ", Yes)).IsError);
+        Assert.True((await abilities.ProposeAxiom(workbench.Home.Folder, "/nowhere", "Never add comments", Yes)).IsError);
+        Assert.Empty(workbench.AxiomsOf(lorekeeper));
+    }
+
+    [Fact]
+    public void RemovesAnAxiom()
+    {
+        workbench.Hold(lorekeeper, "Always write tests");
 
         Assert.False(abilities.RemoveAxiom(lorekeeper.Folder, "Always write tests").IsError);
         Assert.Empty(workbench.AxiomsOf(lorekeeper));
         Assert.True(abilities.RemoveAxiom(lorekeeper.Folder, "Always write tests").IsError);
-    }
-
-    [Fact]
-    public void AProjectsAgentProposesAxiomsForItsOwnProjectOnly()
-    {
-        Assert.False(abilities.ProposeAxiom(crafter.Folder, null, "Never add comments").IsError);
-        Assert.False(abilities.ProposeAxiom(crafter.Folder, crafter.Folder, "Always write tests").IsError);
-        Assert.Equal(["Never add comments", "Always write tests"], workbench.AxiomsOf(crafter));
-
-        Assert.True(abilities.ProposeAxiom(crafter.Folder, lorekeeper.Folder, "Never add comments").IsError);
-        Assert.True(abilities.ProposeAxiom(crafter.Folder, null, " ").IsError);
-        Assert.True(abilities.ProposeAxiom(workbench.Home.Folder, "/nowhere", "Never add comments").IsError);
-        Assert.Empty(workbench.AxiomsOf(lorekeeper));
     }
 
     [Fact]

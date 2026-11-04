@@ -10,6 +10,8 @@ using Crafter.Desktop.Mcp;
 using Crafter.Presentation;
 using Crafter.Presentation.Abilities;
 using Crafter.Presentation.Agents;
+using Crafter.Presentation.Conversations;
+using Crafter.Presentation.Conversations.Messages;
 using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
 using Crafter.Presentation.Library;
@@ -26,6 +28,12 @@ public sealed class CrafterMcpTest : IDisposable
 {
     private readonly string home = Directory.CreateTempSubdirectory("crafter-mcp-").FullName;
 
+    // Every session the stand-in agent began, in order; each works until stopped.
+    private readonly List<ScriptedSession> begun = [];
+
+    // A session with no chat behind it, for calls that ask nobody.
+    private readonly ScriptedSession elsewhere = new();
+
     [Fact]
     public async Task ServesHomeAndNoProject()
     {
@@ -36,8 +44,8 @@ public sealed class CrafterMcpTest : IDisposable
             mcp.Start();
             using var http = new HttpClient();
 
-            var server = Assert.Single(mcp.ServersFor(workbench.Home));
-            Assert.Equal(["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill"], server.FreeTools);
+            var server = Assert.Single(mcp.ServersFor(workbench.Home, elsewhere));
+            Assert.Equal(["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill", "propose_axiom"], server.FreeTools);
 
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
             Assert.Equal(
@@ -53,35 +61,65 @@ public sealed class CrafterMcpTest : IDisposable
     }
 
     [Fact]
-    public async Task AProjectsAgentOnlyProposesAxiomsForItsOwnProject()
+    public async Task AProjectsAgentProposesAxiomsTheUserApprovesInItsChat()
     {
         await TestApp.RunAsync(async () =>
         {
-            var (workbench, crafter, lorekeeper) = Workbench();
+            var (workbench, crafter, _) = Workbench();
             using var mcp = new CrafterMcp(workbench, new CrafterAbilities(workbench, Library(), new NoBranches()));
             mcp.Start();
             using var http = new HttpClient();
+            workbench.NewChatCommand.Execute(null);
+            var chat = workbench.Desk!.Selected!;
+            chat.Draft = "Tidy the code";
+            _ = chat.CraftCommand.ExecuteAsync(null);
 
-            var server = Assert.Single(mcp.ServersFor(crafter));
-            Assert.Empty(server.FreeTools);
-            Assert.NotEqual(mcp.ServersFor(workbench.Home)[0].Token, server.Token);
-            Assert.NotEqual(mcp.ServersFor(lorekeeper)[0].Token, server.Token);
-
+            var server = Assert.Single(mcp.ServersFor(crafter, begun[^1]));
+            Assert.Equal(["propose_axiom"], server.FreeTools);
+            Assert.Equal(TimeSpan.FromMinutes(30), server.Patience);
+            Assert.NotEqual(mcp.ServersFor(crafter, elsewhere)[0].Token, server.Token);
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
             Assert.Equal(["propose_axiom"], tools.Select(tool => tool!["name"]!.GetValue<string>()));
             var initialized = await Ask(http, server, "initialize", new JsonObject { ["protocolVersion"] = "2025-06-18" });
             Assert.Equal(CrafterMcp.ProjectInstructions, initialized["result"]!["instructions"]!.GetValue<string>());
 
-            var proposed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "propose_axiom", ["arguments"] = new JsonObject { ["axiom"] = "Never add comments" } });
-            Assert.False(proposed["result"]!["isError"]!.GetValue<bool>());
+            var approving = Ask(http, server, "tools/call", Proposal("Never add comments"));
+            var first = await Card(chat, 1);
+            Assert.Empty(workbench.AxiomsOf(crafter));
+            Assert.True(chat.IsWaiting);
+            first.ApproveCommand.Execute(null);
+            Assert.False((await approving)["result"]!["isError"]!.GetValue<bool>());
+            Assert.Equal(["Never add comments"], workbench.AxiomsOf(crafter));
+
+            var declining = Ask(http, server, "tools/call", Proposal("Always write tests"));
+            (await Card(chat, 2)).DeclineCommand.Execute(null);
+            Assert.Contains("declined", (await declining)["result"]!["content"]![0]!["text"]!.GetValue<string>());
             Assert.Equal(["Never add comments"], workbench.AxiomsOf(crafter));
 
             var renamed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "rename_project", ["arguments"] = new JsonObject { ["folder"] = crafter.Folder, ["name"] = "Mine" } });
             Assert.True(renamed["result"]!["isError"]!.GetValue<bool>());
 
+            chat.CraftCancelCommand.Execute(null);
             workbench.Remove(crafter);
             Assert.Equal(HttpStatusCode.Unauthorized, (await Post(http, server, "tools/list")).StatusCode);
-            Assert.Empty(mcp.ServersFor(crafter));
+            Assert.Empty(mcp.ServersFor(crafter, begun[^1]));
+        });
+    }
+
+    [Fact]
+    public async Task DeclinesAProposalNoChatCanAnswer()
+    {
+        await TestApp.RunAsync(async () =>
+        {
+            var (workbench, crafter, _) = Workbench();
+            using var mcp = new CrafterMcp(workbench, new CrafterAbilities(workbench, Library(), new NoBranches()));
+            mcp.Start();
+            using var http = new HttpClient();
+
+            var proposed = await Ask(http, mcp.ServersFor(crafter, elsewhere)[0], "tools/call", Proposal("Never add comments"));
+
+            Assert.Contains("declined", proposed["result"]!["content"]![0]!["text"]!.GetValue<string>());
+            Assert.Empty(workbench.AxiomsOf(crafter));
         });
     }
 
@@ -95,7 +133,7 @@ public sealed class CrafterMcpTest : IDisposable
             mcp.Start();
             using var http = new HttpClient();
 
-            var initialized = await Ask(http, mcp.ServersFor(workbench.Home)[0], "initialize", new JsonObject { ["protocolVersion"] = "2025-06-18" });
+            var initialized = await Ask(http, mcp.ServersFor(workbench.Home, elsewhere)[0], "initialize", new JsonObject { ["protocolVersion"] = "2025-06-18" });
 
             Assert.Equal(CrafterMcp.Instructions, initialized["result"]!["instructions"]!.GetValue<string>());
         });
@@ -111,7 +149,7 @@ public sealed class CrafterMcpTest : IDisposable
             mcp.Start();
             using var http = new HttpClient();
 
-            var renamed = await Ask(http, mcp.ServersFor(workbench.Home)[0], "tools/call", new JsonObject
+            var renamed = await Ask(http, mcp.ServersFor(workbench.Home, elsewhere)[0], "tools/call", new JsonObject
             {
                 ["name"] = "rename_project",
                 ["arguments"] = new JsonObject { ["folder"] = lorekeeper.Folder, ["name"] = "Lorekeeper · desktop" },
@@ -123,6 +161,26 @@ public sealed class CrafterMcpTest : IDisposable
     }
 
     public void Dispose() => Directory.Delete(home, recursive: true);
+
+    private static JsonObject Proposal(string axiom) =>
+        new() { ["name"] = "propose_axiom", ["arguments"] = new JsonObject { ["axiom"] = axiom } };
+
+    // The card shows on the UI thread while the call waits, so this looks again between turns of it.
+    private static async Task<AxiomProposalItemViewModel> Card(ConversationViewModel chat, int count)
+    {
+        for (var look = 0; look < 500; look++)
+        {
+            var cards = chat.Messages.OfType<CrafterMessageViewModel>().SelectMany(answer => answer.Items.OfType<AxiomProposalItemViewModel>()).ToList();
+            if (cards.Count >= count)
+            {
+                return cards[count - 1];
+            }
+
+            await Task.Delay(10);
+        }
+
+        throw new TimeoutException("No axiom card showed in the chat.");
+    }
 
     private static async Task<JsonNode> Ask(HttpClient http, ToolServer server, string method, JsonObject? parameters = null)
     {
@@ -149,7 +207,16 @@ public sealed class CrafterMcpTest : IDisposable
 
     private (WorkbenchViewModel Workbench, Project Crafter, Project Lorekeeper) Workbench()
     {
-        var agent = new ScriptedAgent();
+        var agent = new ScriptedAgent
+        {
+            Sessions = () =>
+            {
+                var session = new ScriptedSession { Hangs = true };
+                begun.Add(session);
+
+                return session;
+            },
+        };
         var crew = new Crew([agent]);
         crew.Hire([agent.Id]);
         var clipboard = new Clipboard();

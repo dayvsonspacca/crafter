@@ -17,7 +17,7 @@ namespace Crafter.Agents.ClaudeCode;
 public sealed class ClaudeCode(
     string executable = "claude",
     string? home = null,
-    Func<Project, IReadOnlyList<ToolServer>>? servers = null,
+    Func<Project, IAgentSession, IReadOnlyList<ToolServer>>? servers = null,
     Func<Project, IReadOnlyList<Skill>>? skills = null,
     string? shelves = null,
     Func<Project, IReadOnlyList<string>>? axioms = null) : IAgent, IKeepsHistory
@@ -66,8 +66,14 @@ public sealed class ClaudeCode(
         command,
     ];
 
-    public IAgentSession Begin(Project project, string? resumeFrom = null) =>
-        new ClaudeCodeSession(project.Folder, Options, resumeFrom, () => servers?.Invoke(project) ?? [], () => Skills(project), () => axioms?.Invoke(project) ?? []);
+    // The servers are asked for by session, so a tool that waits on the user can reach the chat it came from.
+    public IAgentSession Begin(Project project, string? resumeFrom = null)
+    {
+        ClaudeCodeSession? session = null;
+        session = new ClaudeCodeSession(project.Folder, Options, resumeFrom, () => servers?.Invoke(project, session!) ?? [], () => Skills(project), () => axioms?.Invoke(project) ?? []);
+
+        return session;
+    }
 
     public Task<Recollection> History(Project project, int latest, CancellationToken stop = default) => history.List(project, latest, stop);
 

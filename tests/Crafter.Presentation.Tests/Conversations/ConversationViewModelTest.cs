@@ -477,6 +477,28 @@ public sealed class ConversationViewModelTest
         Assert.False(viewModel.HasEarlier);
     }
 
+    [Fact]
+    public async Task AsksAboutAnAxiomInTheAnswerUnderWayAndDeclinesWithoutOne()
+    {
+        var idle = ViewModel(new ScriptedSession(new Finished()));
+        Assert.False(await idle.ProposeAxiom("crafter", "Never add comments"));
+
+        var viewModel = ViewModel(new ScriptedSession { Hangs = true });
+        viewModel.Draft = "Tidy the code";
+        _ = viewModel.CraftCommand.ExecuteAsync(null);
+        var asking = viewModel.ProposeAxiom("crafter", "Never add comments");
+
+        var card = Assert.Single(viewModel.Messages.OfType<CrafterMessageViewModel>().Last().Items.OfType<AxiomProposalItemViewModel>());
+        Assert.Equal("stand-in proposes an axiom for crafter", card.Asking);
+        Assert.True(viewModel.IsWaiting);
+
+        card.ApproveCommand.Execute(null);
+
+        Assert.True(await asking);
+        Assert.False(viewModel.IsWaiting);
+        viewModel.CraftCancelCommand.Execute(null);
+    }
+
     private static Task Ask(ConversationViewModel viewModel, string prompt)
     {
         viewModel.Draft = prompt;
