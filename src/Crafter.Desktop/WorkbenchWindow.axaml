@@ -22,9 +22,6 @@
     <controls:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
     <Panel>
       <DockPanel IsVisible="{Binding !ShowsSetup}">
-        <Panel DockPanel.Dock="Bottom" IsVisible="{Binding ShowsConversation}">
-          <status:StatusBarView DataContext="{Binding Status}" />
-        </Panel>
         <Panel DockPanel.Dock="Left" IsVisible="{Binding ShowsSidebar}">
           <projects:ProjectsSidebarView x:Name="Sidebar" Width="240" />
           <Thumb Width="4"
@@ -42,6 +39,7 @@
         <Panel>
           <DockPanel IsVisible="{Binding ShowsConversation}">
             <desks:ProjectDeskView DockPanel.Dock="Top" DataContext="{Binding Desk}" />
+            <status:StatusBarView DockPanel.Dock="Bottom" DataContext="{Binding Status}" />
             <Panel>
               <Panel IsVisible="{Binding !Desk.ShowsOverview}">
                 <conversations:ConversationView DataContext="{Binding Desk.Selected}" />
