@@ -1,0 +1,8 @@
+{
+  "name": "Crafter",
+  "icon": ".crafter/icon.png",
+  "axioms": [
+    "Never name a specific agent like Claude Code in Crafter's interface text; Crafter speaks of agents in general.",
+    "Commit straight on main; never open a feature branch."
+  ]
+}
