@@ -8,22 +8,16 @@ using Crafter.Presentation.Library;
 namespace Crafter.Presentation.Projects;
 
 // What the project in front hands its agent, opened from the status bar: the library skills it gets,
-// the defaults among them already ticked, the summary that tells it what the project is, and the
-// axioms it follows in every chat.
+// the defaults among them already ticked, and the axioms it follows in every chat.
 public sealed partial class ProjectBriefViewModel(
     LibraryViewModel library,
     Func<Project, Skill, bool> has,
     Action<Project, Skill, bool> give,
     Func<Project, IReadOnlyList<string>> axiomsOf,
     Func<Project, string, bool> hold,
-    Func<Project, string, bool> drop,
-    Func<Project, string?> summaryOf,
-    Func<Project, string, bool> summarize,
-    Func<Project, AgentInstructions?> instructionsIn) : ObservableObject
+    Func<Project, string, bool> drop) : ObservableObject
 {
     private Project? project;
-
-    private AgentInstructions? instructions;
 
     [ObservableProperty]
     public partial bool IsOpen { get; set; }
@@ -39,29 +33,10 @@ public sealed partial class ProjectBriefViewModel(
 
     // The window shows one tab at a time; it opens on the skills.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsSkills), nameof(ShowsSummary), nameof(ShowsAxioms))]
-    public partial BriefTab Tab { get; private set; }
+    [NotifyPropertyChangedFor(nameof(ShowsSkills))]
+    public partial bool ShowsAxioms { get; private set; }
 
-    public bool ShowsSkills => Tab == BriefTab.Skills;
-
-    public bool ShowsSummary => Tab == BriefTab.Summary;
-
-    public bool ShowsAxioms => Tab == BriefTab.Axioms;
-
-    // The summary as the window edits it; it is kept only once saved.
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanInherit), nameof(InheritLabel))]
-    [NotifyCanExecuteChangedFor(nameof(SaveSummaryCommand), nameof(InheritCommand))]
-    public partial string Summary { get; set; } = string.Empty;
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveSummaryCommand))]
-    public partial string SavedSummary { get; private set; } = string.Empty;
-
-    // A project that brings its own CLAUDE.md or AGENTS.md can start its summary from it.
-    public bool CanInherit => instructions is not null && Summary.Trim().Length == 0;
-
-    public string InheritLabel => instructions is { } found ? $"Start from {found.File}" : string.Empty;
+    public bool ShowsSkills => !ShowsAxioms;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddAxiomCommand))]
@@ -85,13 +60,8 @@ public sealed partial class ProjectBriefViewModel(
 
         HasSkills = Skills.Count > 0;
         NewAxiom = string.Empty;
-        instructions = instructionsIn(shown);
-        SavedSummary = summaryOf(shown) ?? string.Empty;
-        Summary = SavedSummary;
-        OnPropertyChanged(nameof(CanInherit));
-        OnPropertyChanged(nameof(InheritLabel));
         Recall();
-        Tab = BriefTab.Skills;
+        ShowsAxioms = false;
         IsOpen = true;
     }
 
@@ -110,57 +80,14 @@ public sealed partial class ProjectBriefViewModel(
         HasAxioms = Axioms.Count > 0;
     }
 
-    // Shows the summary again after it changed from elsewhere, like an agent's proposal, unless the
-    // window holds an edit of its own the user has not saved.
-    public void RecallSummary()
-    {
-        if (project is not { } shown)
-        {
-            return;
-        }
-
-        var unsaved = Summary.Trim() != SavedSummary;
-        SavedSummary = summaryOf(shown) ?? string.Empty;
-        if (!unsaved)
-        {
-            Summary = SavedSummary;
-        }
-    }
-
     [RelayCommand]
     public void Close() => IsOpen = false;
 
     [RelayCommand]
-    private void ShowSkillsTab() => Tab = BriefTab.Skills;
+    private void ShowSkillsTab() => ShowsAxioms = false;
 
     [RelayCommand]
-    private void ShowSummaryTab() => Tab = BriefTab.Summary;
-
-    [RelayCommand]
-    private void ShowAxiomsTab() => Tab = BriefTab.Axioms;
-
-    [RelayCommand(CanExecute = nameof(CanSave))]
-    private void SaveSummary()
-    {
-        if (project is { } shown)
-        {
-            Summary = Summary.Trim();
-            summarize(shown, Summary);
-            SavedSummary = summaryOf(shown) ?? string.Empty;
-        }
-    }
-
-    private bool CanSave() => Summary.Trim() != SavedSummary;
-
-    // Fills the editor with the file's text; it is kept once saved, like any other edit.
-    [RelayCommand(CanExecute = nameof(CanInherit))]
-    private void Inherit()
-    {
-        if (instructions is { } found)
-        {
-            Summary = found.Text;
-        }
-    }
+    private void ShowAxiomsTab() => ShowsAxioms = true;
 
     [RelayCommand(CanExecute = nameof(CanAdd))]
     private void AddAxiom()
@@ -181,13 +108,6 @@ public sealed partial class ProjectBriefViewModel(
             Recall();
         }
     }
-}
-
-public enum BriefTab
-{
-    Skills,
-    Summary,
-    Axioms,
 }
 
 public sealed partial class AxiomViewModel(string text, Action<AxiomViewModel> drop)

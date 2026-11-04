@@ -60,5 +60,34 @@ public sealed class ProjectNamerViewModelTest : IDisposable
         Assert.Equal(new Named(new ProjectName("crafter"), new NoIcon()), await naming);
     }
 
+    [Fact]
+    public async Task GivesTheSummaryOnlyWhenItChanged()
+    {
+        var namer = new ProjectNamerViewModel(new ScriptedPicker(null));
+
+        var unchanged = namer.Edit(new Project(folder, new ProjectName("crafter")), "Crafter is my IDE.");
+        namer.Summary = "Crafter is my IDE.  ";
+        namer.Finish();
+        Assert.Null(((Named)await unchanged).Summary);
+
+        var changed = namer.Edit(new Project(folder, new ProjectName("crafter")), "Crafter is my IDE.");
+        namer.Summary = "Crafter is my IDE, in C#.";
+        namer.Finish();
+        Assert.Equal("Crafter is my IDE, in C#.", ((Named)await changed).Summary);
+    }
+
+    [Fact]
+    public async Task AddingAProjectAsksForNoSummary()
+    {
+        var namer = new ProjectNamerViewModel(new ScriptedPicker(null));
+
+        var naming = namer.Add(folder, new ProjectName("crafter"));
+        namer.Summary = "Crafter is my IDE.";
+        namer.Finish();
+
+        Assert.Null(((Named)await naming).Summary);
+        Assert.False(namer.CanInherit);
+    }
+
     public void Dispose() => Directory.Delete(folder, recursive: true);
 }

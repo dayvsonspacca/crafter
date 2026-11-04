@@ -16,6 +16,10 @@ public sealed partial class ProjectNamerViewModel : ObservableObject
 
     private IconChange icon = new SameIcon();
 
+    private string summarized = string.Empty;
+
+    private AgentInstructions? instructions;
+
     public ProjectNamerViewModel(IFolderPicker images)
     {
         this.images = images;
@@ -24,6 +28,7 @@ public sealed partial class ProjectNamerViewModel : ObservableObject
         Name = string.Empty;
         Confirm = string.Empty;
         Retreat = string.Empty;
+        Summary = string.Empty;
     }
 
     [ObservableProperty]
@@ -57,6 +62,17 @@ public sealed partial class ProjectNamerViewModel : ObservableObject
 
     public bool HasPreview => PreviewFile is not null;
 
+    // What the project is, read by its agent before every chat.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanInherit))]
+    [NotifyCanExecuteChangedFor(nameof(InheritCommand))]
+    public partial string Summary { get; set; }
+
+    // A project that brings its own CLAUDE.md or AGENTS.md can start its summary from it.
+    public bool CanInherit => !IsAdding && instructions is not null && Summary.Trim().Length == 0;
+
+    public string InheritLabel => instructions is { } found ? $"Start from {found.File}" : string.Empty;
+
     public string Letter => Name.Trim() is { Length: > 0 } name ? name[..1].ToUpperInvariant() : string.Empty;
 
     public Task<Naming> Add(string folder, ProjectName suggested)
@@ -65,20 +81,22 @@ public sealed partial class ProjectNamerViewModel : ObservableObject
         IsRepository = FolderListing.IsRepository(folder);
         home = folder;
         Show(new SameIcon(), null);
+        Summarize(null, null);
 
         return Ask("Add Project", adding: true, suggested, "Add", "Back");
     }
 
-    public Task<Naming> Edit(Project project)
+    public Task<Naming> Edit(Project project, string? summary = null, AgentInstructions? found = null)
     {
         home = project.Folder;
         Show(new SameIcon(), ProjectIcon.FileOf(project));
+        Summarize(summary, found);
 
         return Ask("Edit Project", adding: false, project.Name, "Save", "Cancel");
     }
 
     [RelayCommand(CanExecute = nameof(CanFinish))]
-    public void Finish() => End(new Named(new ProjectName(Name), icon));
+    public void Finish() => End(new Named(new ProjectName(Name), icon) { Summary = IsAdding || Summary.Trim() == summarized ? null : Summary.Trim() });
 
     [RelayCommand]
     public void Back() => End(IsAdding ? new WentBack() : new Dismissed());
@@ -101,6 +119,24 @@ public sealed partial class ProjectNamerViewModel : ObservableObject
     [RelayCommand]
     private void RemoveIcon() => Show(new NoIcon(), null);
 
+    // Fills the summary with the file's text; it is kept once the project is saved.
+    [RelayCommand(CanExecute = nameof(CanInherit))]
+    private void Inherit()
+    {
+        if (instructions is { } file)
+        {
+            Summary = file.Text;
+        }
+    }
+
+    private void Summarize(string? summary, AgentInstructions? found)
+    {
+        summarized = summary?.Trim() ?? string.Empty;
+        instructions = found;
+        Summary = summarized;
+        OnPropertyChanged(nameof(InheritLabel));
+    }
+
     private void Show(IconChange change, string? preview)
     {
         icon = change;
@@ -114,6 +150,8 @@ public sealed partial class ProjectNamerViewModel : ObservableObject
 
         Title = title;
         IsAdding = adding;
+        OnPropertyChanged(nameof(CanInherit));
+        InheritCommand.NotifyCanExecuteChanged();
         Name = suggested.Text;
         Confirm = confirm;
         Retreat = retreat;

@@ -186,55 +186,69 @@ public sealed class ProjectBriefTest : IDisposable
     }
 
     [Fact]
-    public void WritesTheSummaryAndKeepsItOnlyOnceSaved()
+    public async Task EditingAProjectWritesItsSummary()
     {
-        workbench.Status.ShowBriefCommand.Execute(null);
-        workbench.Brief.ShowSummaryTabCommand.Execute(null);
-        Assert.True(workbench.Brief.ShowsSummary);
-        Assert.False(workbench.Brief.ShowsSkills);
-        Assert.False(workbench.Brief.SaveSummaryCommand.CanExecute(null));
+        var editing = workbench.Edit(crafter);
+        Assert.True(workbench.Namer.IsOpen);
+        Assert.Equal(string.Empty, workbench.Namer.Summary);
 
-        workbench.Brief.Summary = "Crafter is my IDE for coding with AI agents.";
-        Assert.Null(workbench.SummaryOf(crafter));
-
-        workbench.Brief.SaveSummaryCommand.Execute(null);
+        workbench.Namer.Summary = " Crafter is my IDE for coding with AI agents. ";
+        workbench.Namer.Finish();
+        await editing;
 
         Assert.Equal("Crafter is my IDE for coding with AI agents.", workbench.SummaryOf(crafter));
         Assert.Null(workbench.SummaryOf(lorekeeper));
-        Assert.False(workbench.Brief.SaveSummaryCommand.CanExecute(null));
 
-        workbench.Brief.Close();
-        workbench.Brief.Open(crafter);
-        Assert.Equal("Crafter is my IDE for coding with AI agents.", workbench.Brief.Summary);
+        editing = workbench.Edit(crafter);
+        Assert.Equal("Crafter is my IDE for coding with AI agents.", workbench.Namer.Summary);
+        workbench.Namer.Summary = string.Empty;
+        workbench.Namer.Finish();
+        await editing;
+
+        Assert.Null(workbench.SummaryOf(crafter));
     }
 
     [Fact]
-    public void StartsTheSummaryFromTheInstructionsFileTheProjectBrings()
+    public async Task CancellingTheEditKeepsTheSummary()
+    {
+        workbench.Summarize(crafter, "Crafter is my IDE.");
+
+        var editing = workbench.Edit(crafter);
+        workbench.Namer.Summary = "Something else";
+        workbench.Namer.Back();
+        await editing;
+
+        Assert.Equal("Crafter is my IDE.", workbench.SummaryOf(crafter));
+    }
+
+    [Fact]
+    public async Task StartsTheSummaryFromTheInstructionsFileTheProjectBrings()
     {
         settings.Instructions[crafter.Folder] = new AgentInstructions("CLAUDE.md", "Crafter is my IDE.");
 
-        workbench.Status.ShowBriefCommand.Execute(null);
+        var editing = workbench.Edit(crafter);
 
-        Assert.True(workbench.Brief.CanInherit);
-        Assert.Equal("Start from CLAUDE.md", workbench.Brief.InheritLabel);
+        Assert.True(workbench.Namer.CanInherit);
+        Assert.Equal("Start from CLAUDE.md", workbench.Namer.InheritLabel);
 
-        workbench.Brief.InheritCommand.Execute(null);
+        workbench.Namer.InheritCommand.Execute(null);
 
-        Assert.Equal("Crafter is my IDE.", workbench.Brief.Summary);
-        Assert.False(workbench.Brief.CanInherit);
+        Assert.Equal("Crafter is my IDE.", workbench.Namer.Summary);
+        Assert.False(workbench.Namer.CanInherit);
         Assert.Null(workbench.SummaryOf(crafter));
 
-        workbench.Brief.SaveSummaryCommand.Execute(null);
+        workbench.Namer.Finish();
+        await editing;
         Assert.Equal("Crafter is my IDE.", workbench.SummaryOf(crafter));
     }
 
     [Fact]
     public void OffersNoInstructionsFileToAProjectWithoutOne()
     {
-        workbench.Status.ShowBriefCommand.Execute(null);
+        _ = workbench.Edit(crafter);
 
-        Assert.False(workbench.Brief.CanInherit);
-        Assert.False(workbench.Brief.InheritCommand.CanExecute(null));
+        Assert.False(workbench.Namer.CanInherit);
+        Assert.False(workbench.Namer.InheritCommand.CanExecute(null));
     }
 
     public void Dispose() => Directory.Delete(home, recursive: true);

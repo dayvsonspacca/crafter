@@ -84,6 +84,27 @@
             <Button Classes="ghost" VerticalAlignment="Center" Content="Remove" Command="{Binding RemoveIconCommand}" IsVisible="{Binding HasPreview}" />
           </StackPanel>
         </StackPanel>
+
+        <StackPanel Spacing="8" IsVisible="{Binding !IsAdding}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" VerticalAlignment="Center" Text="Summary" />
+            <Button Grid.Column="1"
+                    Classes="ghost"
+                    Content="{Binding InheritLabel}"
+                    Command="{Binding InheritCommand}"
+                    IsVisible="{Binding CanInherit}" />
+          </Grid>
+          <TextBlock Classes="about"
+                     TextWrapping="Wrap"
+                     Text="What the project is, read by its agent before every chat. Rules go in its axioms. A chat takes a change when its session starts again." />
+          <TextBox Height="180"
+                   AcceptsReturn="True"
+                   TextWrapping="Wrap"
+                   VerticalContentAlignment="Top"
+                   Text="{Binding Summary}"
+                   PlaceholderText="What it is, its stack, how it is laid out and the commands it runs with."
+                   AutomationProperties.Name="Summary" />
+        </StackPanel>
       </StackPanel>
     </DockPanel>
   </controls:Modal>
