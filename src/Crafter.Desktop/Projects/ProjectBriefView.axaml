@@ -86,7 +86,7 @@
               <Button Grid.Column="1" Classes="primary" Content="Add" Command="{Binding AddAxiomCommand}" />
             </Grid>
             <TextBlock Classes="about"
-                       Text="Rules this project's agent follows in every chat, in place of CLAUDE.md and Claude Code's memory. The agent can propose one; you approve it in the chat. A chat takes a change when its session starts again." />
+                       Text="Rules this project's agent follows in every chat. The agent can propose one; you approve it in the chat. A chat takes a change when its session starts again." />
           </StackPanel>
 
           <ScrollViewer HorizontalScrollBarVisibility="Disabled">
