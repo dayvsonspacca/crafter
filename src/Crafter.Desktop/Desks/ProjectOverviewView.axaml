@@ -5,16 +5,10 @@
              x:Class="Crafter.Desktop.Desks.ProjectOverviewView"
              x:DataType="desks:ProjectOverviewViewModel">
   <UserControl.Styles>
-    <Style Selector="TextBlock.kicker">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="10.5" />
-      <Setter Property="LetterSpacing" Value="1.2" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-    </Style>
 
 
     <Style Selector="Border.recents">
-      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusContainer}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
@@ -23,7 +17,7 @@
     <Style Selector="Button.recent">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-      <Setter Property="Padding" Value="16,12" />
+      <Setter Property="Padding" Value="{StaticResource PadRow}" />
       <Setter Property="CornerRadius" Value="0" />
       <Setter Property="BorderThickness" Value="0,0,0,1" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
@@ -39,8 +33,7 @@
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
     </Style>
     <Style Selector="TextBlock.action">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
@@ -53,8 +46,8 @@
   </UserControl.Styles>
 
   <ScrollViewer>
-    <StackPanel MaxWidth="760" Margin="24,56,24,32" Spacing="36">
-      <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="18">
+    <StackPanel MaxWidth="760" Margin="24,48,24,32" Spacing="{StaticResource Space8}">
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="{StaticResource Space4}">
         <Border Width="64"
                 Height="64"
                 CornerRadius="14"
@@ -76,17 +69,17 @@
         </Border>
         <TextBlock Grid.Column="1"
                    VerticalAlignment="Center"
-                   FontSize="28"
-                   FontWeight="Medium"
+                   FontSize="{StaticResource FontSizeLargeTitle}"
+                   FontWeight="SemiBold"
                    TextTrimming="CharacterEllipsis"
                    Text="{Binding Name}" />
         <Button Grid.Column="2" Classes="ghost" Content="Edit" Command="{Binding EditCommand}" />
         <Button Grid.Column="3" Classes="primary" Content="New chat" Command="{Binding NewChatCommand}" />
       </Grid>
 
-      <StackPanel Spacing="10">
+      <StackPanel Spacing="{StaticResource Space2}">
         <Grid ColumnDefinitions="*,Auto" Margin="4,0">
-          <TextBlock Classes="kicker" Text="RECENT CHATS" />
+          <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Recent chats" />
           <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Count}" />
         </Grid>
         <Border Classes="recents" IsVisible="{Binding HasRecent}">
@@ -106,10 +99,10 @@
                     </Panel>
                     <StackPanel Grid.Column="1" Spacing="3">
                       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                        <TextBlock FontSize="14" FontWeight="Medium" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
+                        <TextBlock FontSize="{StaticResource FontSizeContent}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
                         <TextBlock Grid.Column="1" Classes="mono" Text="{Binding When}" />
                       </Grid>
-                      <TextBlock FontSize="12.5"
+                      <TextBlock FontSize="{StaticResource FontSizeBody}"
                                  TextTrimming="CharacterEllipsis"
                                  Foreground="{DynamicResource ForegroundMutedBrush}"
                                  Text="{Binding Last}" />
@@ -122,9 +115,9 @@
           </ItemsControl>
         </Border>
         <TextBlock Margin="4,0"
-                   FontSize="13"
+                   FontSize="{StaticResource FontSizeBody}"
                    Foreground="{DynamicResource ForegroundMutedBrush}"
-                   Text="No chats yet."
+                   Text="No chats yet. Start one with New chat or Ctrl+T."
                    IsVisible="{Binding !HasRecent}" />
       </StackPanel>
     </StackPanel>
