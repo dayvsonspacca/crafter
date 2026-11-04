@@ -62,6 +62,7 @@
   <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource ScrimColor}" />
   <SolidColorBrush x:Key="SelectedBrush" Color="{StaticResource SelectedColor}" />
   <SolidColorBrush x:Key="AccentTextBrush" Color="{StaticResource AccentTextColor}" />
+  <BoxShadows x:Key="ComposerGlow">0 0 0 3 #2E9C4C24, 0 0 18 0 #249C4C24</BoxShadows>
   <SolidColorBrush x:Key="TextSelectionBrush" Color="{StaticResource AccentColor}" Opacity="0.35" />
   <SolidColorBrush x:Key="IdleBrush" Color="{StaticResource IdleColor}" />
   <SolidColorBrush x:Key="CloseHoverBrush" Color="{StaticResource CloseHoverColor}" />

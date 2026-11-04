@@ -310,9 +310,33 @@
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <!-- The same two shadows as the glow, clear, so focusing fades it in. -->
+      <Setter Property="BoxShadow" Value="0 0 0 3 #00000000, 0 0 18 0 #00000000" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+          <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
     </Style>
     <Style Selector="Border.composer:focus-within">
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource ComposerGlow}" />
+    </Style>
+    <Style Selector="Border.composer TextBlock.hint">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Border.composer:focus-within TextBlock.hint">
+      <Setter Property="Opacity" Value="1" />
     </Style>
     <Style Selector="TextBox.prompt">
       <Setter Property="Background" Value="Transparent" />
@@ -597,10 +621,13 @@
                    Text="{Binding Draft}"
                    PlaceholderText="Describe the recipe…"
                    AutomationProperties.Name="Message" />
-          <Panel HorizontalAlignment="Right">
-            <Button Classes="primary" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsAsking}" />
-            <Button Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsAsking}" />
-          </Panel>
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource Space2}">
+            <TextBlock Classes="hint" Text="Enter to craft · Shift+Enter for a new line" />
+            <Panel Grid.Column="1">
+              <Button Classes="primary" Content="Craft" Command="{Binding CraftCommand}" IsVisible="{Binding !IsAsking}" />
+              <Button Classes="stop" Content="Stop" Command="{Binding CraftCancelCommand}" IsVisible="{Binding IsAsking}" />
+            </Panel>
+          </Grid>
         </StackPanel>
       </Border>
     </Border>
