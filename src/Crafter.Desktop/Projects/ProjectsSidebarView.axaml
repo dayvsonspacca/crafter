@@ -81,6 +81,7 @@
               x:DataType="projects:ShelfItemViewModel"
               Classes.current="{Binding IsCurrent}"
               Command="{Binding OpenCommand}"
+              ToolTip.Tip="Home · Ctrl+H"
               AutomationProperties.Name="Home">
         <Grid ColumnDefinitions="18,*,Auto" ColumnSpacing="8">
           <Path Width="16"

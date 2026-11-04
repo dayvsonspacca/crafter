@@ -48,7 +48,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         this.deskFactory = deskFactory;
         this.clipboard = clipboard;
         Home = home;
-        HomeItem = new ShelfItemViewModel(home, null, this);
+        HomeItem = new ShelfItemViewModel(home, ProjectShortcuts.Home, this);
         Picker = picker;
         Namer = namer;
         Setup = setup;
@@ -322,6 +322,9 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
             }
         }
     }
+
+    [RelayCommand]
+    private void GoHome() => Open(Home);
 
     [RelayCommand]
     private Task EditCurrent() => Current is { } project ? Edit(project) : Task.CompletedTask;

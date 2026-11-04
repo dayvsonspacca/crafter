@@ -58,6 +58,7 @@ public sealed partial class WorkbenchWindow : Window
 
     private void Listen(WorkbenchViewModel viewModel)
     {
+        shortcuts.On(ProjectShortcuts.Home, () => viewModel.GoHomeCommand.Execute(null));
         shortcuts.On(ProjectShortcuts.Add, () => viewModel.AddCommand.Execute(null));
         shortcuts.On(ProjectShortcuts.Close, () => viewModel.CloseCommand.Execute(null));
         shortcuts.On(ProjectShortcuts.Edit, () => viewModel.EditCurrentCommand.Execute(null));

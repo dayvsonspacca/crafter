@@ -20,7 +20,7 @@ public sealed class ShortcutCatalogTest
         Assert.Contains("Ctrl+1–9", keys);
         Assert.Contains("Alt+1–9", keys);
         Assert.All(
-            [WorkbenchShortcuts.ToggleSidebar, WorkbenchShortcuts.TogglePreferences, ProjectShortcuts.Add, ProjectShortcuts.Close, ProjectShortcuts.Edit,
+            [WorkbenchShortcuts.ToggleSidebar, WorkbenchShortcuts.TogglePreferences, ProjectShortcuts.Home, ProjectShortcuts.Add, ProjectShortcuts.Close, ProjectShortcuts.Edit,
              ChatShortcuts.New, ChatShortcuts.Close, ChatShortcuts.Next, ChatShortcuts.Previous, ChatShortcuts.ToggleJobs],
             shortcut => Assert.Contains(shortcut.Keys, keys));
     }

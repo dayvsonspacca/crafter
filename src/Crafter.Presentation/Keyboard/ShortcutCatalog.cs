@@ -13,6 +13,7 @@ public static class ShortcutCatalog
         ]),
         new("Projects",
         [
+            new("Go Home", ProjectShortcuts.Home.Keys),
             new("Go to project 1 to 9", Range(ProjectShortcuts.Slot(0)!, ProjectShortcuts.Slots)),
             new("Add a project", ProjectShortcuts.Add.Keys),
             new("Rename the project", ProjectShortcuts.Edit.Keys),

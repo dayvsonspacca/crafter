@@ -54,6 +54,18 @@ public sealed class WorkbenchViewModelTest : IDisposable
     }
 
     [Fact]
+    public void GoesHomeFromAProject()
+    {
+        var workbench = Workbench();
+        workbench.Open(Project("crafter"));
+
+        workbench.GoHomeCommand.Execute(null);
+
+        Assert.Equal(workbench.Home, workbench.Current);
+        Assert.Equal("Ctrl+H", workbench.HomeItem.Keys);
+    }
+
+    [Fact]
     public void HomeNeverCloses()
     {
         var workbench = Workbench();
