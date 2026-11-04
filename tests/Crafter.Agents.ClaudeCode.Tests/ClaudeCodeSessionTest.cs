@@ -445,6 +445,24 @@ public sealed class ClaudeCodeSessionTest
         Assert.Empty(session.Jobs);
     }
 
+    [Fact]
+    public async Task DismissingEndsClaudeCodeWithoutWaitingOnIt()
+    {
+        using var claude = new FakeClaude(
+            "echo $$ > \"$(dirname \"$0\")/pid\"\n"
+            + "read -r line\n"
+            + FakeClaude.Success + "\n"
+            + "sleep 30");
+        var session = claude.Session();
+        await session.Answer(new Prompt("hello"), Configuration.Empty, Stop).ToListAsync(Stop);
+        var process = System.Diagnostics.Process.GetProcessById(int.Parse(File.ReadAllText(Path.Combine(claude.Folder, "pid")).Trim()));
+
+        session.Dismiss();
+
+        await process.WaitForExitAsync(Stop).WaitAsync(TimeSpan.FromSeconds(5), Stop);
+        Assert.True(process.HasExited);
+    }
+
     private static string Job(string id) =>
         "echo '{\"type\":\"system\",\"subtype\":\"task_started\",\"task_id\":\"" + id + "\",\"description\":\"Dev server\",\"task_type\":\"local_bash\"}'";
 

@@ -67,7 +67,15 @@ public sealed class ClaudeCodeSession(
 
     public void Stop(string job) => run?.Stop(job);
 
-    public void Dismiss() => run?.Kill();
+    // Killing the process tree reads every process on the machine to find Claude Code's children,
+    // so it happens off the caller's thread: closing a chat does not wait on it.
+    public void Dismiss()
+    {
+        if (run is { } running)
+        {
+            _ = Task.Run(running.Kill);
+        }
+    }
 
     public async IAsyncEnumerable<Reply> Answer(Prompt prompt, Configuration configuration, [EnumeratorCancellation] CancellationToken stop = default)
     {
