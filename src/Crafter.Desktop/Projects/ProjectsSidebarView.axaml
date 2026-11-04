@@ -71,6 +71,43 @@
           BorderBrush="{DynamicResource BorderBrush}"
           BorderThickness="0,0,1,0">
     <DockPanel>
+      <Button DockPanel.Dock="Top"
+              Classes="project"
+              Height="{StaticResource HeaderHeight}"
+              Margin="8,0"
+              Padding="8,0"
+              VerticalContentAlignment="Center"
+              DataContext="{Binding HomeItem}"
+              x:DataType="projects:ShelfItemViewModel"
+              Classes.current="{Binding IsCurrent}"
+              Command="{Binding OpenCommand}"
+              AutomationProperties.Name="Home">
+        <Grid ColumnDefinitions="18,*,Auto" ColumnSpacing="8">
+          <Path Width="16"
+                Height="16"
+                StrokeThickness="1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Stroke="{DynamicResource ForegroundMutedBrush}"
+                Data="M2,7.5 L8,2.5 L14,7.5 M3.5,6.5 V13.5 H12.5 V6.5 M6.5,13.5 V9.5 H9.5 V13.5" />
+          <TextBlock Grid.Column="1" Classes="name" VerticalAlignment="Center" Text="Home" />
+          <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasChats}">
+            <Ellipse Classes="pulse"
+                     Width="6"
+                     Height="6"
+                     VerticalAlignment="Center"
+                     Fill="{DynamicResource AccentBrush}"
+                     IsVisible="{Binding IsCrafting}" />
+            <Border MinWidth="18" Height="18" Padding="5,0" CornerRadius="99" Background="{DynamicResource BackgroundBrush}">
+              <TextBlock Classes="keys"
+                         Classes.unread="{Binding HasUnread}"
+                         HorizontalAlignment="Center"
+                         Text="{Binding ChatCount}" />
+            </Border>
+          </StackPanel>
+        </Grid>
+      </Button>
+
       <Grid DockPanel.Dock="Top" Height="{StaticResource HeaderHeight}" Margin="16,0,8,0" ColumnDefinitions="*,Auto">
         <TextBlock Classes="group" Text="Projects" />
         <Button Grid.Column="1"

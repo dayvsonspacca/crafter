@@ -49,7 +49,9 @@ public static class Composition
         var branches = new GitBranches();
         var library = new LibraryViewModel(preferences, new GitLibrary(Path.Combine(Data, "library")), time);
 
+        var home = new Project(Directory.CreateDirectory(Path.Combine(Data, "home")).FullName, new ProjectName("Home"));
         var viewModel = new WorkbenchViewModel(
+            home,
             bookshelf,
             preferences,
             picker,

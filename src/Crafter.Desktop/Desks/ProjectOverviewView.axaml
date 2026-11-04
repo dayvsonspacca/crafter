@@ -73,7 +73,7 @@
                    FontWeight="SemiBold"
                    TextTrimming="CharacterEllipsis"
                    Text="{Binding Name}" />
-        <Button Grid.Column="2" Classes="ghost" Content="Edit" Command="{Binding EditCommand}" />
+        <Button Grid.Column="2" Classes="ghost" Content="Edit" Command="{Binding EditCommand}" IsVisible="{Binding CanEdit}" />
         <Button Grid.Column="3" Classes="primary" Content="New chat" Command="{Binding NewChatCommand}" />
       </Grid>
 

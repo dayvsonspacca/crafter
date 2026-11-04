@@ -46,23 +46,6 @@ public sealed class BookshelfTest
     }
 
     [Fact]
-    public void KnowsWhichProjectWasOpenedLast()
-    {
-        var bookshelf = new Bookshelf(
-            new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning.AddHours(3)), new Shelved(Reborn, Morning.AddHours(1))),
-            new SettingsInMemory(),
-            () => Morning);
-
-        Assert.Equal(Beacon, bookshelf.LastOpened);
-    }
-
-    [Fact]
-    public void KnowsNoLastProjectWhenEmpty()
-    {
-        Assert.Null(new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), () => Morning).LastOpened);
-    }
-
-    [Fact]
     public void RemovesAProject()
     {
         var store = new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning));

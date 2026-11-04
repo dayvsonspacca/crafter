@@ -20,8 +20,6 @@ public sealed class Bookshelf
 
     public IReadOnlyList<Project> Projects => [.. shelf.Select(shelved => shelved.Project)];
 
-    public Project? LastOpened => shelf.MaxBy(shelved => shelved.LastOpened)?.Project;
-
     public ProjectName NameOf(string folder) => settings.Load(folder)?.Name ?? ProjectName.Of(folder);
 
     public Project Add(string folder, ProjectName name)

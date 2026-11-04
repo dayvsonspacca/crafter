@@ -19,6 +19,55 @@ public sealed class WorkbenchViewModelTest : IDisposable
     private readonly string home = Directory.CreateTempSubdirectory("crafter-workbench-").FullName;
 
     [Fact]
+    public void OpensOnHome()
+    {
+        var workbench = Workbench();
+
+        Assert.Equal(workbench.Home, workbench.Current);
+        Assert.True(workbench.HomeItem.IsCurrent);
+        Assert.True(workbench.Desk!.ShowsOverview);
+        Assert.False(workbench.Desk.Overview.CanEdit);
+    }
+
+    [Fact]
+    public void KeepsHomeOffTheShelf()
+    {
+        var workbench = Workbench();
+        workbench.Open(Project("crafter"));
+
+        workbench.Open(workbench.Home);
+
+        Assert.DoesNotContain(workbench.Home, workbench.Projects);
+        Assert.DoesNotContain(workbench.Shelf, item => item.Project == workbench.Home);
+    }
+
+    [Fact]
+    public void ClosingAProjectGoesBackHome()
+    {
+        var workbench = Workbench();
+        workbench.Open(Project("crafter"));
+
+        workbench.CloseCommand.Execute(null);
+
+        Assert.Equal(workbench.Home, workbench.Current);
+        Assert.Same(workbench.HomeItem.Desk, workbench.Desk);
+    }
+
+    [Fact]
+    public void HomeNeverCloses()
+    {
+        var workbench = Workbench();
+        workbench.NewChatCommand.Execute(null);
+        var chat = workbench.Desk!.Selected;
+
+        workbench.CloseCommand.Execute(null);
+        workbench.Remove(workbench.Home);
+
+        Assert.Equal(workbench.Home, workbench.Current);
+        Assert.Same(chat, workbench.Desk!.Selected);
+    }
+
+    [Fact]
     public void ComesBackToTheChatThatWasInFront()
     {
         var workbench = Workbench();
@@ -89,6 +138,7 @@ public sealed class WorkbenchViewModelTest : IDisposable
         var setup = new SetupViewModel(crew, preferences, clipboard);
 
         return new WorkbenchViewModel(
+            new Project(Directory.CreateDirectory(Path.Combine(home, "home")).FullName, new ProjectName("Home")),
             bookshelf,
             preferences,
             picker,

@@ -30,7 +30,10 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     private readonly Dictionary<Project, ProjectDeskViewModel> desks = [];
 
+    // Home is Crafter's own chat, in a folder of Crafter's: it is not on the shelf, cannot be
+    // edited, closed or removed, and is where Crafter opens.
     public WorkbenchViewModel(
+        Project home,
         Bookshelf bookshelf,
         PreferenceBook preferences,
         FolderPickerViewModel picker,
@@ -45,6 +48,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         this.preferences = preferences;
         this.deskFactory = deskFactory;
         this.clipboard = clipboard;
+        Home = home;
+        HomeItem = new ShelfItemViewModel(home, null, this);
         Picker = picker;
         Namer = namer;
         Setup = setup;
@@ -68,12 +73,12 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
         IsSidebarVisible = true;
         Restock();
-
-        if (bookshelf.LastOpened is { } last && Directory.Exists(last.Folder))
-        {
-            Open(last);
-        }
+        Open(Home);
     }
+
+    public Project Home { get; }
+
+    public ShelfItemViewModel HomeItem { get; }
 
     public FolderPickerViewModel Picker { get; }
 
@@ -93,10 +98,6 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public bool ShowsConversation => Desk is not null;
 
-    public bool ShowsHint => Desk is null;
-
-    public string Hint => HasProjects ? "Pick a project to start crafting." : "Add a project to start crafting.";
-
     public bool ShowsSetup => Setup.NeedsSetup;
 
     public bool IsCrafting => desks.Values.Any(desk => desk.IsCrafting);
@@ -104,7 +105,6 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public bool IsBusy => desks.Values.Any(desk => desk.IsCrafting || desk.HasJobs);
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Hint))]
     public partial bool HasProjects { get; set; }
 
     [ObservableProperty]
@@ -129,7 +129,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public string? Heading => ShowsSetup ? "Setup" : Current?.Name.Text;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsConversation), nameof(ShowsHint), nameof(ShowsSidebar))]
+    [NotifyPropertyChangedFor(nameof(ShowsConversation), nameof(ShowsSidebar))]
     public partial ProjectDeskViewModel? Desk { get; set; }
 
     public void OpenChat(int place) => Desk?.SelectAt(place);
@@ -160,10 +160,14 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
             previous.IsShown = false;
         }
 
-        bookshelf.Open(project);
+        if (project != Home)
+        {
+            bookshelf.Open(project);
+        }
+
         if (!desks.TryGetValue(project, out var desk))
         {
-            desk = deskFactory.Make(project, Edit, () => SkillsFor(project));
+            desk = deskFactory.Make(project, project == Home ? null : Edit, () => SkillsFor(project));
             desks[project] = desk;
         }
 
@@ -181,24 +185,31 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         Restock();
     }
 
+    // Closing a project ends its chats and goes back Home, which never closes.
     [RelayCommand]
     public void Close()
     {
-        if (Desk is { } desk)
+        if (Desk is not { } desk || desk.Project == Home)
         {
-            desk.Leave();
-            desk.IsShown = false;
-            desks.Remove(desk.Project);
+            return;
         }
 
+        desk.Leave();
+        desk.IsShown = false;
+        desks.Remove(desk.Project);
         Desk = null;
         Current = null;
-        Mark();
+        Open(Home);
     }
 
     [RelayCommand]
     public void Remove(Project project)
     {
+        if (project == Home)
+        {
+            return;
+        }
+
         if (project == Current)
         {
             Close();
@@ -216,6 +227,11 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public async Task Edit(Project project)
     {
+        if (project == Home)
+        {
+            return;
+        }
+
         if (await Namer.Edit(project, bookshelf.Can(project, Capability.ManageCrafter)) is not Named named)
         {
             return;
@@ -363,7 +379,6 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     {
         OnPropertyChanged(nameof(IsShowingPreferences));
         OnPropertyChanged(nameof(ShowsConversation));
-        OnPropertyChanged(nameof(ShowsHint));
         OnPropertyChanged(nameof(ShowsSetup));
         OnPropertyChanged(nameof(Heading));
     }
@@ -384,6 +399,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     private void Mark()
     {
+        HomeItem.IsCurrent = Current == Home;
+        HomeItem.Desk = desks.GetValueOrDefault(Home);
         foreach (var item in Shelf)
         {
             item.IsCurrent = item.Project == Current;

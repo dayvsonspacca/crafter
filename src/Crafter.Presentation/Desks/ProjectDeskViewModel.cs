@@ -34,7 +34,7 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
         IChatStore store,
         Crew crew,
         PreferenceBook preferences,
-        Func<Project, Task> edit,
+        Func<Project, Task>? edit,
         IClipboard clipboard,
         TimeProvider time,
         Func<IReadOnlyList<Skill>>? skills = null)

@@ -49,12 +49,6 @@
               </Panel>
             </Panel>
           </DockPanel>
-
-          <TextBlock IsVisible="{Binding ShowsHint}"
-                     HorizontalAlignment="Center"
-                     VerticalAlignment="Center"
-                     FontSize="15"
-                     Text="{Binding Hint}" />
         </Panel>
       </DockPanel>
 

@@ -15,11 +15,11 @@ public sealed partial class ProjectOverviewViewModel : ObservableObject
 
     private readonly Crew crew;
 
-    private readonly Func<Project, Task> edit;
+    private readonly Func<Project, Task>? edit;
 
     private readonly TimeProvider time;
 
-    public ProjectOverviewViewModel(ProjectDeskViewModel desk, Crew crew, Func<Project, Task> edit, TimeProvider time)
+    public ProjectOverviewViewModel(ProjectDeskViewModel desk, Crew crew, Func<Project, Task>? edit, TimeProvider time)
     {
         this.desk = desk;
         this.crew = crew;
@@ -31,6 +31,9 @@ public sealed partial class ProjectOverviewViewModel : ObservableObject
     }
 
     public ObservableCollection<RecentChatViewModel> Recent { get; } = [];
+
+    // Home has nothing to edit.
+    public bool CanEdit => edit is not null;
 
     [ObservableProperty]
     public partial string Name { get; set; }
@@ -89,7 +92,7 @@ public sealed partial class ProjectOverviewViewModel : ObservableObject
     private void NewChat() => desk.NewChat();
 
     [RelayCommand]
-    private Task Edit() => edit(desk.Project);
+    private Task Edit() => edit?.Invoke(desk.Project) ?? Task.CompletedTask;
 
     [RelayCommand]
     private Task Resume(RecentChatViewModel recent) => desk.Resume(recent.Agent, recent.Past);

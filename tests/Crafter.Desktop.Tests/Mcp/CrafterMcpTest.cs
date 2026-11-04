@@ -135,6 +135,7 @@ public sealed class CrafterMcpTest : IDisposable
         var picker = new FolderPickerViewModel(preferences, bookshelf);
         var setup = new SetupViewModel(crew, preferences, clipboard);
         var workbench = new WorkbenchViewModel(
+            new Project(Directory.CreateDirectory(Path.Combine(home, "home")).FullName, new ProjectName("Home")),
             bookshelf, preferences, picker, new ProjectNamerViewModel(picker), setup,
             new PreferencesViewModel(preferences, picker, setup, new Themes(), Library()),
             new DeskFactory(new ChatsInMemory(), crew, preferences, clipboard, TimeProvider.System), clipboard,
