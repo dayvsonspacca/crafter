@@ -23,7 +23,7 @@ public sealed class CrafterMcp : IDisposable
             + "it keeps a list of projects, each a folder with its own chats and agents, and a library of skills in a git repository. "
             + "When the user asks about their projects or the skills library, use these tools; Crafter's own files are not yours to edit.";
 
-    private static readonly string[] Free = ["list_projects", "library_status", "sync_library", "list_skills", "read_skill"];
+    private static readonly string[] Free = ["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill"];
 
     private readonly WorkbenchViewModel workbench;
 
@@ -60,6 +60,35 @@ public sealed class CrafterMcp : IDisposable
             Schema(),
             ReadOnly: true,
             _ => Run(abilities.ListProjects)),
+        new(
+            "add_project",
+            "Adds a folder that already exists on this machine to Crafter's sidebar as a project, without leaving this chat.",
+            Schema(
+                ("folder", "The folder; a relative path is read from the projects root.", true),
+                ("name", "The name to show; without one, the name the folder's .crafter/settings.json keeps, or the folder's own.", false)),
+            ReadOnly: false,
+            call => Run(() => abilities.AddProject(call.Text("folder"), call.Text("name")))),
+        new(
+            "create_project",
+            "Creates a new, empty folder and adds it to Crafter's sidebar as a project. It does not run git or write any file in it; "
+                + "do that afterwards if the user wants it.",
+            Schema(
+                ("name", "The project's name, as the sidebar shows it.", true),
+                ("folder", "Where to create it; a relative path is read from the projects root. Without one, the name in lowercase and dashes under the projects root.", false)),
+            ReadOnly: false,
+            call => Run(() => abilities.CreateProject(call.Text("name"), call.Text("folder")))),
+        new(
+            "open_project",
+            "Brings a project to the front of Crafter, on its overview or the chat it last showed. This chat keeps going in Home.",
+            Schema(("folder", "The project's folder, as list_projects gives it.", true)),
+            ReadOnly: false,
+            call => Run(() => abilities.OpenProject(call.Text("folder")))),
+        new(
+            "remove_project",
+            "Takes a project off Crafter's sidebar and ends its open chats. Its folder and files stay as they are.",
+            Schema(("folder", "The project's folder, as list_projects gives it.", true)),
+            ReadOnly: false,
+            call => Run(() => abilities.RemoveProject(call.Text("folder")))),
         new(
             "rename_project",
             "Renames a project in Crafter. The name shows in the sidebar and tabs and is kept in the project's .crafter/settings.json.",

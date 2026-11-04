@@ -39,10 +39,12 @@ public sealed class CrafterMcpTest : IDisposable
             Assert.Empty(mcp.ServersFor(crafter));
             Assert.Empty(mcp.ServersFor(lorekeeper));
             var server = Assert.Single(mcp.ServersFor(workbench.Home));
-            Assert.Equal(["list_projects", "library_status", "sync_library", "list_skills", "read_skill"], server.FreeTools);
+            Assert.Equal(["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill"], server.FreeTools);
 
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
-            Assert.Equal(8, tools.Count);
+            Assert.Equal(
+                ["list_projects", "add_project", "create_project", "open_project", "remove_project", "rename_project", "set_project_icon", "library_status", "sync_library", "list_skills", "read_skill", "save_skill"],
+                tools.Select(tool => tool!["name"]!.GetValue<string>()));
 
             var listed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "list_projects", ["arguments"] = new JsonObject() });
             var projects = JsonNode.Parse(listed["result"]!["content"]![0]!["text"]!.GetValue<string>())!.AsArray();

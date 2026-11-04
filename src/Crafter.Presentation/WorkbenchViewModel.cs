@@ -242,6 +242,20 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public IReadOnlyList<Project> Projects => bookshelf.Projects;
 
+    // Where new projects go, as Preferences sets it.
+    public string ProjectsRoot => preferences.Current.ProjectsRoot;
+
+    public ProjectName NameOf(string folder) => bookshelf.NameOf(folder);
+
+    // Puts a folder in the sidebar without leaving the project in front.
+    public Project Shelve(string folder, ProjectName name)
+    {
+        var added = bookshelf.Add(folder, name);
+        Restock();
+
+        return added;
+    }
+
     public Project Rename(Project project, ProjectName name) => Apply(project, name, new SameIcon());
 
     public Project ChangeIcon(Project project, string image) => Apply(project, project.Name, new NewIcon(image));

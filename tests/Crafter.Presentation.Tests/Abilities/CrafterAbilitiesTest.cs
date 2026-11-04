@@ -74,6 +74,91 @@ public sealed class CrafterAbilitiesTest : IDisposable
     }
 
     [Fact]
+    public void AddsAFolderWithoutLeavingTheProjectInFront()
+    {
+        var beacon = Directory.CreateDirectory(Path.Combine(home, "beacon")).FullName;
+
+        var told = abilities.AddProject("beacon", null);
+
+        Assert.False(told.IsError);
+        Assert.Equal($"Added beacon to Crafter, from {beacon}.", told.Text);
+        Assert.Contains(workbench.Shelf, item => item.Project.Folder == beacon);
+        Assert.Equal(crafter, workbench.Current);
+    }
+
+    [Fact]
+    public void AddsAFolderUnderTheNameGiven()
+    {
+        var reborn = Directory.CreateDirectory(Path.Combine(home, "reborn")).FullName;
+
+        Assert.False(abilities.AddProject(reborn, "Reborn · web").IsError);
+        Assert.Contains(workbench.Shelf, item => item.Project.Folder == reborn && item.Name == "Reborn · web");
+    }
+
+    [Fact]
+    public void RefusesToAddAMissingFolderHomeOrAProjectTwice()
+    {
+        Assert.True(abilities.AddProject(" ", null).IsError);
+        Assert.True(abilities.AddProject("missing", null).IsError);
+        Assert.True(abilities.AddProject(workbench.Home.Folder, null).IsError);
+        Assert.Equal($"Crafter is already in Crafter, from {crafter.Folder}.", abilities.AddProject(crafter.Folder, null).Text);
+        Assert.Equal(2, workbench.Projects.Count);
+    }
+
+    [Fact]
+    public void CreatesAnEmptyFolderUnderTheProjectsRoot()
+    {
+        var told = abilities.CreateProject("Lorekeeper Web", null);
+
+        var folder = Path.Combine(home, "lorekeeper-web");
+        Assert.False(told.IsError);
+        Assert.Equal($"Created {folder} and added Lorekeeper Web to Crafter.", told.Text);
+        Assert.Empty(Directory.EnumerateFileSystemEntries(folder));
+        Assert.Contains(workbench.Shelf, item => item.Project.Folder == folder && item.Name == "Lorekeeper Web");
+        Assert.Equal(crafter, workbench.Current);
+    }
+
+    [Fact]
+    public void CreatesAProjectWhereItIsTold()
+    {
+        Assert.False(abilities.CreateProject("Beacon", "work/beacon").IsError);
+        Assert.Contains(workbench.Projects, project => project.Folder == Path.Combine(home, "work", "beacon"));
+
+        var empty = Directory.CreateDirectory(Path.Combine(home, "empty")).FullName;
+        Assert.False(abilities.CreateProject("Empty", empty).IsError);
+    }
+
+    [Fact]
+    public void RefusesToCreateOverFilesOrWithoutAName()
+    {
+        var taken = Directory.CreateDirectory(Path.Combine(home, "taken")).FullName;
+        File.WriteAllText(Path.Combine(taken, "README.md"), "mine");
+
+        Assert.True(abilities.CreateProject("Taken", null).IsError);
+        Assert.True(abilities.CreateProject(" ", null).IsError);
+        Assert.Equal(2, workbench.Projects.Count);
+    }
+
+    [Fact]
+    public void OpensAProject()
+    {
+        Assert.Equal("Opened Lorekeeper.", abilities.OpenProject(lorekeeper.Folder).Text);
+        Assert.Equal(lorekeeper, workbench.Current);
+        Assert.True(abilities.OpenProject("/nowhere").IsError);
+    }
+
+    [Fact]
+    public void RemovesAProjectAndLeavesItsFolder()
+    {
+        var told = abilities.RemoveProject(lorekeeper.Folder);
+
+        Assert.False(told.IsError);
+        Assert.DoesNotContain(lorekeeper, workbench.Projects);
+        Assert.True(Directory.Exists(lorekeeper.Folder));
+        Assert.True(abilities.RemoveProject(lorekeeper.Folder).IsError);
+    }
+
+    [Fact]
     public void RenamesAProjectWhereverItShows()
     {
         var told = abilities.RenameProject(lorekeeper.Folder, "Lorekeeper · desktop");
