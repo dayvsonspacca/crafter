@@ -622,7 +622,7 @@
     <Border DockPanel.Dock="Bottom" Padding="24,8,24,16">
       <Border x:Name="Composer" Classes="composer" DragDrop.AllowDrop="True">
         <StackPanel Spacing="8">
-          <ItemsControl ItemsSource="{Binding Attached}" IsVisible="{Binding HasAttached}" Margin="0,6,6,0">
+          <ItemsControl ItemsSource="{Binding Attached}" IsVisible="{Binding HasAttached}" Padding="0,6,6,0">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel ItemSpacing="10" LineSpacing="10" />
