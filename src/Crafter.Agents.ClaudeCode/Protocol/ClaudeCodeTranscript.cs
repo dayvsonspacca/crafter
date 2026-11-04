@@ -295,9 +295,9 @@ public sealed partial class ClaudeCodeTranscript(string? folder = null)
     private Acting Acting(string id, string tool, JsonElement input)
     {
         tools[id] = tool;
-        var (shown, summary, stat) = ClaudeCodeTools.Shown(tool, input, folder);
+        var (shown, summary, changes) = ClaudeCodeTools.Shown(tool, input, folder);
 
-        return new Acting(id, shown, summary, stat);
+        return new Acting(id, shown, summary, changes);
     }
 
     private static JsonElement Input(JsonElement holder) =>

@@ -1,11 +1,12 @@
 using System.Text.Json;
+using Crafter.Core.Conversations.Replies;
 using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode.Protocol;
 
 public static class ClaudeCodeTools
 {
-    public static (string Summary, string? Stat) Describe(string tool, JsonElement input, string? folder)
+    public static (string Summary, Changes? Changes) Describe(string tool, JsonElement input, string? folder)
     {
         string? Field(string name) => Text(input, name);
 
@@ -15,9 +16,9 @@ public static class ClaudeCodeTools
         {
             "Bash" => (FirstLine(Field("command") ?? string.Empty), null),
             "Read" => (File(), null),
-            "Edit" => (File(), Changes(Lines(Field("new_string")), Lines(Field("old_string")))),
-            "MultiEdit" => (File(), Changes(Edits(input, "new_string"), Edits(input, "old_string"))),
-            "Write" => (File(), $"+{Lines(Field("content"))}"),
+            "Edit" => (File(), new Changes(Lines(Field("new_string")), Lines(Field("old_string")))),
+            "MultiEdit" => (File(), new Changes(Edits(input, "new_string"), Edits(input, "old_string"))),
+            "Write" => (File(), new Changes(Lines(Field("content")))),
             "NotebookEdit" => (File(), null),
             "Grep" or "Glob" => (Field("pattern") ?? string.Empty, null),
             "WebFetch" => (Field("url") ?? string.Empty, null),
@@ -29,13 +30,13 @@ public static class ClaudeCodeTools
 
     // The name a tool goes by in the chat. A tool server's tool, mcp__<server>__<tool>, goes by its
     // server, and what it did reads as words with its first argument: "crafter", "set project icon · …".
-    public static (string Tool, string Summary, string? Stat) Shown(string tool, JsonElement input, string? folder)
+    public static (string Tool, string Summary, Changes? Changes) Shown(string tool, JsonElement input, string? folder)
     {
         if (Served(tool) is not { } served)
         {
-            var (summary, stat) = Describe(tool, input, folder);
+            var (summary, changes) = Describe(tool, input, folder);
 
-            return (tool, summary, stat);
+            return (tool, summary, changes);
         }
 
         var action = served.Tool.Replace('_', ' ').Replace('-', ' ').Trim();
@@ -82,6 +83,4 @@ public static class ClaudeCodeTools
         input.ValueKind == JsonValueKind.Object && input.TryGetProperty("edits", out var edits) && edits.ValueKind == JsonValueKind.Array
             ? edits.EnumerateArray().Sum(edit => edit.ValueKind == JsonValueKind.Object && edit.TryGetProperty(field, out var text) && text.ValueKind == JsonValueKind.String ? Lines(text.GetString()) : 0)
             : 0;
-
-    private static string Changes(int added, int removed) => $"+{added} −{removed}";
 }

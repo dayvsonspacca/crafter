@@ -8,7 +8,7 @@ public sealed class ActivityItemViewModelTest
     [Fact]
     public void SplitsAnEditsLineCountsOnceItWentThrough()
     {
-        var edit = new ActivityItemViewModel(new Acting("t-1", "Edit", "src/App.cs", "+12 −3"));
+        var edit = new ActivityItemViewModel(new Acting("t-1", "Edit", "src/App.cs", new Changes(12, 3)));
         Assert.False(edit.ShowsChanges);
 
         edit.Finish(new Acted("t-1", Failed: false, Output: string.Empty));
@@ -17,12 +17,13 @@ public sealed class ActivityItemViewModelTest
         Assert.False(edit.ShowsResult);
         Assert.Equal("+12", edit.Added);
         Assert.Equal("−3", edit.Removed);
+        Assert.Equal("+12 −3", edit.Result);
     }
 
     [Fact]
     public void ShowsOnlyTheAddedLinesOfANewFile()
     {
-        var write = new ActivityItemViewModel(new Acting("t-1", "Write", "README.md", "+40"));
+        var write = new ActivityItemViewModel(new Acting("t-1", "Write", "README.md", new Changes(40)));
         write.Finish(new Acted("t-1", Failed: false, Output: string.Empty));
 
         Assert.Equal("+40", write.Added);
@@ -32,7 +33,7 @@ public sealed class ActivityItemViewModelTest
     [Fact]
     public void KeepsTheWordsForAFailedEditOrACommand()
     {
-        var failed = new ActivityItemViewModel(new Acting("t-1", "Edit", "src/App.cs", "+1 −1"));
+        var failed = new ActivityItemViewModel(new Acting("t-1", "Edit", "src/App.cs", new Changes(1, 1)));
         failed.Finish(new Acted("t-1", Failed: true, Output: "no match"));
         Assert.True(failed.ShowsResult);
         Assert.Equal("failed", failed.Result);

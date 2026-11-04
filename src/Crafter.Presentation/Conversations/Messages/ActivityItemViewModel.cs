@@ -25,7 +25,7 @@ public sealed partial class ActivityItemViewModel(Acting acting) : ObservableObj
     {
         { IsDone: false } => "running",
         { IsFailed: true } => "failed",
-        _ when acting.Stat is { } stat => stat,
+        _ when Added is { } added => Removed is { } removed ? $"{added} {removed}" : added,
         { HasOutput: true } => Lines(Output),
         _ => "done",
     };
@@ -35,9 +35,9 @@ public sealed partial class ActivityItemViewModel(Acting acting) : ObservableObj
 
     public bool ShowsResult => !ShowsChanges;
 
-    public string? Added => acting.Stat?.Split(' ')[0] is { } added && added.StartsWith('+') ? added : null;
+    public string? Added => acting.Changes is { } changes ? $"+{changes.Added.ToString(CultureInfo.InvariantCulture)}" : null;
 
-    public string? Removed => acting.Stat?.Split(' ') is [_, var removed] && removed.StartsWith('−') ? removed : null;
+    public string? Removed => acting.Changes?.Removed is { } removed ? $"−{removed.ToString(CultureInfo.InvariantCulture)}" : null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsRunning), nameof(IsFine), nameof(Result), nameof(ShowsChanges), nameof(ShowsResult))]

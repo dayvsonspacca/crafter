@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -67,7 +68,7 @@ public sealed class JsonChatStore(string folder) : IChatStore
     private static Reply? Step(StepEntry step) => step switch
     {
         { Kind: "wrote", Text: { } text } => new Wrote(text),
-        { Kind: "acting", Id: { } id, Tool: { } tool } => new Acting(id, tool, step.Summary ?? string.Empty, step.Stat),
+        { Kind: "acting", Id: { } id, Tool: { } tool } => new Acting(id, tool, step.Summary ?? string.Empty, Changes(step)),
         { Kind: "acted", Id: { } id } => new Acted(id, step.Failed ?? false, step.Text ?? string.Empty),
         _ => null,
     };
@@ -75,8 +76,17 @@ public sealed class JsonChatStore(string folder) : IChatStore
     private static StepEntry? Entry(Reply step) => step switch
     {
         Wrote wrote => new StepEntry("wrote", Text: wrote.Fragment),
-        Acting acting => new StepEntry("acting", Id: acting.Id, Tool: acting.Tool, Summary: acting.Summary, Stat: acting.Stat),
+        Acting acting => new StepEntry("acting", Id: acting.Id, Tool: acting.Tool, Summary: acting.Summary, Added: acting.Changes?.Added, Removed: acting.Changes?.Removed),
         Acted acted => new StepEntry("acted", Id: acted.Id, Text: acted.Output, Failed: acted.Failed ? true : null),
+        _ => null,
+    };
+
+    // Chats saved before the counts were kept hold them as one line, "+12 −3".
+    private static Changes? Changes(StepEntry step) => step switch
+    {
+        { Added: { } added } => new Changes(added, step.Removed),
+        { Stat: { } stat } when stat.Split(' ') is [var plus, .. var rest] && plus.StartsWith('+') && int.TryParse(plus[1..], CultureInfo.InvariantCulture, out var added) =>
+            new Changes(added, rest is [var minus] && minus.StartsWith('−') && int.TryParse(minus[1..], CultureInfo.InvariantCulture, out var removed) ? removed : null),
         _ => null,
     };
 
@@ -130,7 +140,9 @@ internal sealed record StepEntry(
     string? Tool = null,
     string? Summary = null,
     string? Stat = null,
-    bool? Failed = null);
+    bool? Failed = null,
+    int? Added = null,
+    int? Removed = null);
 
 [JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(List<ChatEntry>))]

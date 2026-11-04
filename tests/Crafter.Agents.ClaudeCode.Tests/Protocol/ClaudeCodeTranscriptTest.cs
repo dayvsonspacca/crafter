@@ -131,7 +131,7 @@ public sealed class ClaudeCodeTranscriptTest
 
         var replies = transcript.Hear("""{"type":"assistant","message":{"content":[{"type":"text","text":"ok"},{"type":"tool_use","id":"t-1","name":"Edit","input":{"file_path":"/home/hero/crafter/a.cs","old_string":"x","new_string":"y"}},{"type":"tool_use","name":"NoId"},"junk"]}}""");
 
-        Assert.Equal([new Acting("t-1", "Edit", "a.cs", "+1 −1")], replies);
+        Assert.Equal([new Acting("t-1", "Edit", "a.cs", new Changes(1, 1))], replies);
     }
 
     [Fact]

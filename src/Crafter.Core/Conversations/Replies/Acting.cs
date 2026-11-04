@@ -1,3 +1,3 @@
 namespace Crafter.Core.Conversations.Replies;
 
-public sealed record Acting(string Id, string Tool, string Summary, string? Stat = null) : Reply;
+public sealed record Acting(string Id, string Tool, string Summary, Changes? Changes = null) : Reply;
