@@ -1,7 +1,7 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 
-namespace Crafter.Core.Settings;
+namespace Crafter.Core.Preferences;
 
 public sealed class PreferenceBook
 {
@@ -13,7 +13,7 @@ public sealed class PreferenceBook
         Current = store.Load();
     }
 
-    public Preferences Current { get; private set; }
+    public UserPreferences Current { get; private set; }
 
     public void Hire(IEnumerable<AgentId> agents) => Change(Current with { Agents = [.. agents] });
 
@@ -23,7 +23,7 @@ public sealed class PreferenceBook
 
     public void ChooseTheme(string theme) => Change(Current with { Theme = theme });
 
-    private void Change(Preferences changed)
+    private void Change(UserPreferences changed)
     {
         if (changed == Current)
         {

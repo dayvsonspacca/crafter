@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
-using Crafter.Core.Settings;
+using Crafter.Core.Preferences;
 using Crafter.Presentation.Platform;
 
 namespace Crafter.Presentation.Agents;

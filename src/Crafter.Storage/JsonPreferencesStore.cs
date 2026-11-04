@@ -2,13 +2,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
-using Crafter.Core.Settings;
+using Crafter.Core.Preferences;
 
 namespace Crafter.Storage;
 
-public sealed class JsonPreferencesStore(string file, Preferences defaults) : IPreferencesStore
+public sealed class JsonPreferencesStore(string file, UserPreferences defaults) : IPreferencesStore
 {
-    public Preferences Load()
+    public UserPreferences Load()
     {
         if (!File.Exists(file))
         {
@@ -17,7 +17,7 @@ public sealed class JsonPreferencesStore(string file, Preferences defaults) : IP
 
         try
         {
-            return JsonSerializer.Deserialize(File.ReadAllText(file), PreferencesJson.Default.Preferences) ?? defaults;
+            return JsonSerializer.Deserialize(File.ReadAllText(file), PreferencesJson.Default.UserPreferences) ?? defaults;
         }
         catch (Exception unreadable) when (unreadable is JsonException or ArgumentException)
         {
@@ -25,10 +25,10 @@ public sealed class JsonPreferencesStore(string file, Preferences defaults) : IP
         }
     }
 
-    public void Save(Preferences preferences)
+    public void Save(UserPreferences preferences)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(file))!);
-        File.WriteAllText(file, JsonSerializer.Serialize(preferences, PreferencesJson.Default.Preferences));
+        File.WriteAllText(file, JsonSerializer.Serialize(preferences, PreferencesJson.Default.UserPreferences));
     }
 }
 
@@ -36,7 +36,7 @@ public sealed class JsonPreferencesStore(string file, Preferences defaults) : IP
     WriteIndented = true,
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     Converters = [typeof(AgentIdJson), typeof(ConfigurationJson)])]
-[JsonSerializable(typeof(Preferences))]
+[JsonSerializable(typeof(UserPreferences))]
 internal sealed partial class PreferencesJson : JsonSerializerContext;
 
 internal sealed class AgentIdJson : JsonConverter<AgentId>

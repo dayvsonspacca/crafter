@@ -1,13 +1,13 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
-using Crafter.Core.Settings;
+using Crafter.Core.Preferences;
 using Crafter.Storage;
 
 namespace Crafter.Storage.Tests;
 
 public sealed class JsonPreferencesStoreTest : IDisposable
 {
-    private static readonly Preferences Defaults = Preferences.Default("/home/hero");
+    private static readonly UserPreferences Defaults = UserPreferences.Default("/home/hero");
 
     private readonly string folder = Directory.CreateTempSubdirectory("crafter-preferences-").FullName;
 
@@ -22,7 +22,7 @@ public sealed class JsonPreferencesStoreTest : IDisposable
     [Fact]
     public void LoadsWhatItSaved()
     {
-        var chosen = new Preferences("/home/hero/Projetos") { Theme = "warped", Agents = [new AgentId("claude-code")] }
+        var chosen = new UserPreferences("/home/hero/Projetos") { Theme = "warped", Agents = [new AgentId("claude-code")] }
             .Configure(new AgentId("claude-code"), Configuration.Empty.With("model", "opus").With("tools", "edit"));
 
         new JsonPreferencesStore(File, Defaults).Save(chosen);
@@ -59,7 +59,7 @@ public sealed class JsonPreferencesStoreTest : IDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(File)!);
         System.IO.File.WriteAllText(File, """{"projectsRoot":"/home/hero/Projetos","findsRepositories":false,"searchDepth":6}""");
 
-        Assert.Equal(new Preferences("/home/hero/Projetos"), new JsonPreferencesStore(File, Defaults).Load());
+        Assert.Equal(new UserPreferences("/home/hero/Projetos"), new JsonPreferencesStore(File, Defaults).Load());
     }
 
     public void Dispose() => Directory.Delete(folder, recursive: true);

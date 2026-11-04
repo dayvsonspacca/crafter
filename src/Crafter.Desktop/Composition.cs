@@ -1,7 +1,7 @@
 using Crafter.Agents.ClaudeCode;
 using Crafter.Core.Agents;
+using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
-using Crafter.Core.Settings;
 using Crafter.Desktop.Platform;
 using Crafter.Desktop.Themes;
 using Crafter.Desktop.WindowManagers;
@@ -30,7 +30,7 @@ public static class Composition
         var time = TimeProvider.System;
         var clipboard = new DesktopClipboard();
         var crew = Crew();
-        var preferences = new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), Preferences.Default(Home)));
+        var preferences = new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), UserPreferences.Default(Home)));
         var bookshelf = new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), time.GetLocalNow);
         var picker = new FolderPicker(preferences, bookshelf);
         var setup = new SetupScreen(crew, preferences, clipboard);

@@ -1,12 +1,12 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
-using Crafter.Core.Settings;
+using Crafter.Core.Preferences;
 
-namespace Crafter.Core.Tests.Settings;
+namespace Crafter.Core.Tests.Preferences;
 
 public sealed class PreferenceBookTest
 {
-    private static readonly Preferences Stored = new("/home/hero/Projetos") { Theme = "warped" };
+    private static readonly UserPreferences Stored = new("/home/hero/Projetos") { Theme = "warped" };
 
     private static readonly AgentId Claude = new("claude-code");
 

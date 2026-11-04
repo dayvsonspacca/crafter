@@ -1,10 +1,10 @@
-using Crafter.Core.Settings;
+using Crafter.Core.Preferences;
 
 namespace Crafter.Presentation.Tests;
 
-internal sealed class PreferencesInMemory(Preferences stored) : IPreferencesStore
+internal sealed class PreferencesInMemory(UserPreferences stored) : IPreferencesStore
 {
-    public Preferences Load() => stored;
+    public UserPreferences Load() => stored;
 
-    public void Save(Preferences preferences) => stored = preferences;
+    public void Save(UserPreferences preferences) => stored = preferences;
 }

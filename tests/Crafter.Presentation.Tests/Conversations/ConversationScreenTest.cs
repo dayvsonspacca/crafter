@@ -2,7 +2,7 @@ using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
-using Crafter.Core.Settings;
+using Crafter.Core.Preferences;
 using Crafter.Presentation.Conversations;
 using Microsoft.Extensions.Time.Testing;
 
@@ -14,7 +14,7 @@ public sealed class ConversationScreenTest
 
     private readonly ClipboardInMemory clipboard = new();
 
-    private readonly PreferenceBook preferences = new(new PreferencesInMemory(Preferences.Default("/home/hero")));
+    private readonly PreferenceBook preferences = new(new PreferencesInMemory(UserPreferences.Default("/home/hero")));
 
     [Fact]
     public async Task CountsTheSecondsWhileCrafting()

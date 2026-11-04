@@ -1,9 +1,9 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 
-namespace Crafter.Core.Settings;
+namespace Crafter.Core.Preferences;
 
-public sealed record Preferences
+public sealed record UserPreferences
 {
     private readonly string projectsRoot = string.Empty;
 
@@ -11,7 +11,7 @@ public sealed record Preferences
 
     private readonly IReadOnlyDictionary<AgentId, Configuration> configurations = new Dictionary<AgentId, Configuration>();
 
-    public Preferences(string projectsRoot)
+    public UserPreferences(string projectsRoot)
     {
         ProjectsRoot = projectsRoot;
     }
@@ -44,14 +44,14 @@ public sealed record Preferences
         init => configurations = (value ?? new Dictionary<AgentId, Configuration>()).Where(each => each.Value.Values.Count > 0).ToDictionary();
     }
 
-    public static Preferences Default(string home) => new(home);
+    public static UserPreferences Default(string home) => new(home);
 
     public Configuration ConfigurationOf(AgentId agent) => configurations.GetValueOrDefault(agent) ?? Configuration.Empty;
 
-    public Preferences Configure(AgentId agent, Configuration configuration) =>
+    public UserPreferences Configure(AgentId agent, Configuration configuration) =>
         this with { Configurations = new Dictionary<AgentId, Configuration>(configurations) { [agent] = configuration } };
 
-    public bool Equals(Preferences? other) =>
+    public bool Equals(UserPreferences? other) =>
         other is not null
         && ProjectsRoot == other.ProjectsRoot
         && Theme == other.Theme

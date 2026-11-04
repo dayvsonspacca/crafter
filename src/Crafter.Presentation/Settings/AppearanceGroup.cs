@@ -1,4 +1,4 @@
-using Crafter.Core.Settings;
+using Crafter.Core.Preferences;
 using Crafter.Presentation.Themes;
 
 namespace Crafter.Presentation.Settings;

@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Crafter.Core.Settings;
+using Crafter.Core.Preferences;
 using Crafter.Presentation.Folders;
 using Crafter.Presentation.Setup;
 using Crafter.Presentation.Themes;

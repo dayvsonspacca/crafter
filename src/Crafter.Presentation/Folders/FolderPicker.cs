@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Crafter.Storage.Folders;
+using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
-using Crafter.Core.Settings;
 using Crafter.Presentation.Projects;
+using Crafter.Storage.Folders;
 
 namespace Crafter.Presentation.Folders;
 

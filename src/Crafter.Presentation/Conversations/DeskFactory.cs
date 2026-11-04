@@ -1,7 +1,7 @@
 using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
+using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
-using Crafter.Core.Settings;
 using Crafter.Presentation.Platform;
 
 namespace Crafter.Presentation.Conversations;

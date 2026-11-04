@@ -2,8 +2,8 @@ using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
+using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
-using Crafter.Core.Settings;
 using Crafter.Presentation.Conversations;
 using Microsoft.Extensions.Time.Testing;
 
@@ -53,6 +53,6 @@ public sealed class ProjectDeskTest
         var crew = new Crew([agent]);
         crew.Hire([agent.Id]);
 
-        return new DeskFactory(archive ?? new ArchiveInMemory(), crew, new PreferenceBook(new PreferencesInMemory(Preferences.Default("/home/hero"))), new ClipboardInMemory(), new FakeTimeProvider(Noon)).Make(Crafter, _ => Task.CompletedTask);
+        return new DeskFactory(archive ?? new ArchiveInMemory(), crew, new PreferenceBook(new PreferencesInMemory(UserPreferences.Default("/home/hero"))), new ClipboardInMemory(), new FakeTimeProvider(Noon)).Make(Crafter, _ => Task.CompletedTask);
     }
 }
