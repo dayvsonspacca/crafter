@@ -23,12 +23,6 @@
       <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
-    <Style Selector="Border.pill.crafting">
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-    </Style>
-    <Style Selector="Border.pill.crafting TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-    </Style>
 
     <Style Selector="Border.pill.waiting">
       <Setter Property="BorderBrush" Value="{DynamicResource AccentSecondaryBrush}" />
@@ -265,6 +259,241 @@
           </KeyFrame>
           <KeyFrame Cue="100%">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <!-- The bench above the composer while the agent crafts: the ring fills one cell at a time,
+         then folds into the centre, which flashes and holds as the result. -->
+    <Style Selector="UniformGrid.bench">
+      <Setter Property="Width" Value="21" />
+      <Setter Property="Height" Value="21" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="UniformGrid.bench Border.cell">
+      <Setter Property="Width" Value="5" />
+      <Setter Property="Height" Value="5" />
+    </Style>
+    <Style Selector="TextBlock.bench">
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+    </Style>
+    <Style Selector="UniformGrid.bench Border.b0">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="4%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="6%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="60%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="68%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.bench Border.b1">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="10%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="12%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="60%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="68%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.bench Border.b2">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="16%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="18%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="60%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="68%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.bench Border.b5">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="22%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="24%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="60%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="68%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.bench Border.b8">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="28%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="30%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="60%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="68%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.bench Border.b7">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="34%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="36%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="60%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="68%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.bench Border.b6">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="40%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="42%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="60%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="68%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.bench Border.b3">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="46%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="48%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="60%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="68%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="UniformGrid.bench Border.b4">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="61%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="65%">
+            <Setter Property="Background" Value="{DynamicResource ForegroundBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="72%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="88%">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="96%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
           </KeyFrame>
         </Animation>
       </Style.Animations>
@@ -512,22 +741,6 @@
           <Border Grid.Column="1" Classes="pill waiting" IsVisible="{Binding IsWaiting}">
             <TextBlock Classes="mono" Text="waiting for you" />
           </Border>
-          <Border Grid.Column="1" Classes="pill crafting" IsVisible="{Binding ShowsClock}">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <UniformGrid Classes="cells crafting" Rows="3" Columns="3" Width="13" Height="13">
-                <Border Classes="cell c0" Width="3" Height="3" />
-                <Border Classes="cell c1" Width="3" Height="3" />
-                <Border Classes="cell c2" Width="3" Height="3" />
-                <Border Classes="cell c3" Width="3" Height="3" />
-                <Border Classes="cell c4" Width="3" Height="3" />
-                <Border Classes="cell c5" Width="3" Height="3" />
-                <Border Classes="cell c6" Width="3" Height="3" />
-                <Border Classes="cell c7" Width="3" Height="3" />
-                <Border Classes="cell c8" Width="3" Height="3" />
-              </UniformGrid>
-              <TextBlock Classes="mono" Text="{Binding Elapsed}" />
-            </StackPanel>
-          </Border>
           <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
             <Border Classes="pill agent">
               <TextBlock Classes="mono" Text="{Binding AgentName}" />
@@ -539,7 +752,21 @@
         </Grid>
       </Border>
 
-      <Border DockPanel.Dock="Bottom" Padding="24,8,24,16">
+      <StackPanel DockPanel.Dock="Bottom" Margin="24,8,24,16" Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="10" Margin="6,0,0,0" IsVisible="{Binding ShowsClock}">
+          <UniformGrid Classes="bench" Rows="3" Columns="3">
+            <Border Classes="cell b0" />
+            <Border Classes="cell b1" />
+            <Border Classes="cell b2" />
+            <Border Classes="cell b3" />
+            <Border Classes="cell b4" />
+            <Border Classes="cell b5" />
+            <Border Classes="cell b6" />
+            <Border Classes="cell b7" />
+            <Border Classes="cell b8" />
+          </UniformGrid>
+          <TextBlock Classes="mono bench" Text="{Binding Elapsed}" />
+        </StackPanel>
         <Border x:Name="Composer" Classes="composer">
           <StackPanel Spacing="8">
             <ItemsControl ItemsSource="{Binding Attached}" IsVisible="{Binding HasAttached}" Padding="0,6,6,0">
@@ -587,7 +814,7 @@
             </Grid>
           </StackPanel>
         </Border>
-      </Border>
+      </StackPanel>
 
       <Panel>
         <TextBlock IsVisible="{Binding !HasMessages}"
