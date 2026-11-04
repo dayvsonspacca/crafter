@@ -1,14 +1,18 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Crafter.Core.Conversations.Decisions;
 using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Presentation.Conversations.Messages;
 
 public sealed partial class QuestionCardViewModel : ObservableObject
 {
+    private readonly Question question;
+
     private readonly Action changed;
 
     public QuestionCardViewModel(Question question, Action changed)
     {
+        this.question = question;
         this.changed = changed;
         Text = question.Text;
         Header = question.Header;
@@ -32,6 +36,9 @@ public sealed partial class QuestionCardViewModel : ObservableObject
 
     public string Answer =>
         string.Join(", ", Picks.Where(pick => pick.IsChosen).Select(pick => pick.Label).Append(Other?.Trim() ?? string.Empty).Where(part => part.Length > 0));
+
+    public Answer Given =>
+        new(question, [.. Picks.Where(pick => pick.IsChosen).Select(pick => pick.Pick)], Other?.Trim() is { Length: > 0 } written ? written : null);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Answer), nameof(IsAnswered))]

@@ -6,6 +6,8 @@ namespace Crafter.Presentation.Conversations.Messages;
 
 public sealed partial class PickItemViewModel(Pick pick, Action<PickItemViewModel> toggle) : ObservableObject
 {
+    public Pick Pick { get; } = pick;
+
     public string Label { get; } = pick.Label;
 
     public string Description { get; } = pick.Description;

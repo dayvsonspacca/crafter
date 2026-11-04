@@ -23,10 +23,6 @@ public sealed class ClaudeCodeSession(
 
     private readonly List<string> directories = [];
 
-    private readonly HashSet<string> questions = [];
-
-    private readonly Lock gate = new();
-
     private ClaudeCodeRun? run;
 
     // The skills the running session was started with.
@@ -60,13 +56,7 @@ public sealed class ClaudeCodeSession(
             return;
         }
 
-        bool asked;
-        lock (gate)
-        {
-            asked = questions.Remove(request);
-        }
-
-        var suggestions = live.Respond(request, decision, asked);
+        var suggestions = live.Respond(request, decision);
         if (decision is AlwaysAllow)
         {
             Grant(suggestions);
@@ -126,14 +116,6 @@ public sealed class ClaudeCodeSession(
 
             while (turn.Replies.TryRead(out var reply))
             {
-                if (reply is NeedsAnswers asked)
-                {
-                    lock (gate)
-                    {
-                        questions.Add(asked.Id);
-                    }
-                }
-
                 yield return reply;
             }
         }

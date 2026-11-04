@@ -57,7 +57,7 @@ public static class ClaudeCodeProtocol
             writer.WriteEndObject();
         });
 
-    public static string Answering(string request, Decision decision, string input, string? suggestions, bool asked) =>
+    public static string Answering(string request, Decision decision, string input, string? suggestions) =>
         Json(writer =>
         {
             writer.WriteString("type", "control_response");
@@ -69,7 +69,11 @@ public static class ClaudeCodeProtocol
             {
                 case Deny deny:
                     writer.WriteString("behavior", "deny");
-                    writer.WriteString("message", Refused(deny.Reason, asked));
+                    writer.WriteString("message", Refused(deny.Reason, asked: false));
+                    break;
+                case Skip skip:
+                    writer.WriteString("behavior", "deny");
+                    writer.WriteString("message", Refused(skip.Reason, asked: true));
                     break;
                 case Answers answers:
                     writer.WriteString("behavior", "allow");
@@ -130,9 +134,9 @@ public static class ClaudeCodeProtocol
         }
 
         writer.WriteStartObject("answers");
-        foreach (var (question, answer) in answers.Chosen)
+        foreach (var answer in answers.Given)
         {
-            writer.WriteString(question, answer);
+            writer.WriteString(answer.Question.Text, string.Join(", ", [.. answer.Picked.Select(pick => pick.Label), .. answer.Written is { } written ? [written] : Array.Empty<string>()]));
         }
 
         writer.WriteEndObject();

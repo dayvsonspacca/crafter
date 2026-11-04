@@ -43,10 +43,10 @@ public sealed partial class QuestionItemViewModel : ObservableObject, IAwaitsDec
 
     [RelayCommand(CanExecute = nameof(CanSubmit))]
     private void Submit() =>
-        Decide(new Answers(Questions.ToDictionary(question => question.Text, question => question.Answer)), "Answered");
+        Decide(new Answers([.. Questions.Select(question => question.Given)]), "Answered");
 
     [RelayCommand]
-    private void Skip() => Decide(new Deny(), "Skipped");
+    private void Skip() => Decide(new Skip(), "Skipped");
 
     private void Decide(Decision decision, string verdict)
     {

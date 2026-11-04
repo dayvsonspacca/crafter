@@ -100,7 +100,7 @@ internal sealed class ClaudeCodeRun
         return turn;
     }
 
-    public string? Respond(string request, Decision decision, bool asked)
+    public string? Respond(string request, Decision decision)
     {
         string input;
         string? suggestions;
@@ -110,7 +110,7 @@ internal sealed class ClaudeCodeRun
             suggestions = transcript.SuggestionsOf(request);
         }
 
-        _ = Send(ClaudeCodeProtocol.Answering(request, decision, input, suggestions, asked));
+        _ = Send(ClaudeCodeProtocol.Answering(request, decision, input, suggestions));
 
         return suggestions;
     }

@@ -346,7 +346,7 @@ public sealed class ClaudeCodeSessionTest
             replies.Add(reply);
             if (reply is NeedsAnswers asked)
             {
-                session.Decide(asked.Id, new Answers(new Dictionary<string, string> { ["Which?"] = "A, B" }));
+                session.Decide(asked.Id, new Answers([new Answer(asked.Questions[0], [.. asked.Questions[0].Picks])]));
             }
         }
 
