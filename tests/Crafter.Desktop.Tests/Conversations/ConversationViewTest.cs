@@ -159,6 +159,28 @@ public sealed class ConversationViewTest : IDisposable
         });
     }
 
+    // Taking answers down once cost more for each one still on screen: twenty took seconds.
+    [Fact]
+    public void TakesManyAnswersDownQuickly()
+    {
+        TestApp.Run(() =>
+        {
+            Turn[] turns = [.. Enumerable.Range(1, 20).SelectMany(at => new Turn[] { new Asked(new Prompt($"Ask {at}")), new Answered($"Answer {at}.", new Finished()) })];
+            var (_, view, chat) = Show(turns);
+            while (chat.HasEarlier)
+            {
+                chat.ShowEarlierCommand.Execute(null);
+            }
+
+            Settle();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            view.DataContext = null;
+            Settle();
+
+            Assert.InRange(watch.ElapsedMilliseconds, 0, 1000);
+        });
+    }
+
     public void Dispose() => Directory.Delete(folder, recursive: true);
 
     private static double Where(ConversationView view, ScrollViewer scroller, object message) =>
