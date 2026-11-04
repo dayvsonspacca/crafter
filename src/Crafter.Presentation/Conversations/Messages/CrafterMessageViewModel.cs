@@ -152,7 +152,7 @@ public sealed partial class CrafterMessageViewModel : MessageViewModel
     {
         Stopped => "Stopped",
         CutShort => "Cut short at the length limit",
-        Refused { Category: { } category } => $"Declined ({category})",
+        Refused { Reason: { } reason } => $"Declined ({reason})",
         Refused => "Declined",
         Failed failed => failed.Reason,
         _ => null,

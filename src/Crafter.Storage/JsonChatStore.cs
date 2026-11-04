@@ -120,7 +120,7 @@ public sealed class JsonChatStore(string folder) : IChatStore
 
     private static string? Detail(Ending ending) => ending switch
     {
-        Refused refused => refused.Category,
+        Refused refused => refused.Reason,
         Failed failed => failed.Reason,
         _ => null,
     };
