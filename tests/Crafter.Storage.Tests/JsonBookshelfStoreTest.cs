@@ -20,7 +20,7 @@ public sealed class JsonBookshelfStoreTest : IDisposable
     {
         Shelved[] shelf =
         [
-            new(new Project("/home/hero/crafter"), new DateTimeOffset(2026, 11, 3, 9, 0, 0, TimeSpan.Zero)) { Skills = ["laravel-migrations"] },
+            new(new Project("/home/hero/crafter"), new DateTimeOffset(2026, 11, 3, 9, 0, 0, TimeSpan.Zero)) { Skills = ["laravel-migrations"], Axioms = ["Never add comments", "Always write tests"] },
             new(new Project("/home/hero/beacon"), new DateTimeOffset(2026, 11, 3, 10, 0, 0, TimeSpan.Zero)),
         ];
 
@@ -28,6 +28,7 @@ public sealed class JsonBookshelfStoreTest : IDisposable
 
         Assert.Equal(shelf, new JsonBookshelfStore(File).Load());
         Assert.Contains("\"laravel-migrations\"", System.IO.File.ReadAllText(File));
+        Assert.Contains("\"Never add comments\"", System.IO.File.ReadAllText(File));
     }
 
     [Fact]

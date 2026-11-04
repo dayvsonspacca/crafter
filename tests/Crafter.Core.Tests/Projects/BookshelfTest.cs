@@ -176,6 +176,37 @@ public sealed class BookshelfTest
     }
 
     [Fact]
+    public void HoldsAndDropsAxiomsInOrderAndKeepsThemThroughReopening()
+    {
+        var store = new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning));
+        var bookshelf = new Bookshelf(store, new SettingsInMemory(), () => Morning.AddHours(1));
+
+        Assert.True(bookshelf.Hold(Crafter, " Never add comments "));
+        Assert.True(bookshelf.Hold(Crafter, "Always write tests"));
+        Assert.False(bookshelf.Hold(Crafter, "Never add comments"));
+        Assert.False(bookshelf.Hold(Crafter, " "));
+        bookshelf.Open(Crafter);
+
+        Assert.Equal(["Never add comments", "Always write tests"], bookshelf.AxiomsOf(Crafter));
+        Assert.Empty(bookshelf.AxiomsOf(Beacon));
+        Assert.Equal(["Never add comments", "Always write tests"], store.Saved[0].Axioms);
+
+        Assert.True(bookshelf.Drop(Crafter, "Never add comments"));
+        Assert.False(bookshelf.Drop(Crafter, "Never add comments"));
+
+        Assert.Equal(["Always write tests"], store.Saved[0].Axioms);
+    }
+
+    [Fact]
+    public void HoldsNoAxiomForAProjectOffTheShelf()
+    {
+        var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), () => Morning);
+
+        Assert.False(bookshelf.Hold(Crafter, "Never add comments"));
+        Assert.Empty(bookshelf.AxiomsOf(Crafter));
+    }
+
+    [Fact]
     public void GivesAndTakesASkillAndKeepsItThroughReopening()
     {
         var store = new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning));

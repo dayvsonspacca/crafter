@@ -66,6 +66,40 @@ public sealed class Bookshelf
         store.Save(shelf);
     }
 
+    public IReadOnlyList<string> AxiomsOf(Project project) =>
+        shelf.Find(shelved => shelved.Project == project)?.Axioms ?? [];
+
+    // Adds an axiom at the end; a blank one or one the project already holds changes nothing.
+    public bool Hold(Project project, string axiom)
+    {
+        var place = shelf.FindIndex(shelved => shelved.Project == project);
+        var text = axiom.Trim();
+        if (place < 0 || text.Length == 0 || shelf[place].Axioms.Contains(text))
+        {
+            return false;
+        }
+
+        shelf[place] = shelf[place] with { Axioms = [.. shelf[place].Axioms, text] };
+        store.Save(shelf);
+
+        return true;
+    }
+
+    public bool Drop(Project project, string axiom)
+    {
+        var place = shelf.FindIndex(shelved => shelved.Project == project);
+        var text = axiom.Trim();
+        if (place < 0 || !shelf[place].Axioms.Contains(text))
+        {
+            return false;
+        }
+
+        shelf[place] = shelf[place] with { Axioms = [.. shelf[place].Axioms.Where(each => each != text)] };
+        store.Save(shelf);
+
+        return true;
+    }
+
     public Project Edit(Project project, ProjectName name, IconChange change)
     {
         var icon = change switch
