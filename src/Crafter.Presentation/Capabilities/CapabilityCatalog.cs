@@ -10,10 +10,11 @@ public static class CapabilityCatalog
         new(
             Capability.ManageCrafter,
             "Manages Crafter",
-            "The agent can see your projects, rename them, and read and write the skills library.",
+            "The agent can see your projects, rename them, change their icons, and read and write the skills library.",
             [
                 new("list_projects", "Lists the projects, their branches and open chats", Asks: false),
                 new("rename_project", "Renames a project", Asks: true),
+                new("set_project_icon", "Sets a project's icon from an image file", Asks: true),
                 new("library_status", "Tells how the skills library stands", Asks: false),
                 new("sync_library", "Syncs the skills library now", Asks: false),
                 new("list_skills", "Lists the skills in the library", Asks: false),

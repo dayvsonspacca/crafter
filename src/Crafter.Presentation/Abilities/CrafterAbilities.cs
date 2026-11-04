@@ -2,12 +2,13 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Crafter.Core.Library;
 using Crafter.Core.Projects;
+using Crafter.Presentation.Folders;
 using Crafter.Presentation.Library;
 
 namespace Crafter.Presentation.Abilities;
 
 // What a project granted ManageCrafter can do to Crafter through its agent: look at the projects,
-// rename them, and read and write the skills library. Answers are JSON for the agent to read.
+// rename them, change their icons, and read and write the skills library. Answers are JSON for the agent to read.
 public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewModel library, IBranches branches)
 {
     private static readonly JsonSerializerOptions Readable = new() { WriteIndented = true };
@@ -38,6 +39,42 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
         var renamed = workbench.Rename(project, new ProjectName(name));
 
         return new Told($"Renamed {before} to {renamed.Name.Text}.");
+    }
+
+    // A relative image is read from the asking project's folder, where its agent works.
+    public Told SetProjectIcon(string caller, string? folder, string? image)
+    {
+        if (Find(folder) is not { } project)
+        {
+            return Told.Failed($"No project lives in {folder}; list_projects gives the folders.");
+        }
+
+        if (string.IsNullOrWhiteSpace(image))
+        {
+            return Told.Failed("An icon needs an image file.");
+        }
+
+        var file = Path.GetFullPath(image, caller);
+        if (!File.Exists(file))
+        {
+            return Told.Failed($"There is no file at {file}.");
+        }
+
+        if (!ImageEntryViewModel.Formats.Contains(Path.GetExtension(file)))
+        {
+            return Told.Failed($"Crafter shows {string.Join(", ", ImageEntryViewModel.Formats)} icons; {Path.GetFileName(file)} is none of them.");
+        }
+
+        try
+        {
+            var changed = workbench.ChangeIcon(project, file);
+
+            return new Told($"{changed.Name.Text} now shows {Path.GetFileName(file)} as its icon, kept in {changed.Icon}.");
+        }
+        catch (Exception unwritable) when (unwritable is IOException or UnauthorizedAccessException)
+        {
+            return Told.Failed($"Could not keep the icon in {project.Name.Text}: {unwritable.Message}");
+        }
     }
 
     public Told LibraryStatus() => Json(new JsonObject

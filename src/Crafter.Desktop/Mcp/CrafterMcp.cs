@@ -81,6 +81,15 @@ public sealed class CrafterMcp : IDisposable
             ReadOnly: false,
             call => Run(() => abilities.RenameProject(call.Text("folder"), call.Text("name")))),
         new(
+            "set_project_icon",
+            "Sets a project's icon in Crafter from an image file on this machine (png, jpg, jpeg or webp; square looks best). "
+                + "Crafter copies it into the project's .crafter folder and the sidebar shows it at once.",
+            Schema(
+                ("folder", "The project's folder, as list_projects gives it.", true),
+                ("image", "The image file; a relative path is read from your project's folder.", true)),
+            ReadOnly: false,
+            call => Run(() => abilities.SetProjectIcon(call.Caller, call.Text("folder"), call.Text("image")))),
+        new(
             "library_status",
             "The skills library: its repository, when it last synced and at which commit, how many skills it holds and the folders it could not read.",
             Schema(),

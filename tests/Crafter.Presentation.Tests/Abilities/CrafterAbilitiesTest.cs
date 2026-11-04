@@ -25,6 +25,8 @@ public sealed class CrafterAbilitiesTest : IDisposable
 
     private readonly LibraryInMemory store = new();
 
+    private readonly SettingsInMemory settings = new();
+
     private readonly WorkbenchViewModel workbench;
 
     private readonly LibraryViewModel library;
@@ -42,7 +44,7 @@ public sealed class CrafterAbilitiesTest : IDisposable
         crew.Hire([agent.Id]);
         var clipboard = new ClipboardInMemory();
         var preferences = new PreferenceBook(new PreferencesInMemory(new UserPreferences(home) { Agents = [agent.Id], Library = "git@github.com:hero/crafter-library.git" }));
-        var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), time.GetLocalNow);
+        var bookshelf = new Bookshelf(new ShelfInMemory(), settings, time.GetLocalNow);
         var picker = new FolderPickerViewModel(preferences, bookshelf);
         var setup = new SetupViewModel(crew, preferences, clipboard);
         library = new LibraryViewModel(preferences, store, time);
@@ -92,6 +94,42 @@ public sealed class CrafterAbilitiesTest : IDisposable
     }
 
     [Fact]
+    public void SetsAProjectIconAndTheSidebarShowsIt()
+    {
+        var image = Path.Combine(home, "hyprland.png");
+        File.WriteAllBytes(image, [0x89, 0x50, 0x4E, 0x47]);
+
+        var told = abilities.SetProjectIcon(crafter.Folder, lorekeeper.Folder, image);
+
+        Assert.False(told.IsError);
+        Assert.Equal("Lorekeeper now shows hyprland.png as its icon, kept in .crafter/icon.png.", told.Text);
+        Assert.Equal([image], settings.Adopted);
+        Assert.Contains(workbench.Shelf, item => item.Project == lorekeeper && item.Project.Icon == ".crafter/icon.png");
+    }
+
+    [Fact]
+    public void ReadsARelativeIconFromTheAskingProject()
+    {
+        File.WriteAllBytes(Path.Combine(crafter.Folder, "logo.webp"), [0x52, 0x49, 0x46, 0x46]);
+
+        Assert.False(abilities.SetProjectIcon(crafter.Folder, lorekeeper.Folder, "logo.webp").IsError);
+        Assert.Equal([Path.Combine(crafter.Folder, "logo.webp")], settings.Adopted);
+    }
+
+    [Fact]
+    public void RefusesAnIconItCannotShow()
+    {
+        var text = Path.Combine(home, "notes.txt");
+        File.WriteAllText(text, "not an image");
+
+        Assert.True(abilities.SetProjectIcon(crafter.Folder, "/nowhere", text).IsError);
+        Assert.True(abilities.SetProjectIcon(crafter.Folder, lorekeeper.Folder, " ").IsError);
+        Assert.True(abilities.SetProjectIcon(crafter.Folder, lorekeeper.Folder, Path.Combine(home, "missing.png")).IsError);
+        Assert.True(abilities.SetProjectIcon(crafter.Folder, lorekeeper.Folder, text).IsError);
+        Assert.Empty(settings.Adopted);
+    }
+
+    [Fact]
     public void ReadsASkillWithItsInstructions()
     {
         var folder = Directory.CreateDirectory(Path.Combine(home, "library", "skills", "pr-review")).FullName;
@@ -138,7 +176,7 @@ public sealed class CrafterAbilitiesTest : IDisposable
         var choice = Assert.Single(workbench.Capabilities.Choices);
         Assert.Equal("Manages Crafter", choice.Info.Name);
         Assert.True(choice.IsGranted);
-        Assert.Equal(["rename_project", "save_skill"], choice.Info.Tools.Where(tool => tool.Asks).Select(tool => tool.Name));
+        Assert.Equal(["rename_project", "set_project_icon", "save_skill"], choice.Info.Tools.Where(tool => tool.Asks).Select(tool => tool.Name));
     }
 
     [Fact]

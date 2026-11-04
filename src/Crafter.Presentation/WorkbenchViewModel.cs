@@ -227,6 +227,8 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public Project Rename(Project project, ProjectName name) => Apply(project, name, new SameIcon());
 
+    public Project ChangeIcon(Project project, string image) => Apply(project, project.Name, new NewIcon(image));
+
     public bool Can(Project project, Capability capability) => bookshelf.Can(project, capability);
 
     public void Allow(Project project, Capability capability, bool allowed)
