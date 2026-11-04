@@ -60,7 +60,24 @@ public sealed class JsonChatStore(string folder) : IChatStore
     private static Turn Turn(TurnEntry entry) => entry.Kind switch
     {
         "asked" => new Asked(new Prompt(entry.Text)),
-        _ => new Answered(entry.Text, Ending(entry)),
+        _ => new Answered(entry.Text, Ending(entry)) { Steps = [.. (entry.Steps ?? []).Select(Step).OfType<Reply>()] },
+    };
+
+    // A step that cannot be read back is left out; the answer's text still stands.
+    private static Reply? Step(StepEntry step) => step switch
+    {
+        { Kind: "wrote", Text: { } text } => new Wrote(text),
+        { Kind: "acting", Id: { } id, Tool: { } tool } => new Acting(id, tool, step.Summary ?? string.Empty, step.Stat),
+        { Kind: "acted", Id: { } id } => new Acted(id, step.Failed ?? false, step.Text ?? string.Empty),
+        _ => null,
+    };
+
+    private static StepEntry? Entry(Reply step) => step switch
+    {
+        Wrote wrote => new StepEntry("wrote", Text: wrote.Fragment),
+        Acting acting => new StepEntry("acting", Id: acting.Id, Tool: acting.Tool, Summary: acting.Summary, Stat: acting.Stat),
+        Acted acted => new StepEntry("acted", Id: acted.Id, Text: acted.Output, Failed: acted.Failed ? true : null),
+        _ => null,
     };
 
     private static Ending Ending(TurnEntry entry) => entry.Ending switch
@@ -75,7 +92,10 @@ public sealed class JsonChatStore(string folder) : IChatStore
     private static TurnEntry Entry(Turn turn) => turn switch
     {
         Asked asked => new TurnEntry("asked", asked.Prompt.Text, null, null),
-        Answered answered => new TurnEntry("answered", answered.Text, Name(answered.Ending), Detail(answered.Ending)),
+        Answered answered => new TurnEntry("answered", answered.Text, Name(answered.Ending), Detail(answered.Ending))
+        {
+            Steps = answered.Steps.Count > 0 ? [.. answered.Steps.Select(Entry).OfType<StepEntry>()] : null,
+        },
         _ => throw new ArgumentOutOfRangeException(nameof(turn), turn, "Only asked and answered turns are archived."),
     };
 
@@ -98,8 +118,20 @@ public sealed class JsonChatStore(string folder) : IChatStore
 
 internal sealed record ChatEntry(Guid Id, string Agent, string Title, string? SessionId, List<TurnEntry> Turns);
 
-internal sealed record TurnEntry(string Kind, string Text, string? Ending, string? Detail);
+internal sealed record TurnEntry(string Kind, string Text, string? Ending, string? Detail)
+{
+    public List<StepEntry>? Steps { get; init; }
+}
 
-[JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+internal sealed record StepEntry(
+    string Kind,
+    string? Text = null,
+    string? Id = null,
+    string? Tool = null,
+    string? Summary = null,
+    string? Stat = null,
+    bool? Failed = null);
+
+[JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(List<ChatEntry>))]
 internal sealed partial class ChatJson : JsonSerializerContext;

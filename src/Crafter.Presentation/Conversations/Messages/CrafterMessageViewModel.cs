@@ -27,10 +27,16 @@ public sealed partial class CrafterMessageViewModel : MessageViewModel
         IsCrafting = true;
     }
 
-    public CrafterMessageViewModel(string text, Ending ending, IClipboard clipboard, Action<CrafterMessageViewModel> retry)
+    // An answer told again from the record: its steps as they came, or only its text when the
+    // record is older than steps.
+    public CrafterMessageViewModel(string text, IReadOnlyList<Reply> steps, Ending ending, IClipboard clipboard, Action<CrafterMessageViewModel> retry)
         : this(clipboard, retry, string.Empty, (_, _) => { })
     {
-        Hear(new Wrote(text));
+        foreach (var step in steps.Count > 0 ? steps : [new Wrote(text)])
+        {
+            Hear(step);
+        }
+
         Hear(ending);
     }
 

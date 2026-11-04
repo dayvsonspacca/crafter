@@ -39,6 +39,19 @@ public sealed class JsonChatStoreTest : IDisposable
                 new Answered(string.Empty, new Refused("cyber")),
                 new Asked(new Prompt("Broken")),
                 new Answered(string.Empty, new Failed("Not logged in")),
+                new Asked(new Prompt("Run the tests")),
+                new Answered("Running them.All green.", new Finished())
+                {
+                    Steps =
+                    [
+                        new Wrote("Running them."),
+                        new Acting("t-1", "Bash", "dotnet test", null),
+                        new Acted("t-1", Failed: false, Output: "Passed: 12"),
+                        new Acting("t-2", "Edit", "src/App.cs", "+2 −1"),
+                        new Acted("t-2", Failed: true, Output: "no match"),
+                        new Wrote("All green."),
+                    ],
+                },
             ]),
             new(ChatId.New(), Codex, ChatTitle.Untitled, null, []),
         ];

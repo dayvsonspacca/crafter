@@ -408,6 +408,34 @@ public sealed class ConversationViewModelTest
         Assert.Equal(["commit"], session.Heard.Single().Skills.Select(skill => skill.Id));
     }
 
+    [Fact]
+    public void AReopenedChatShowsTheToolsItsAnswersUsed()
+    {
+        var session = new ScriptedSession();
+        var agent = new ScriptedAgent { Sessions = () => session };
+        Turn[] turns =
+        [
+            new Asked(new Prompt("Run the tests")),
+            new Answered("Running.Green.", new Finished())
+            {
+                Steps = [new Wrote("Running."), new Acting("t-1", "Bash", "dotnet test"), new Acted("t-1", Failed: false, Output: "ok"), new Wrote("Green.")],
+            },
+            new Asked(new Prompt("Older")),
+            new Answered("Only words.", new Finished()),
+        ];
+        var chat = new Chat(ChatId.New(), agent.Id, ChatTitle.Untitled, new Conversation(session, turns));
+
+        var viewModel = new ConversationViewModel(chat, agent, preferences, "crafter", keeper, clipboard, new FilesInMemory(), time);
+
+        var answers = viewModel.Messages.OfType<CrafterMessageViewModel>().ToList();
+        Assert.Collection(
+            answers[0].Items,
+            item => Assert.Equal("Running.", Assert.IsType<TextSegmentViewModel>(item).Text),
+            item => Assert.Equal("ok", Assert.IsType<ActivityItemViewModel>(item).Output),
+            item => Assert.Equal("Green.", Assert.IsType<TextSegmentViewModel>(item).Text));
+        Assert.Equal("Only words.", Assert.IsType<TextSegmentViewModel>(Assert.Single(answers[1].Items)).Text);
+    }
+
     private static Task Ask(ConversationViewModel viewModel, string prompt)
     {
         viewModel.Draft = prompt;

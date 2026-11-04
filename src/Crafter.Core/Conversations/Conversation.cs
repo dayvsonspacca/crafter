@@ -69,7 +69,18 @@ public sealed class Conversation
     private async IAsyncEnumerable<Reply> Recorded(IAsyncEnumerable<Reply> replies, [EnumeratorCancellation] CancellationToken stop = default)
     {
         var answer = new StringBuilder();
+        var writing = new StringBuilder();
+        List<Reply> steps = [];
         Ending? ending = null;
+
+        void Wrap()
+        {
+            if (writing.Length > 0)
+            {
+                steps.Add(new Wrote(writing.ToString()));
+                writing.Clear();
+            }
+        }
 
         await foreach (var reply in replies.WithCancellation(stop))
         {
@@ -77,6 +88,15 @@ public sealed class Conversation
             {
                 case Wrote wrote:
                     answer.Append(wrote.Fragment);
+                    writing.Append(wrote.Fragment);
+                    break;
+                case Acting acting:
+                    Wrap();
+                    steps.Add(acting);
+                    break;
+                case Acted acted:
+                    Wrap();
+                    steps.Add(acted.Output.Length > Answered.LongestOutput ? acted with { Output = acted.Output[..Answered.LongestOutput] + "\n…" } : acted);
                     break;
                 case Ending ended:
                     ending = ended;
@@ -86,6 +106,8 @@ public sealed class Conversation
             yield return reply;
         }
 
+        Wrap();
+
         if (ending is null)
         {
             ending = new Failed("The agent went silent before finishing its answer.");
@@ -93,6 +115,7 @@ public sealed class Conversation
             yield return ending;
         }
 
-        turns.Add(new Answered(answer.ToString(), ending));
+        // An answer of words alone is its text; steps are kept only when tools came between them.
+        turns.Add(new Answered(answer.ToString(), ending) { Steps = steps.Any(step => step is not Wrote) ? steps : [] });
     }
 }

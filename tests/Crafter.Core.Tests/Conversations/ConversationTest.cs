@@ -21,6 +21,29 @@ public sealed class ConversationTest
     }
 
     [Fact]
+    public async Task RecordsTheStepsOfAnAnswerSoAReopenedChatShowsThemWhole()
+    {
+        var conversation = new Conversation(new ScriptedSession(
+            new Began("claude-opus-5-5"),
+            new Wrote("Let me "),
+            new Wrote("look."),
+            new Acting("t-1", "Bash", "ls"),
+            new Acted("t-1", Failed: false, Output: new string('x', Answered.LongestOutput + 10)),
+            new Wrote("Found it."),
+            new Finished()));
+
+        await conversation.Ask(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
+
+        var answered = Assert.IsType<Answered>(conversation.Turns[^1]);
+        Assert.Equal("Let me look.Found it.", answered.Text);
+        Assert.Equal(4, answered.Steps.Count);
+        Assert.Equal(new Wrote("Let me look."), answered.Steps[0]);
+        Assert.Equal(new Acting("t-1", "Bash", "ls"), answered.Steps[1]);
+        Assert.EndsWith("\n…", Assert.IsType<Acted>(answered.Steps[2]).Output);
+        Assert.Equal(new Wrote("Found it."), answered.Steps[3]);
+    }
+
+    [Fact]
     public async Task HandsThePromptToTheAgent()
     {
         var agent = new ScriptedSession(new Finished());
@@ -106,7 +129,7 @@ public sealed class ConversationTest
     }
 
     [Fact]
-    public async Task PassesWhatTheAgentDoesAlongWithoutWritingIt()
+    public async Task PassesWhatTheAgentDoesAlongAndKeepsItsToolsButNotItsQuestions()
     {
         var conversation = new Conversation(new ScriptedSession(
             new Acting("t-1", "Bash", "dotnet test"),
@@ -118,6 +141,8 @@ public sealed class ConversationTest
         var replies = await conversation.Ask(new Prompt("testa"), Configuration.Empty, TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(5, replies.Count);
-        Assert.Equal(new Answered("Pronto.", new Finished()), conversation.Turns[^1]);
+        Assert.Equal(
+            new Answered("Pronto.", new Finished()) { Steps = [new Acting("t-1", "Bash", "dotnet test"), new Acted("t-1", false, "ok"), new Wrote("Pronto.")] },
+            conversation.Turns[^1]);
     }
 }

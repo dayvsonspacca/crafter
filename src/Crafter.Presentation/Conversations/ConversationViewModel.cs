@@ -527,7 +527,7 @@ public sealed partial class ConversationViewModel : ObservableObject
                     told.Add(new YourMessageViewModel(asked.Prompt));
                     break;
                 case Answered answered:
-                    told.Add(new CrafterMessageViewModel(answered.Text, answered.Ending, clipboard, Retry));
+                    told.Add(new CrafterMessageViewModel(answered.Text, answered.Steps, answered.Ending, clipboard, Retry));
                     break;
             }
         }
