@@ -1,3 +1,5 @@
+using Crafter.Agents.ClaudeCode.Cli;
+
 namespace Crafter.Agents.ClaudeCode.Tests;
 
 public sealed class ClaudeCodeCapabilitiesTest

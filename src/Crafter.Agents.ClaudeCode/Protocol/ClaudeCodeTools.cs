@@ -1,7 +1,7 @@
 using System.Text.Json;
-using static Crafter.Agents.ClaudeCode.JsonFields;
+using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
-namespace Crafter.Agents.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode.Protocol;
 
 public static class ClaudeCodeTools
 {

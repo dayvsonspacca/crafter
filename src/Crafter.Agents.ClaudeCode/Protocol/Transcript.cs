@@ -1,8 +1,9 @@
 using System.Text.Json;
+using Crafter.Agents.ClaudeCode.Cli;
 using Crafter.Core.Conversations.Replies;
-using static Crafter.Agents.ClaudeCode.JsonFields;
+using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
-namespace Crafter.Agents.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode.Protocol;
 
 public sealed class Transcript(string? folder = null)
 {

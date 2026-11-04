@@ -1,3 +1,4 @@
+using Crafter.Agents.ClaudeCode.Cli;
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations.Replies;

@@ -1,4 +1,4 @@
-namespace Crafter.Agents.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode.Cli;
 
 public static class ModelName
 {

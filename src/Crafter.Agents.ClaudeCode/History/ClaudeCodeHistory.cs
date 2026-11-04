@@ -5,9 +5,9 @@ using Crafter.Core.Agents;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Projects;
-using static Crafter.Agents.ClaudeCode.JsonFields;
+using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
-namespace Crafter.Agents.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode.History;
 
 public sealed partial class ClaudeCodeHistory(string home)
 {

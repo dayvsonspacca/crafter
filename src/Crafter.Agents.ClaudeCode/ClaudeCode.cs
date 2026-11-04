@@ -1,9 +1,12 @@
 using System.Text.Json;
+using Crafter.Agents.ClaudeCode.Cli;
+using Crafter.Agents.ClaudeCode.History;
+using Crafter.Agents.ClaudeCode.Protocol;
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Projects;
-using static Crafter.Agents.ClaudeCode.JsonFields;
+using static Crafter.Agents.ClaudeCode.Protocol.JsonFields;
 
 namespace Crafter.Agents.ClaudeCode;
 

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace Crafter.Agents.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode.Cli;
 
 internal static class ClaudeCodeProcess
 {

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Crafter.Agents.ClaudeCode.Protocol;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Decisions;
 

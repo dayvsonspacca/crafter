@@ -1,4 +1,4 @@
-namespace Crafter.Agents.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode.Cli;
 
 public sealed record ClaudeCodeOptions(string Executable, string? Model = null, string? Effort = null, string? Tools = null)
 {

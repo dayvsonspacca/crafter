@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Crafter.Agents.ClaudeCode.History;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Projects;

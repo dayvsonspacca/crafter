@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Crafter.Agents.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode.Protocol;
 
 internal static class JsonFields
 {

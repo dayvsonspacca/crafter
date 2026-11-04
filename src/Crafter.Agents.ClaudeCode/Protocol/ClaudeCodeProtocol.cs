@@ -3,7 +3,7 @@ using System.Text.Json;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Decisions;
 
-namespace Crafter.Agents.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode.Protocol;
 
 public static class ClaudeCodeProtocol
 {

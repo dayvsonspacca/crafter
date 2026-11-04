@@ -1,3 +1,4 @@
+using Crafter.Agents.ClaudeCode.Protocol;
 using Crafter.Core.Conversations.Replies;
 
 namespace Crafter.Agents.ClaudeCode.Tests;

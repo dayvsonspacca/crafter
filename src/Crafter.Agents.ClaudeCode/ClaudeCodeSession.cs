@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Crafter.Agents.ClaudeCode.Cli;
+using Crafter.Agents.ClaudeCode.Protocol;
 using Crafter.Core.Agents;
 using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;

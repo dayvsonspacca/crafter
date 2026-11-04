@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Crafter.Agents.ClaudeCode.Protocol;
 
 namespace Crafter.Agents.ClaudeCode.Tests;
 

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Crafter.Agents.ClaudeCode;
+namespace Crafter.Agents.ClaudeCode.Cli;
 
 public sealed partial record ClaudeCodeCapabilities(IReadOnlyList<ClaudeCodeModel> Models, IReadOnlyList<string> Efforts, IReadOnlyList<string> Modes)
 {

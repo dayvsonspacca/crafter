@@ -1,3 +1,5 @@
+using Crafter.Agents.ClaudeCode.Cli;
+
 namespace Crafter.Agents.ClaudeCode;
 
 internal static class ClaudeCodeLabels
