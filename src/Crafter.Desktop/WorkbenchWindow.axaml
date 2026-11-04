@@ -12,7 +12,8 @@
         x:DataType="presentation:WorkbenchViewModel"
         Title="crafter"
         Icon="/Assets/crafter.png"
-        Width="900" Height="640"
+        Width="1200" Height="780"
+        MinWidth="760" MinHeight="520"
         WindowDecorations="None"
         Background="{DynamicResource BackgroundBrush}"
         Foreground="{DynamicResource ForegroundBrush}">
@@ -20,7 +21,20 @@
     <controls:TitleBar x:Name="Bar" DockPanel.Dock="Top" />
     <Panel>
       <DockPanel IsVisible="{Binding !ShowsSetup}">
-        <projects:ProjectsSidebarView DockPanel.Dock="Left" IsVisible="{Binding IsSidebarVisible}" />
+        <Panel DockPanel.Dock="Left" IsVisible="{Binding ShowsSidebar}">
+          <projects:ProjectsSidebarView x:Name="Sidebar" Width="240" />
+          <Thumb Width="4"
+                 HorizontalAlignment="Right"
+                 Cursor="SizeWestEast"
+                 DragDelta="ResizeSidebar"
+                 AutomationProperties.Name="Resize sidebar">
+            <Thumb.Template>
+              <ControlTemplate>
+                <Border Background="Transparent" />
+              </ControlTemplate>
+            </Thumb.Template>
+          </Thumb>
+        </Panel>
         <Panel>
           <DockPanel IsVisible="{Binding ShowsConversation}">
             <desks:ProjectDeskView DockPanel.Dock="Top" DataContext="{Binding Desk}" />

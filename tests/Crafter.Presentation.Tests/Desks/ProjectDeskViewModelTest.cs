@@ -51,6 +51,27 @@ public sealed class ProjectDeskViewModelTest
         Assert.All(desk.Chats, chat => Assert.False(chat.IsPanelOpen));
     }
 
+    [Fact]
+    public void ShowsThePanelBesideAChat()
+    {
+        var desk = Desk(new ScriptedAgent());
+
+        desk.NewChat();
+
+        Assert.True(desk.ShowsPanel);
+    }
+
+    [Fact]
+    public void LeavesThePanelOutOfTheOverview()
+    {
+        var desk = Desk(new ScriptedAgent());
+        desk.NewChat();
+
+        desk.ShowOverview();
+
+        Assert.False(desk.ShowsPanel);
+    }
+
     private static ProjectDeskViewModel Desk(IAgent agent, ChatsInMemory? store = null)
     {
         var crew = new Crew([agent]);

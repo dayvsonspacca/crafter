@@ -4,8 +4,7 @@
              xmlns:projects="using:Crafter.Presentation.Projects"
              xmlns:projectsViews="using:Crafter.Desktop.Projects"
              x:Class="Crafter.Desktop.Projects.ProjectsSidebarView"
-             x:DataType="presentation:WorkbenchViewModel"
-             Width="264">
+             x:DataType="presentation:WorkbenchViewModel">
   <UserControl.Styles>
     <Style Selector="TextBlock.label">
       <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />

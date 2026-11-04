@@ -26,8 +26,6 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     private readonly IProjectFiles files;
 
-    private bool panelOpen = true;
-
     public ProjectDeskViewModel(Project project, IChatStore store, Crew crew, PreferenceBook preferences, Func<Project, Task> edit, IClipboard clipboard, TimeProvider time)
     {
         Project = project;
@@ -54,6 +52,8 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     public bool ShowsOverview => Selected is null;
 
+    public bool ShowsPanel => IsPanelOpen && !ShowsOverview;
+
     public ObservableCollection<ConversationViewModel> Chats { get; } = [];
 
     public int Count => Chats.Count;
@@ -65,8 +65,12 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
     public bool HasUnread => Chats.Any(chat => chat.State == ChatState.Unread);
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsOverview))]
+    [NotifyPropertyChangedFor(nameof(ShowsOverview), nameof(ShowsPanel))]
     public partial ConversationViewModel? Selected { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsPanel))]
+    public partial bool IsPanelOpen { get; set; } = true;
 
     [ObservableProperty]
     public partial bool IsShown { get; set; }
@@ -107,10 +111,10 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     public void TogglePanel()
     {
-        panelOpen = !panelOpen;
+        IsPanelOpen = !IsPanelOpen;
         foreach (var chat in Chats)
         {
-            chat.IsPanelOpen = panelOpen;
+            chat.IsPanelOpen = IsPanelOpen;
         }
     }
 
@@ -203,7 +207,7 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
 
     private ConversationViewModel Add(Chat chat, IAgent agent, string? resumed = null)
     {
-        var viewModel = new ConversationViewModel(chat, agent, preferences, Project.Name.Text, this, clipboard, files, time, resumed) { IsPanelOpen = panelOpen };
+        var viewModel = new ConversationViewModel(chat, agent, preferences, Project.Name.Text, this, clipboard, files, time, resumed) { IsPanelOpen = IsPanelOpen };
         viewModel.PropertyChanged += Follow;
         viewModel.Concluded += Keep;
         Chats.Add(viewModel);

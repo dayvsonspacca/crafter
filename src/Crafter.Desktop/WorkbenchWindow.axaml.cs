@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Crafter.Desktop.Keyboard;
@@ -11,6 +12,12 @@ namespace Crafter.Desktop;
 
 public sealed partial class WorkbenchWindow : Window
 {
+    private const double NarrowWidth = 1100;
+
+    private const double SidebarMin = 200;
+
+    private const double SidebarMax = 320;
+
     private readonly ShortcutHandler shortcuts = new();
 
     private bool leaving;
@@ -32,6 +39,11 @@ public sealed partial class WorkbenchWindow : Window
         if (change.Property == WindowStateProperty)
         {
             Bar?.Follow(WindowState);
+        }
+
+        if (change.Property == ClientSizeProperty && DataContext is WorkbenchViewModel viewModel)
+        {
+            viewModel.IsNarrow = ClientSize.Width < NarrowWidth;
         }
     }
 
@@ -69,6 +81,9 @@ public sealed partial class WorkbenchWindow : Window
             shortcuts.On(ProjectShortcuts.Slot(slot)!, () => viewModel.OpenSlot(slot));
         }
     }
+
+    private void ResizeSidebar(object? sender, VectorEventArgs e) =>
+        Sidebar.Width = Math.Clamp(Sidebar.Width + e.Vector.X, SidebarMin, SidebarMax);
 
     private void Press(object? sender, KeyEventArgs e)
     {

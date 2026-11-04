@@ -90,7 +90,16 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public partial bool HasProjects { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsSidebar))]
     public partial bool IsSidebarVisible { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsSidebar))]
+    public partial bool IsNarrow { get; set; }
+
+    public bool ShowsSidebar => IsSidebarVisible && !IsCrowded;
+
+    private bool IsCrowded => IsNarrow && Desk is { ShowsPanel: true };
 
     public Project? Current
     {
@@ -106,7 +115,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public string? Heading => ShowsSetup ? "Setup" : Current?.Name.Text;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsConversation), nameof(ShowsHint))]
+    [NotifyPropertyChangedFor(nameof(ShowsConversation), nameof(ShowsHint), nameof(ShowsSidebar))]
     public partial ProjectDeskViewModel? Desk { get; set; }
 
     public void OpenSlot(int place)
@@ -235,7 +244,18 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     private Task EditCurrent() => Current is { } project ? Edit(project) : Task.CompletedTask;
 
     [RelayCommand]
-    private void ToggleSidebar() => IsSidebarVisible = !IsSidebarVisible;
+    private void ToggleSidebar()
+    {
+        if (IsCrowded)
+        {
+            Desk?.TogglePanel();
+            IsSidebarVisible = true;
+
+            return;
+        }
+
+        IsSidebarVisible = !IsSidebarVisible;
+    }
 
     [RelayCommand]
     private void TogglePreferences() => Preferences.IsOpen = !Preferences.IsOpen;
@@ -260,6 +280,27 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         if (changed.PropertyName is nameof(PreferencesViewModel.IsOpen) or nameof(SetupViewModel.NeedsSetup))
         {
             NotifyDerived();
+        }
+    }
+
+    partial void OnDeskChanged(ProjectDeskViewModel? oldValue, ProjectDeskViewModel? newValue)
+    {
+        if (oldValue is not null)
+        {
+            oldValue.PropertyChanged -= FollowDesk;
+        }
+
+        if (newValue is not null)
+        {
+            newValue.PropertyChanged += FollowDesk;
+        }
+    }
+
+    private void FollowDesk(object? sender, PropertyChangedEventArgs changed)
+    {
+        if (changed.PropertyName is nameof(ProjectDeskViewModel.ShowsPanel))
+        {
+            OnPropertyChanged(nameof(ShowsSidebar));
         }
     }
 
