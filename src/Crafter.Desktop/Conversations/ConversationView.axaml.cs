@@ -40,6 +40,7 @@ public sealed partial class ConversationView : UserControl
     {
         InitializeComponent();
         MarkdownClicks.Watch(Scroller);
+        MarkdownCopy.Watch(Scroller);
         PromptBox.AddHandler(KeyDownEvent, Submit, RoutingStrategies.Tunnel);
         PromptBox.AddHandler(TextBox.PastingFromClipboardEvent, Paste);
         PromptBox.PropertyChanged += Look;
