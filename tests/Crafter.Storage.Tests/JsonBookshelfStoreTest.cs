@@ -20,13 +20,23 @@ public sealed class JsonBookshelfStoreTest : IDisposable
     {
         Shelved[] shelf =
         [
-            new(new Project("/home/hero/crafter"), new DateTimeOffset(2026, 11, 3, 9, 0, 0, TimeSpan.Zero)),
+            new(new Project("/home/hero/crafter"), new DateTimeOffset(2026, 11, 3, 9, 0, 0, TimeSpan.Zero)) { Capabilities = [Capability.ManageCrafter] },
             new(new Project("/home/hero/beacon"), new DateTimeOffset(2026, 11, 3, 10, 0, 0, TimeSpan.Zero)),
         ];
 
         new JsonBookshelfStore(File).Save(shelf);
 
         Assert.Equal(shelf, new JsonBookshelfStore(File).Load());
+        Assert.Contains("\"manage-crafter\"", System.IO.File.ReadAllText(File));
+    }
+
+    [Fact]
+    public void IgnoresACapabilityItDoesNotKnow()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(File)!);
+        System.IO.File.WriteAllText(File, """[{"folder":"/home/hero/crafter","lastOpened":"2026-11-03T09:00:00+00:00","capabilities":["fly","manage-crafter"]}]""");
+
+        Assert.Equal([Capability.ManageCrafter], Assert.Single(new JsonBookshelfStore(File).Load()).Capabilities);
     }
 
     [Theory]

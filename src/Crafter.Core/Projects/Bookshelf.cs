@@ -37,18 +37,33 @@ public sealed class Bookshelf
 
     public void Open(Project project)
     {
-        var opened = new Shelved(project, clock());
         var place = shelf.FindIndex(shelved => shelved.Project == project);
 
         if (place < 0)
         {
-            shelf.Add(opened);
+            shelf.Add(new Shelved(project, clock()));
         }
         else
         {
-            shelf[place] = opened;
+            shelf[place] = shelf[place] with { Project = project, LastOpened = clock() };
         }
 
+        store.Save(shelf);
+    }
+
+    public bool Can(Project project, Capability capability) =>
+        shelf.Find(shelved => shelved.Project == project)?.Capabilities.Contains(capability) ?? false;
+
+    public void Allow(Project project, Capability capability, bool allowed)
+    {
+        var place = shelf.FindIndex(shelved => shelved.Project == project);
+        if (place < 0 || Can(project, capability) == allowed)
+        {
+            return;
+        }
+
+        var capabilities = shelf[place].Capabilities;
+        shelf[place] = shelf[place] with { Capabilities = allowed ? [.. capabilities, capability] : [.. capabilities.Where(each => each != capability)] };
         store.Save(shelf);
     }
 

@@ -191,4 +191,23 @@ public sealed class BookshelfTest
         Assert.Empty(bookshelf.Projects);
         Assert.Equal(new ProjectName("Reborn"), bookshelf.NameOf(Reborn.Folder));
     }
+
+    [Fact]
+    public void GrantsAndRevokesACapabilityAndKeepsItThroughReopening()
+    {
+        var store = new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning));
+        var bookshelf = new Bookshelf(store, new SettingsInMemory(), () => Morning.AddHours(1));
+
+        bookshelf.Allow(Crafter, Capability.ManageCrafter, allowed: true);
+        bookshelf.Open(Crafter);
+
+        Assert.True(bookshelf.Can(Crafter, Capability.ManageCrafter));
+        Assert.False(bookshelf.Can(Beacon, Capability.ManageCrafter));
+        Assert.Equal([Capability.ManageCrafter], store.Saved[0].Capabilities);
+
+        bookshelf.Allow(Crafter, Capability.ManageCrafter, allowed: false);
+
+        Assert.False(bookshelf.Can(Crafter, Capability.ManageCrafter));
+        Assert.Empty(store.Saved[0].Capabilities);
+    }
 }
