@@ -1,6 +1,6 @@
 namespace Crafter.Presentation.Conversations.Messages;
 
-public static class Pieces
+public static class AnswerPieces
 {
     public static IReadOnlyList<(string? Language, string Text)> Of(string answer)
     {

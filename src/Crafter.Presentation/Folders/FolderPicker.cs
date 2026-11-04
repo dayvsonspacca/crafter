@@ -58,7 +58,7 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
 
     public void Move(int step)
     {
-        List<PickerEntry> choices = [.. Entries.Where(entry => entry is not PickerHeading)];
+        List<PickerEntry> choices = [.. Entries.Where(entry => entry is not HeadingEntry)];
         if (choices.Count == 0)
         {
             return;
@@ -72,7 +72,7 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
 
     public void Enter()
     {
-        if (Selected is FolderChoice choice)
+        if (Selected is FolderEntry choice)
         {
             Go(choice.Folder);
         }
@@ -90,13 +90,13 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
     {
         switch (Selected)
         {
-            case ImageChoice image:
+            case ImageEntry image:
                 Finish(image.File);
                 break;
-            case FolderChoice choice when images:
+            case FolderEntry choice when images:
                 Go(choice.Folder);
                 break;
-            case FolderChoice choice:
+            case FolderEntry choice:
                 Finish(choice.Folder);
                 break;
             case null when !images:
@@ -195,50 +195,50 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
 
         Entries.Clear();
 
-        List<FolderChoice> here = [.. FolderListing.Children(Location)
+        List<FolderEntry> here = [.. FolderListing.Children(Location)
             .Select(folder => (Folder: folder, Hits: FuzzyMatch.Hits(Path.GetFileName(folder), wanted)))
             .Where(each => each.Hits is not null)
-            .Select(each => new FolderChoice(
+            .Select(each => new FolderEntry(
                 each.Folder,
-                Piece.Split(Path.GetFileName(each.Folder), each.Hits!),
+                NamePart.Split(Path.GetFileName(each.Folder), each.Hits!),
                 FolderListing.IsRepository(each.Folder),
                 isFound: false,
                 shelved.Contains(each.Folder)))];
 
         if (here.Count > 0)
         {
-            Entries.Add(new PickerHeading("FOLDERS"));
+            Entries.Add(new HeadingEntry("FOLDERS"));
             here.ForEach(Entries.Add);
         }
 
-        List<ImageChoice> pictures = images ? [.. Pictures(wanted)] : [];
+        List<ImageEntry> pictures = images ? [.. Pictures(wanted)] : [];
 
         if (pictures.Count > 0)
         {
-            Entries.Add(new PickerHeading("IMAGES"));
+            Entries.Add(new HeadingEntry("IMAGES"));
             pictures.ForEach(Entries.Add);
         }
 
-        List<FolderChoice> repositories = [.. found
+        List<FolderEntry> repositories = [.. found
             .Select(folder => Found(folder, wanted, shelved))
-            .OfType<FolderChoice>()
+            .OfType<FolderEntry>()
             .Take(MostRepositories)];
 
         if (repositories.Count > 0)
         {
-            Entries.Add(new PickerHeading("REPOSITORIES"));
+            Entries.Add(new HeadingEntry("REPOSITORIES"));
             repositories.ForEach(Entries.Add);
         }
 
-        Selected = (PickerEntry?)pictures.FirstOrDefault() ?? Entries.OfType<FolderChoice>().FirstOrDefault();
+        Selected = (PickerEntry?)pictures.FirstOrDefault() ?? Entries.OfType<FolderEntry>().FirstOrDefault();
     }
 
-    private IEnumerable<ImageChoice> Pictures(string wanted)
+    private IEnumerable<ImageEntry> Pictures(string wanted)
     {
         IEnumerable<string> files;
         try
         {
-            files = [.. Directory.EnumerateFiles(Location).Where(file => ImageChoice.Formats.Contains(Path.GetExtension(file)))];
+            files = [.. Directory.EnumerateFiles(Location).Where(file => ImageEntry.Formats.Contains(Path.GetExtension(file)))];
         }
         catch (Exception unreadable) when (unreadable is IOException or UnauthorizedAccessException)
         {
@@ -250,22 +250,22 @@ public sealed partial class FolderPicker : ObservableObject, IFolderPicker
             var name = Path.GetFileName(file);
             if (!name.StartsWith('.') && FuzzyMatch.Hits(name, wanted) is { } hits)
             {
-                yield return new ImageChoice(file, Piece.Split(name, hits));
+                yield return new ImageEntry(file, NamePart.Split(name, hits));
             }
         }
     }
 
-    private static FolderChoice? Found(string folder, string wanted, HashSet<string> shelved)
+    private static FolderEntry? Found(string folder, string wanted, HashSet<string> shelved)
     {
         var name = Path.GetFileName(folder);
 
         if (FuzzyMatch.Hits(name, wanted) is { } inName)
         {
-            return new FolderChoice(folder, Piece.Split(name, inName), isRepository: true, isFound: true, shelved.Contains(folder));
+            return new FolderEntry(folder, NamePart.Split(name, inName), isRepository: true, isFound: true, shelved.Contains(folder));
         }
 
         return FuzzyMatch.Hits(folder, wanted) is not null
-            ? new FolderChoice(folder, Piece.Split(name, []), isRepository: true, isFound: true, shelved.Contains(folder))
+            ? new FolderEntry(folder, NamePart.Split(name, []), isRepository: true, isFound: true, shelved.Contains(folder))
             : null;
     }
 

@@ -2,16 +2,16 @@ using Crafter.Presentation.Projects;
 
 namespace Crafter.Presentation.Folders;
 
-public sealed class FolderChoice(
+public sealed class FolderEntry(
     string folder,
-    IReadOnlyList<Piece> name,
+    IReadOnlyList<NamePart> name,
     bool isRepository,
     bool isFound,
     bool isAdded) : PickerEntry
 {
     public string Folder { get; } = folder;
 
-    public IReadOnlyList<Piece> Name { get; } = name;
+    public IReadOnlyList<NamePart> Name { get; } = name;
 
     public bool IsRepository { get; } = isRepository;
 

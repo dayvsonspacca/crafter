@@ -3,7 +3,7 @@ using Crafter.Presentation.Keyboard;
 
 namespace Crafter.Desktop.Keyboard;
 
-public sealed class Shortcuts
+public sealed class ShortcutHandler
 {
     private readonly List<(Gestures Shortcut, Action Act)> bindings = [];
 

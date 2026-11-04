@@ -11,7 +11,7 @@ namespace Crafter.Desktop;
 
 public sealed partial class Workbench : Window
 {
-    private readonly Shortcuts shortcuts = new();
+    private readonly ShortcutHandler shortcuts = new();
 
     private bool leaving;
 

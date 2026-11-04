@@ -87,10 +87,10 @@
                SelectedItem="{Binding Selected}"
                DoubleTapped="Chosen">
         <ListBox.DataTemplates>
-          <DataTemplate DataType="folders:PickerHeading">
+          <DataTemplate DataType="folders:HeadingEntry">
             <TextBlock Classes="heading" Margin="0,4,0,0" Text="{Binding Text}" />
           </DataTemplate>
-          <DataTemplate DataType="folders:FolderChoice">
+          <DataTemplate DataType="folders:FolderEntry">
             <Grid ColumnDefinitions="16,*,Auto" ColumnSpacing="10">
               <Path Width="16"
                     Height="16"
@@ -114,7 +114,7 @@
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="folders:Piece">
+                    <DataTemplate DataType="folders:NamePart">
                       <TextBlock FontSize="13.5" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
@@ -129,7 +129,7 @@
               </Border>
             </Grid>
           </DataTemplate>
-          <DataTemplate DataType="folders:ImageChoice">
+          <DataTemplate DataType="folders:ImageEntry">
             <Grid ColumnDefinitions="24,*,Auto" ColumnSpacing="10">
               <Border Width="24"
                       Height="24"
@@ -147,7 +147,7 @@
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
-                  <DataTemplate DataType="folders:Piece">
+                  <DataTemplate DataType="folders:NamePart">
                     <TextBlock FontSize="13.5" Classes.hit="{Binding IsHit}" Text="{Binding Text}" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

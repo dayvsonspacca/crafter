@@ -13,7 +13,7 @@ public sealed partial class TextSegment(IClipboard clipboard) : ObservableObject
 
     partial void OnTextChanged(string value)
     {
-        var pieces = Messages.Pieces.Of(value);
+        var pieces = AnswerPieces.Of(value);
 
         for (var at = 0; at < pieces.Count; at++)
         {
