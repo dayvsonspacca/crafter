@@ -11,37 +11,7 @@
       <Setter Property="LetterSpacing" Value="1.2" />
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
-    <Style Selector="TextBlock.mono">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="11" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-    </Style>
 
-    <Style Selector="Button.primary, Button.ghost">
-      <Setter Property="Height" Value="34" />
-      <Setter Property="Padding" Value="14,0" />
-      <Setter Property="CornerRadius" Value="7" />
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>
-    <Style Selector="Button.primary">
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
-    </Style>
-    <Style Selector="Button.ghost">
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
-    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
-    </Style>
 
     <Style Selector="Border.recents">
       <Setter Property="CornerRadius" Value="10" />
@@ -79,21 +49,6 @@
     </Style>
     <Style Selector="TextBlock.action.open, Button.recent:pointerover TextBlock.action.open">
       <Setter Property="Foreground" Value="{DynamicResource AccentSecondaryBrush}" />
-    </Style>
-    <Style Selector="Ellipse.pulse">
-      <Style.Animations>
-        <Animation Duration="0:0:1.4" IterationCount="Infinite">
-          <KeyFrame Cue="0%">
-            <Setter Property="Opacity" Value="1" />
-          </KeyFrame>
-          <KeyFrame Cue="50%">
-            <Setter Property="Opacity" Value="0.35" />
-          </KeyFrame>
-          <KeyFrame Cue="100%">
-            <Setter Property="Opacity" Value="1" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
     </Style>
   </UserControl.Styles>
 

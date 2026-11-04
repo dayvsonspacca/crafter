@@ -84,26 +84,6 @@
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
-    <Style Selector="Button.ghost, Button.copy">
-      <Setter Property="Height" Value="34" />
-      <Setter Property="Padding" Value="14,0" />
-      <Setter Property="CornerRadius" Value="7" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>
-    <Style Selector="Button.copy">
-      <Setter Property="Height" Value="28" />
-      <Setter Property="Padding" Value="10,0" />
-      <Setter Property="CornerRadius" Value="5" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.copy:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
-    </Style>
 
     <Style Selector="Button.theme">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -317,7 +297,7 @@
                                          FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
                                          FontSize="13"
                                          Text="{Binding Remedy}" />
-                    <Button Grid.Column="1" Classes="copy" Content="Copy" Command="{Binding CopyRemedyCommand}" />
+                    <Button Grid.Column="1" Classes="chip" Content="Copy" Command="{Binding CopyRemedyCommand}" />
                   </Grid>
                 </Border>
 

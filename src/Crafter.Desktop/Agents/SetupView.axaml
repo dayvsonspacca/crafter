@@ -6,11 +6,6 @@
              IsVisible="{Binding NeedsSetup}"
              Background="{DynamicResource BackgroundBrush}">
   <UserControl.Styles>
-    <Style Selector="TextBlock.mono">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="11" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-    </Style>
     <Style Selector="TextBlock.name">
       <Setter Property="FontSize" Value="14" />
       <Setter Property="FontWeight" Value="SemiBold" />
@@ -113,39 +108,6 @@
       <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
     </Style>
 
-    <Style Selector="Button.primary, Button.ghost, Button.copy">
-      <Setter Property="Height" Value="34" />
-      <Setter Property="Padding" Value="14,0" />
-      <Setter Property="CornerRadius" Value="7" />
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>
-    <Style Selector="Button.primary">
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
-    </Style>
-    <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
-    </Style>
-    <Style Selector="Button.ghost, Button.copy">
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
-    <Style Selector="Button.copy">
-      <Setter Property="Height" Value="28" />
-      <Setter Property="Padding" Value="10,0" />
-      <Setter Property="CornerRadius" Value="5" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.copy:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
-    </Style>
   </UserControl.Styles>
 
   <ScrollViewer>
@@ -215,7 +177,7 @@
                                          FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
                                          FontSize="13"
                                          Text="{Binding Remedy}" />
-                    <Button Grid.Column="1" Classes="copy" Content="Copy" Command="{Binding CopyRemedyCommand}" />
+                    <Button Grid.Column="1" Classes="chip" Content="Copy" Command="{Binding CopyRemedyCommand}" />
                   </Grid>
                 </Border>
               </Grid>

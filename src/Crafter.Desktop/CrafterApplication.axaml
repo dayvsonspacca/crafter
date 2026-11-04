@@ -21,5 +21,6 @@
 
   <Application.Styles>
     <FluentTheme />
+    <StyleInclude Source="/Themes/Controls.axaml" />
   </Application.Styles>
 </Application>

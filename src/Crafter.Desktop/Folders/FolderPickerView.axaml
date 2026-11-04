@@ -7,10 +7,6 @@
              x:DataType="folders:FolderPickerViewModel"
              IsVisible="{Binding IsOpen}">
   <UserControl.Styles>
-    <Style Selector="TextBlock.mono">
-      <Setter Property="FontFamily" Value="JetBrainsMono Nerd Font, JetBrains Mono, monospace" />
-      <Setter Property="FontSize" Value="11" />
-    </Style>
     <Style Selector="TextBlock.dim">
       <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
