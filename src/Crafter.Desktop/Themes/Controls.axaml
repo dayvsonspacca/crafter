@@ -151,6 +151,12 @@
     <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
   </Style>
 
+  <!-- One of a pair of chips that switch a view, like Write and Preview: the one in use stands out. -->
+  <Style Selector="Button.chip.chosen">
+    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+  </Style>
+
   <!-- A borderless symbol button, 28 by 28. -->
   <Style Selector="Button.icon">
     <Setter Property="Width" Value="{StaticResource Control}" />
@@ -252,6 +258,14 @@
   <Style Selector="Border.prose-code, Border.prose-table">
     <Setter Property="CornerRadius" Value="9" />
     <Setter Property="ClipToBounds" Value="True" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+  </Style>
+  <!-- Markdown drawn inside a frame: a summary's preview, or a markdown block in an answer. -->
+  <Style Selector="Border.prose-preview">
+    <Setter Property="Padding" Value="16,14" />
+    <Setter Property="CornerRadius" Value="9" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
     <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />

@@ -149,5 +149,23 @@ public sealed class ProjectDetailsViewModelTest : IDisposable
         Assert.False(details.InheritCommand.CanExecute(null));
     }
 
+    [Fact]
+    public void PreviewsTheSummaryWithoutTouchingIt()
+    {
+        var details = new ProjectDetailsViewModel(Crafter, editor, new ScriptedPicker(null));
+        Assert.True(details.IsWriting);
+
+        details.Summary = "# Crafter";
+        details.PreviewCommand.Execute(null);
+
+        Assert.True(details.IsPreviewing);
+        Assert.False(details.IsWriting);
+        Assert.Equal("# Crafter", details.Summary);
+
+        details.WriteCommand.Execute(null);
+
+        Assert.True(details.IsWriting);
+    }
+
     public void Dispose() => Directory.Delete(folder, recursive: true);
 }

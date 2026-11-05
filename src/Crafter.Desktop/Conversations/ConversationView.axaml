@@ -653,12 +653,24 @@
                           <DataTemplate DataType="messages:SummaryProposalItemViewModel">
                             <Border Classes="approval" Classes.open="{Binding IsOpen}">
                               <StackPanel Spacing="10">
-                                <TextBlock FontSize="{StaticResource FontSizeBody}" Text="{Binding Asking}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                  <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" VerticalAlignment="Center" Text="{Binding Asking}" />
+                                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                    <Button Classes="chip" Classes.chosen="{Binding ShowsPreview}" Content="Preview" Command="{Binding ShowPreviewCommand}" />
+                                    <Button Classes="chip" Classes.chosen="{Binding ShowsChanges}" Content="Changes" Command="{Binding ShowChangesCommand}" />
+                                  </StackPanel>
+                                </Grid>
+                                <Border Classes="prose-preview" IsVisible="{Binding ShowsPreview}">
+                                  <ScrollViewer MaxHeight="420" HorizontalScrollBarVisibility="Disabled">
+                                    <prose:ProseView Markdown="{Binding Proposed}" />
+                                  </ScrollViewer>
+                                </Border>
                                 <Border Padding="12,9"
                                         CornerRadius="7"
                                         BorderThickness="1"
                                         BorderBrush="{DynamicResource BorderBrush}"
-                                        Background="{DynamicResource BackgroundBrush}">
+                                        Background="{DynamicResource BackgroundBrush}"
+                                        IsVisible="{Binding ShowsChanges}">
                                   <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
                                     <ItemsControl ItemsSource="{Binding Lines}">
                                       <ItemsControl.ItemTemplate>

@@ -3,6 +3,7 @@
              xmlns:projects="using:Crafter.Desktop.Projects"
              xmlns:desks="using:Crafter.Presentation.Desks"
              xmlns:pages="using:Crafter.Presentation.Projects"
+             xmlns:prose="using:Crafter.Desktop.Prose"
              x:Class="Crafter.Desktop.Desks.ProjectOverviewView"
              x:DataType="desks:ProjectOverviewViewModel">
   <UserControl.Styles>
@@ -191,9 +192,13 @@
                 </StackPanel>
 
                 <StackPanel Spacing="8">
-                  <Grid ColumnDefinitions="*,Auto">
+                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
                     <TextBlock Classes="label" Text="Summary" />
                     <Button Grid.Column="1" Classes="chip" Content="{Binding InheritLabel}" Command="{Binding InheritCommand}" IsVisible="{Binding CanInherit}" />
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                      <Button Classes="chip" Classes.chosen="{Binding IsWriting}" Content="Write" Command="{Binding WriteCommand}" />
+                      <Button Classes="chip" Classes.chosen="{Binding IsPreviewing}" Content="Preview" Command="{Binding PreviewCommand}" />
+                    </StackPanel>
                   </Grid>
                   <TextBlock Classes="about" Text="What the project is, read by its agent before every chat. Rules go in its axioms. A chat takes a change when its session starts again." />
                   <TextBox MinHeight="260"
@@ -201,8 +206,12 @@
                            TextWrapping="Wrap"
                            VerticalContentAlignment="Top"
                            Text="{Binding Summary}"
-                           PlaceholderText="What it is, its stack, how it is laid out and the commands it runs with."
-                           AutomationProperties.Name="Summary" />
+                           PlaceholderText="What it is, its stack, how it is laid out and the commands it runs with. Markdown reads drawn in Preview."
+                           AutomationProperties.Name="Summary"
+                           IsVisible="{Binding IsWriting}" />
+                  <Border Classes="prose-preview" MinHeight="260" IsVisible="{Binding IsPreviewing}">
+                    <prose:ProseView Markdown="{Binding Summary}" />
+                  </Border>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">

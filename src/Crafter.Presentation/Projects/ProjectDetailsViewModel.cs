@@ -49,6 +49,13 @@ public sealed partial class ProjectDetailsViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(InheritCommand), nameof(SaveCommand), nameof(DiscardCommand))]
     public partial string Summary { get; set; }
 
+    // The summary is markdown: written in the field, read back drawn.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsWriting))]
+    public partial bool IsPreviewing { get; private set; }
+
+    public bool IsWriting => !IsPreviewing;
+
     // A project that brings its agents' own instructions file can start its summary from it.
     public bool CanInherit => instructions is not null && Summary.Trim().Length == 0;
 
@@ -84,6 +91,12 @@ public sealed partial class ProjectDetailsViewModel : ObservableObject
             Changed();
         }
     }
+
+    [RelayCommand]
+    private void Write() => IsPreviewing = false;
+
+    [RelayCommand]
+    private void Preview() => IsPreviewing = true;
 
     [RelayCommand(CanExecute = nameof(CanSave))]
     private void Save()

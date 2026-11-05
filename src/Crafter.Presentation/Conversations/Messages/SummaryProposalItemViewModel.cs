@@ -15,7 +15,16 @@ public sealed partial class SummaryProposalItemViewModel(string agent, string pr
         ? $"{agent} proposes a summary for {project}"
         : $"{agent} proposes a new summary for {project}";
 
+    public string Proposed { get; } = proposed;
+
     public IReadOnlyList<SummaryLine> Lines { get; } = SummaryLine.Between(current, proposed);
+
+    // The card shows the summary drawn, as the agent will read it; its changes line by line on demand.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsPreview))]
+    public partial bool ShowsChanges { get; private set; }
+
+    public bool ShowsPreview => !ShowsChanges;
 
     public bool IsOpen => Verdict is null;
 
@@ -33,6 +42,12 @@ public sealed partial class SummaryProposalItemViewModel(string agent, string pr
             decision.TrySetResult(false);
         }
     }
+
+    [RelayCommand]
+    private void ShowPreview() => ShowsChanges = false;
+
+    [RelayCommand]
+    private void ShowChanges() => ShowsChanges = true;
 
     [RelayCommand]
     private void Approve() => Decide(true, "Approved · the project keeps it now");
