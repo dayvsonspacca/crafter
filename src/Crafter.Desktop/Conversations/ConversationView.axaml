@@ -74,8 +74,6 @@
     </Style>
 
     <Style Selector="TextBox.feedback">
-      <Setter Property="FontSize" Value="13" />
-      <Setter Property="MinHeight" Value="34" />
       <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style Selector="Button.pick">

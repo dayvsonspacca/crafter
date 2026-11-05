@@ -130,18 +130,7 @@
 
     <Style Selector="ComboBox.choice">
       <Setter Property="MinWidth" Value="260" />
-      <Setter Property="Height" Value="{StaticResource ControlLarge}" />
-      <Setter Property="Padding" Value="12,0,10,0" />
-      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
-      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
       <Setter Property="MaxDropDownHeight" Value="260" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-    </Style>
-    <Style Selector="ComboBox.choice:pointerover /template/ Border#Background">
-      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource ForegroundMutedBrush}" />
     </Style>
   </UserControl.Styles>
 
