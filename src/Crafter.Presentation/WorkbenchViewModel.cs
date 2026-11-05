@@ -19,7 +19,7 @@ using Crafter.Presentation.Status;
 
 namespace Crafter.Presentation;
 
-public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
+public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper, IProjectEditor
 {
     private readonly Bookshelf bookshelf;
 
@@ -56,15 +56,15 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         Setup = setup;
         Preferences = preferencesScreen;
         Status = status;
-        Brief = new ProjectBriefViewModel(Preferences.Library, (project, skill) => bookshelf.Has(project, skill.Id), Give, AxiomsOf, Hold, Drop);
-        Preferences.Library.Changed += (_, _) => Recount();
-        Status.BriefWanted += (_, _) =>
+        Preferences.Library.Changed += (_, _) =>
         {
-            if (Current is { } current && current != Home)
+            Recount();
+            foreach (var desk in desks.Values)
             {
-                Brief.Open(current);
+                desk.Overview.Brief?.Stock();
             }
         };
+        Status.BriefWanted += (_, _) => Show(ProjectTab.Skills);
         Preferences.PropertyChanged += Follow;
         Setup.PropertyChanged += Follow;
         if (!Setup.IsPicking)
@@ -90,8 +90,6 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public SetupViewModel Setup { get; }
 
     public StatusBarViewModel Status { get; }
-
-    public ProjectBriefViewModel Brief { get; }
 
     public ObservableCollection<ShelfItemViewModel> Shelf { get; } = [];
 
@@ -169,7 +167,13 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
         if (!desks.TryGetValue(project, out var desk))
         {
-            desk = deskFactory.Make(project, project == Home ? null : Edit, () => SkillsFor(project));
+            desk = project == Home
+                ? deskFactory.Make(project, skills: () => SkillsFor(project))
+                : deskFactory.Make(
+                    project,
+                    new ProjectDetailsViewModel(project, this, Picker),
+                    new ProjectBriefViewModel(project, Preferences.Library, (shown, skill) => bookshelf.Has(shown, skill.Id), Give, AxiomsOf, Hold, Drop),
+                    () => SkillsFor(project));
             desks[project] = desk;
         }
 
@@ -227,23 +231,28 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     public Task CopyPath(Project project) => clipboard.Copy(project.Folder);
 
-    public async Task Edit(Project project)
+    // A project is edited on its own page, in its Details tab.
+    public Task Edit(Project project)
     {
-        if (project == Home)
+        if (project != Home)
         {
-            return;
+            Open(project);
+            Show(ProjectTab.Details);
         }
 
-        if (await Namer.Edit(project, bookshelf.SummaryOf(project), bookshelf.InstructionsIn(project)) is not Named named)
+        return Task.CompletedTask;
+    }
+
+    public AgentInstructions? InstructionsIn(Project project) => bookshelf.InstructionsIn(project);
+
+    public Project Save(Project project, ProjectName name, IconChange icon, string? summary)
+    {
+        if (summary is not null)
         {
-            return;
+            bookshelf.Summarize(project, summary);
         }
 
-        var edited = Apply(project, named.Name, named.Icon);
-        if (named.Summary is { } summary)
-        {
-            Summarize(edited, summary);
-        }
+        return Apply(project, name, icon);
     }
 
     public IReadOnlyList<Project> Projects => bookshelf.Projects;
@@ -275,7 +284,16 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
     public string? SummaryOf(Project project) => bookshelf.SummaryOf(project);
 
     // A new summary reaches the project's chats when their sessions start again.
-    public bool Summarize(Project project, string summary) => bookshelf.Summarize(project, summary);
+    public bool Summarize(Project project, string summary)
+    {
+        var changed = bookshelf.Summarize(project, summary);
+        if (changed && desks.GetValueOrDefault(project)?.Overview.Details is { } details)
+        {
+            details.Describe(project);
+        }
+
+        return changed;
+    }
 
     // A new axiom reaches the project's chats when their sessions start again.
     public bool Hold(Project project, string axiom) => Changed(project, bookshelf.Hold(project, axiom));
@@ -293,10 +311,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
         if (changed)
         {
             Recount();
-            if (Brief.IsOpen && Brief.Project == project)
-            {
-                Brief.Recall();
-            }
+            desks.GetValueOrDefault(project)?.Overview.Brief?.Recall();
         }
 
         return changed;
@@ -362,6 +377,16 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper
 
     [RelayCommand]
     private void GoHome() => Open(Home);
+
+    // Brings the page of the project in front forward, on one of its tabs.
+    private void Show(ProjectTab tab)
+    {
+        if (Desk is { } desk && desk.Project != Home)
+        {
+            desk.ShowOverview();
+            desk.Overview.Show(tab);
+        }
+    }
 
     [RelayCommand]
     private Task EditCurrent() => Current is { } project ? Edit(project) : Task.CompletedTask;

@@ -157,7 +157,7 @@ public sealed class WorkbenchViewModelTest : IDisposable
             bookshelf,
             preferences,
             picker,
-            new ProjectNamerViewModel(picker),
+            new ProjectNamerViewModel(),
             setup,
             new PreferencesViewModel(preferences, picker, setup, new ThemesInMemory(), new LibraryViewModel(preferences, new LibraryInMemory(), time)),
             new DeskFactory(new ChatsInMemory(), crew, preferences, clipboard, time),

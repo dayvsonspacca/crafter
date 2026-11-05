@@ -57,7 +57,7 @@ public static class Composition
             bookshelf,
             preferences,
             picker,
-            new ProjectNamerViewModel(picker),
+            new ProjectNamerViewModel(),
             setup,
             new PreferencesViewModel(preferences, picker, setup, new AvaloniaThemeSwitcher(), library),
             new DeskFactory(new JsonChatStore(Path.Combine(Data, "chats")), crew, preferences, clipboard, time),

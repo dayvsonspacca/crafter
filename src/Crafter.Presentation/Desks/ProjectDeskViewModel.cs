@@ -10,6 +10,7 @@ using Crafter.Core.Projects;
 using Crafter.Presentation.Conversations;
 using Crafter.Presentation.Conversations.Composing;
 using Crafter.Presentation.Platform;
+using Crafter.Presentation.Projects;
 
 namespace Crafter.Presentation.Desks;
 
@@ -34,7 +35,8 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
         IChatStore store,
         Crew crew,
         PreferenceBook preferences,
-        Func<Project, Task>? edit,
+        ProjectDetailsViewModel? details,
+        ProjectBriefViewModel? brief,
         IClipboard clipboard,
         TimeProvider time,
         Func<IReadOnlyList<Skill>>? skills = null)
@@ -55,7 +57,7 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
             Add(new Chat(record.Id, agent.Id, record.Title, conversation), agent);
         }
 
-        Overview = new ProjectOverviewViewModel(this, crew, edit, time);
+        Overview = new ProjectOverviewViewModel(this, crew, details, brief, time);
     }
 
     public Project Project { get; private set; }

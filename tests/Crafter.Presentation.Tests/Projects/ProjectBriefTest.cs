@@ -7,6 +7,7 @@ using Crafter.Presentation.Desks;
 using Crafter.Presentation.Folders;
 using Crafter.Presentation.Library;
 using Crafter.Presentation.Preferences;
+using Crafter.Presentation.Projects;
 using Crafter.Presentation.Projects.Namer;
 using Crafter.Presentation.Status;
 using Crafter.Presentation.Tests.Fakes;
@@ -51,7 +52,7 @@ public sealed class ProjectBriefTest : IDisposable
         library = new LibraryViewModel(preferences, new LibraryInMemory { Contents = new LibraryContents([Commit, Migrations], []) }, time);
         workbench = new WorkbenchViewModel(
             new Project(Directory.CreateDirectory(Path.Combine(home, "home")).FullName, new ProjectName("Home")),
-            bookshelf, preferences, picker, new ProjectNamerViewModel(picker), setup,
+            bookshelf, preferences, picker, new ProjectNamerViewModel(), setup,
             new PreferencesViewModel(preferences, picker, setup, new ThemesInMemory(), library),
             new DeskFactory(new ChatsInMemory(), crew, preferences, clipboard, time), clipboard,
             new StatusBarViewModel(new Branches(), time));
@@ -77,7 +78,7 @@ public sealed class ProjectBriefTest : IDisposable
     {
         workbench.Status.ShowBriefCommand.Execute(null);
 
-        workbench.Brief.Skills.Single(choice => choice.Skill == Migrations).IsGiven = true;
+        Brief.Skills.Single(choice => choice.Skill == Migrations).IsGiven = true;
 
         Assert.Equal([Migrations], workbench.SkillsFor(crafter));
         Assert.Empty(workbench.SkillsFor(lorekeeper));
@@ -94,18 +95,22 @@ public sealed class ProjectBriefTest : IDisposable
 
         Assert.Equal([Commit], workbench.SkillsFor(workbench.Home));
         Assert.False(workbench.Status.ShowsBrief);
-        Assert.False(workbench.Brief.IsOpen);
+        Assert.True(Overview.IsHome);
+        Assert.Null(Overview.Brief);
+        Assert.True(Overview.ShowsChats);
     }
 
     [Fact]
-    public void AProjectHasItsSkillsToChoose()
+    public void TheStatusBarOpensTheProjectsSkills()
     {
+        workbench.NewChatCommand.Execute(null);
+        Assert.False(workbench.Desk!.ShowsOverview);
+
         workbench.Status.ShowBriefCommand.Execute(null);
 
-        Assert.True(workbench.Status.ShowsBrief);
-        Assert.True(workbench.Brief.IsOpen);
-        Assert.Equal("Crafter", workbench.Brief.Title);
-        Assert.True(workbench.Brief.ShowsSkills);
+        Assert.True(workbench.Desk.ShowsOverview);
+        Assert.True(Overview.ShowsSkills);
+        Assert.Equal(2, Brief.Skills.Count);
     }
 
     [Fact]
@@ -121,19 +126,19 @@ public sealed class ProjectBriefTest : IDisposable
     }
 
     [Fact]
-    public void TheSkillsWindowShowsADefaultTickedAndFixed()
+    public void TheSkillsTabShowsADefaultTickedAndFixed()
     {
         library.MakeDefault(Commit, isDefault: true);
 
-        workbench.Status.ShowBriefCommand.Execute(null);
+        Overview.ShowSkillsCommand.Execute(null);
 
-        var commit = workbench.Brief.Skills.Single(choice => choice.Skill == Commit);
+        var commit = Brief.Skills.Single(choice => choice.Skill == Commit);
         Assert.True(commit.IsDefault);
         Assert.True(commit.IsGiven);
         Assert.False(commit.CanChange);
         Assert.True(library.Entries.Single(entry => entry.Skill == Commit).IsDefault);
 
-        var migrations = workbench.Brief.Skills.Single(choice => choice.Skill == Migrations);
+        var migrations = Brief.Skills.Single(choice => choice.Skill == Migrations);
         Assert.False(migrations.IsGiven);
         Assert.True(migrations.CanChange);
     }
@@ -151,105 +156,110 @@ public sealed class ProjectBriefTest : IDisposable
     }
 
     [Fact]
-    public void AddsAndRemovesAxiomsFromTheWindow()
+    public void AddsAndRemovesAxiomsOnTheirTab()
     {
-        workbench.Status.ShowBriefCommand.Execute(null);
-        workbench.Brief.ShowAxiomsTabCommand.Execute(null);
-        Assert.True(workbench.Brief.ShowsAxioms);
-        Assert.False(workbench.Brief.AddAxiomCommand.CanExecute(null));
+        Overview.ShowAxiomsCommand.Execute(null);
+        Assert.True(Overview.ShowsAxioms);
+        Assert.False(Brief.AddAxiomCommand.CanExecute(null));
 
-        workbench.Brief.NewAxiom = "Never add comments";
-        workbench.Brief.AddAxiomCommand.Execute(null);
+        Brief.NewAxiom = "Never add comments";
+        Brief.AddAxiomCommand.Execute(null);
 
-        Assert.Equal(["Never add comments"], workbench.Brief.Axioms.Select(axiom => axiom.Text));
-        Assert.Equal(string.Empty, workbench.Brief.NewAxiom);
+        Assert.Equal(["Never add comments"], Brief.Axioms.Select(axiom => axiom.Text));
+        Assert.Equal(string.Empty, Brief.NewAxiom);
         Assert.Equal(["Never add comments"], workbench.AxiomsOf(crafter));
         Assert.Empty(workbench.AxiomsOf(lorekeeper));
         Assert.Equal("1 axiom", workbench.Status.BriefLabel);
 
-        workbench.Brief.Axioms[0].DropCommand.Execute(null);
+        Brief.Axioms[0].DropCommand.Execute(null);
 
-        Assert.Empty(workbench.Brief.Axioms);
+        Assert.Empty(Brief.Axioms);
         Assert.Empty(workbench.AxiomsOf(crafter));
         Assert.Equal("No skills or axioms", workbench.Status.BriefLabel);
     }
 
     [Fact]
-    public void TheOpenWindowShowsAnAxiomHeldFromElsewhere()
+    public void TheAxiomsTabShowsAnAxiomHeldFromElsewhere()
     {
-        workbench.Status.ShowBriefCommand.Execute(null);
+        Overview.ShowAxiomsCommand.Execute(null);
 
         workbench.Hold(crafter, "Always write tests");
 
-        Assert.Equal(["Always write tests"], workbench.Brief.Axioms.Select(axiom => axiom.Text));
-        Assert.True(workbench.Brief.HasAxioms);
+        Assert.Equal(["Always write tests"], Brief.Axioms.Select(axiom => axiom.Text));
+        Assert.True(Brief.HasAxioms);
     }
 
     [Fact]
-    public async Task EditingAProjectWritesItsSummary()
+    public async Task EditingAProjectOpensItsDetails()
     {
-        var editing = workbench.Edit(crafter);
-        Assert.True(workbench.Namer.IsOpen);
-        Assert.Equal(string.Empty, workbench.Namer.Summary);
+        workbench.Open(lorekeeper);
 
-        workbench.Namer.Summary = " Crafter is my IDE for coding with AI agents. ";
-        workbench.Namer.Finish();
-        await editing;
+        await workbench.Edit(crafter);
+
+        Assert.Equal(crafter, workbench.Current);
+        Assert.True(workbench.Desk!.ShowsOverview);
+        Assert.True(Overview.ShowsDetails);
+        Assert.False(workbench.Namer.IsOpen);
+    }
+
+    [Fact]
+    public void SavingTheDetailsRenamesTheProjectAndWritesItsSummary()
+    {
+        Details.Name = "Crafter IDE";
+        Details.Summary = " Crafter is my IDE for coding with AI agents. ";
+        Details.SaveCommand.Execute(null);
 
         Assert.Equal("Crafter is my IDE for coding with AI agents.", workbench.SummaryOf(crafter));
         Assert.Null(workbench.SummaryOf(lorekeeper));
+        Assert.Equal("Crafter IDE", workbench.Current!.Name.Text);
+        Assert.Equal("Crafter IDE", Overview.Name);
+        Assert.Contains(workbench.Shelf, item => item.Project.Name.Text == "Crafter IDE");
 
-        editing = workbench.Edit(crafter);
-        Assert.Equal("Crafter is my IDE for coding with AI agents.", workbench.Namer.Summary);
-        workbench.Namer.Summary = string.Empty;
-        workbench.Namer.Finish();
-        await editing;
+        Details.Summary = string.Empty;
+        Details.SaveCommand.Execute(null);
 
         Assert.Null(workbench.SummaryOf(crafter));
     }
 
     [Fact]
-    public async Task CancellingTheEditKeepsTheSummary()
+    public void DiscardingTheDetailsKeepsTheSummary()
     {
         workbench.Summarize(crafter, "Crafter is my IDE.");
 
-        var editing = workbench.Edit(crafter);
-        workbench.Namer.Summary = "Something else";
-        workbench.Namer.Back();
-        await editing;
+        Details.Summary = "Something else";
+        Details.DiscardCommand.Execute(null);
 
+        Assert.Equal("Crafter is my IDE.", Details.Summary);
         Assert.Equal("Crafter is my IDE.", workbench.SummaryOf(crafter));
     }
 
     [Fact]
-    public async Task StartsTheSummaryFromTheInstructionsFileTheProjectBrings()
+    public void AnApprovedSummaryShowsInTheDetailsRightAway()
     {
-        settings.Instructions[crafter.Folder] = new AgentInstructions("CLAUDE.md", "Crafter is my IDE.");
+        workbench.Summarize(crafter, "Crafter is my IDE.");
 
-        var editing = workbench.Edit(crafter);
-
-        Assert.True(workbench.Namer.CanInherit);
-        Assert.Equal("Start from CLAUDE.md", workbench.Namer.InheritLabel);
-
-        workbench.Namer.InheritCommand.Execute(null);
-
-        Assert.Equal("Crafter is my IDE.", workbench.Namer.Summary);
-        Assert.False(workbench.Namer.CanInherit);
-        Assert.Null(workbench.SummaryOf(crafter));
-
-        workbench.Namer.Finish();
-        await editing;
-        Assert.Equal("Crafter is my IDE.", workbench.SummaryOf(crafter));
+        Assert.Equal("Crafter is my IDE.", Details.Summary);
+        Assert.False(Details.IsChanged);
     }
 
     [Fact]
-    public void OffersNoInstructionsFileToAProjectWithoutOne()
+    public void StartsTheSummaryFromTheInstructionsFileTheProjectBrings()
     {
-        _ = workbench.Edit(crafter);
+        settings.Instructions[lorekeeper.Folder] = new AgentInstructions("CLAUDE.md", "Lorekeeper keeps lore.");
 
-        Assert.False(workbench.Namer.CanInherit);
-        Assert.False(workbench.Namer.InheritCommand.CanExecute(null));
+        workbench.Open(lorekeeper);
+
+        Assert.Equal("Start from CLAUDE.md", Details.InheritLabel);
+        Details.InheritCommand.Execute(null);
+        Details.SaveCommand.Execute(null);
+        Assert.Equal("Lorekeeper keeps lore.", workbench.SummaryOf(lorekeeper));
     }
+
+    private ProjectOverviewViewModel Overview => workbench.Desk!.Overview;
+
+    private ProjectBriefViewModel Brief => Overview.Brief!;
+
+    private ProjectDetailsViewModel Details => Overview.Details!;
 
     public void Dispose() => Directory.Delete(home, recursive: true);
 

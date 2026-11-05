@@ -2,11 +2,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:projects="using:Crafter.Desktop.Projects"
              xmlns:desks="using:Crafter.Presentation.Desks"
+             xmlns:pages="using:Crafter.Presentation.Projects"
              x:Class="Crafter.Desktop.Desks.ProjectOverviewView"
              x:DataType="desks:ProjectOverviewViewModel">
   <UserControl.Styles>
-
-
+    <Style Selector="TextBlock.about">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.row">
+      <Setter Property="Padding" Value="0,12" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
     <Style Selector="Border.recents">
       <Setter Property="CornerRadius" Value="{StaticResource RadiusContainer}" />
       <Setter Property="BorderThickness" Value="1" />
@@ -47,7 +61,7 @@
 
   <ScrollViewer>
     <StackPanel MaxWidth="760" Margin="24,48,24,32" Spacing="{StaticResource Space8}">
-      <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="{StaticResource Space4}">
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource Space4}">
         <Border Width="64"
                 Height="64"
                 CornerRadius="14"
@@ -82,52 +96,189 @@
                    FontWeight="SemiBold"
                    TextTrimming="CharacterEllipsis"
                    Text="{Binding Name}" />
-        <Button Grid.Column="2" Classes="ghost" Content="Edit" Command="{Binding EditCommand}" IsVisible="{Binding !IsHome}" />
-        <Button Grid.Column="3" Classes="primary" Content="New chat" Command="{Binding NewChatCommand}" />
+        <Button Grid.Column="2" Classes="primary" Content="New chat" Command="{Binding NewChatCommand}" />
       </Grid>
 
-      <StackPanel Spacing="{StaticResource Space2}">
-        <Grid ColumnDefinitions="*,Auto" Margin="4,0">
-          <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Recent chats" />
-          <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Count}" />
-        </Grid>
-        <Border Classes="recents" IsVisible="{Binding HasRecent}">
-          <ItemsControl ItemsSource="{Binding Recent}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="desks:RecentChatViewModel">
-                <Button Classes="recent"
-                        Classes.last="{Binding IsLast}"
-                        Command="{Binding $parent[UserControl].((desks:ProjectOverviewViewModel)DataContext).ResumeCommand}"
-                        CommandParameter="{Binding}"
-                        AutomationProperties.Name="{Binding Title}">
-                  <Grid ColumnDefinitions="10,*,Auto" ColumnSpacing="14">
-                    <Panel Width="7" Height="7" VerticalAlignment="Center">
-                      <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsCrafting}" />
-                      <Ellipse Fill="{DynamicResource AccentSecondaryBrush}" IsVisible="{Binding IsUnread}" />
-                      <Ellipse Stroke="{DynamicResource IdleBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
-                    </Panel>
-                    <StackPanel Grid.Column="1" Spacing="3">
-                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                        <TextBlock FontSize="{StaticResource FontSizeContent}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
-                        <TextBlock Grid.Column="1" Classes="mono" Text="{Binding When}" />
-                      </Grid>
-                      <TextBlock FontSize="{StaticResource FontSizeBody}"
-                                 TextTrimming="CharacterEllipsis"
-                                 Foreground="{DynamicResource ForegroundMutedBrush}"
-                                 Text="{Binding Last}" />
-                    </StackPanel>
-                    <TextBlock Grid.Column="2" Classes="action" Classes.open="{Binding IsOpen}" Text="{Binding Action}" />
-                  </Grid>
-                </Button>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+      <StackPanel Spacing="{StaticResource Space6}">
+        <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}" IsVisible="{Binding !IsHome}">
+          <StackPanel Orientation="Horizontal" Spacing="20">
+            <Button Classes="tab" Classes.chosen="{Binding ShowsChats}" Content="Chats" Command="{Binding ShowChatsCommand}" />
+            <Button Classes="tab" Classes.chosen="{Binding ShowsDetails}" Content="Details" Command="{Binding ShowDetailsCommand}" />
+            <Button Classes="tab" Classes.chosen="{Binding ShowsSkills}" Content="Skills" Command="{Binding ShowSkillsCommand}" />
+            <Button Classes="tab" Classes.chosen="{Binding ShowsAxioms}" Content="Axioms" Command="{Binding ShowAxiomsCommand}" />
+          </StackPanel>
         </Border>
-        <TextBlock Margin="4,0"
-                   FontSize="{StaticResource FontSizeBody}"
-                   Foreground="{DynamicResource ForegroundMutedBrush}"
-                   Text="No chats yet. Start one with New chat or Ctrl+T."
-                   IsVisible="{Binding !HasRecent}" />
+
+        <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding ShowsChats}">
+          <Grid ColumnDefinitions="*,Auto" Margin="4,0">
+            <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Recent chats" />
+            <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Count}" />
+          </Grid>
+          <Border Classes="recents" IsVisible="{Binding HasRecent}">
+            <ItemsControl ItemsSource="{Binding Recent}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="desks:RecentChatViewModel">
+                  <Button Classes="recent"
+                          Classes.last="{Binding IsLast}"
+                          Command="{Binding $parent[UserControl].((desks:ProjectOverviewViewModel)DataContext).ResumeCommand}"
+                          CommandParameter="{Binding}"
+                          AutomationProperties.Name="{Binding Title}">
+                    <Grid ColumnDefinitions="10,*,Auto" ColumnSpacing="14">
+                      <Panel Width="7" Height="7" VerticalAlignment="Center">
+                        <Ellipse Classes="pulse" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsCrafting}" />
+                        <Ellipse Fill="{DynamicResource AccentSecondaryBrush}" IsVisible="{Binding IsUnread}" />
+                        <Ellipse Stroke="{DynamicResource IdleBrush}" StrokeThickness="1" IsVisible="{Binding IsIdle}" />
+                      </Panel>
+                      <StackPanel Grid.Column="1" Spacing="3">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                          <TextBlock FontSize="{StaticResource FontSizeContent}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Text="{Binding Title}" />
+                          <TextBlock Grid.Column="1" Classes="mono" Text="{Binding When}" />
+                        </Grid>
+                        <TextBlock FontSize="{StaticResource FontSizeBody}"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource ForegroundMutedBrush}"
+                                   Text="{Binding Last}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Classes="action" Classes.open="{Binding IsOpen}" Text="{Binding Action}" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Border>
+          <TextBlock Margin="4,0"
+                     FontSize="{StaticResource FontSizeBody}"
+                     Foreground="{DynamicResource ForegroundMutedBrush}"
+                     Text="No chats yet. Start one with New chat or Ctrl+T."
+                     IsVisible="{Binding !HasRecent}" />
+        </StackPanel>
+
+        <ContentControl Content="{Binding Details}" IsVisible="{Binding ShowsDetails}">
+          <ContentControl.ContentTemplate>
+            <DataTemplate x:DataType="pages:ProjectDetailsViewModel">
+              <StackPanel Spacing="22">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="label" Text="Name" />
+                  <TextBlock Classes="about" Text="How Crafter shows this project." />
+                  <TextBox MaxWidth="420" HorizontalAlignment="Left" MinWidth="420" Text="{Binding Name}" AutomationProperties.Name="Name" />
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="label" Text="Icon" />
+                  <TextBlock Classes="about" Text="Any image. Crafter keeps a copy in the project." />
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Border Width="44"
+                            Height="44"
+                            CornerRadius="10"
+                            ClipToBounds="True"
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            Background="{DynamicResource SurfaceBrush}">
+                      <Panel>
+                        <Image Source="{Binding PreviewFile, Converter={x:Static projects:IconFileConverter.Instance}}" Stretch="UniformToFill" IsVisible="{Binding HasPreview}" />
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="{StaticResource MonoFont}"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Text="{Binding Letter}"
+                                   IsVisible="{Binding !HasPreview}" />
+                      </Panel>
+                    </Border>
+                    <Button Classes="ghost" VerticalAlignment="Center" Content="Choose…" Command="{Binding ChooseIconCommand}" />
+                    <Button Classes="ghost" VerticalAlignment="Center" Content="Remove" Command="{Binding RemoveIconCommand}" IsVisible="{Binding HasPreview}" />
+                  </StackPanel>
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="label" Text="Summary" />
+                    <Button Grid.Column="1" Classes="chip" Content="{Binding InheritLabel}" Command="{Binding InheritCommand}" IsVisible="{Binding CanInherit}" />
+                  </Grid>
+                  <TextBlock Classes="about" Text="What the project is, read by its agent before every chat. Rules go in its axioms. A chat takes a change when its session starts again." />
+                  <TextBox MinHeight="260"
+                           AcceptsReturn="True"
+                           TextWrapping="Wrap"
+                           VerticalContentAlignment="Top"
+                           Text="{Binding Summary}"
+                           PlaceholderText="What it is, its stack, how it is laid out and the commands it runs with."
+                           AutomationProperties.Name="Summary" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                  <Button Classes="ghost" Content="Discard" Command="{Binding DiscardCommand}" />
+                  <Button Classes="primary" Content="Save" Command="{Binding SaveCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </DataTemplate>
+          </ContentControl.ContentTemplate>
+        </ContentControl>
+
+        <ContentControl Content="{Binding Brief}" IsVisible="{Binding ShowsSkills}">
+          <ContentControl.ContentTemplate>
+            <DataTemplate x:DataType="pages:ProjectBriefViewModel">
+              <StackPanel Spacing="12">
+                <TextBlock Classes="about" Text="Library skills this project's agent gets. Defaults come from Preferences → Library and reach every project; tick others for this one. Call a skill in a chat with /." />
+                <TextBlock Classes="about" Text="The library has no skills yet." IsVisible="{Binding !HasSkills}" />
+                <ItemsControl ItemsSource="{Binding Skills}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="pages:SkillChoiceViewModel">
+                      <Border Classes="row">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                          <CheckBox IsChecked="{Binding IsGiven}" IsEnabled="{Binding CanChange}" AutomationProperties.Name="{Binding Skill.Name}">
+                            <StackPanel Spacing="2">
+                              <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="{Binding Skill.Name}" />
+                              <TextBlock Classes="about" Text="{Binding Skill.Description}" />
+                            </StackPanel>
+                          </CheckBox>
+                          <TextBlock Grid.Column="1" Classes="mono" VerticalAlignment="Top" Text="default" IsVisible="{Binding IsDefault}" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ContentControl.ContentTemplate>
+        </ContentControl>
+
+        <ContentControl Content="{Binding Brief}" IsVisible="{Binding ShowsAxioms}">
+          <ContentControl.ContentTemplate>
+            <DataTemplate x:DataType="pages:ProjectBriefViewModel">
+              <StackPanel Spacing="12">
+                <TextBlock Classes="about" Text="Rules this project's agent follows in every chat. The agent can propose one; you approve it in the chat. A chat takes a change when its session starts again." />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                  <TextBox Text="{Binding NewAxiom}" PlaceholderText="A rule the agent always follows" AutomationProperties.Name="New axiom">
+                    <TextBox.KeyBindings>
+                      <KeyBinding Gesture="Enter" Command="{Binding AddAxiomCommand}" />
+                    </TextBox.KeyBindings>
+                  </TextBox>
+                  <Button Grid.Column="1" Classes="primary" Content="Add" Command="{Binding AddAxiomCommand}" />
+                </Grid>
+                <TextBlock Classes="about" Text="No axioms yet." IsVisible="{Binding !HasAxioms}" />
+                <ItemsControl ItemsSource="{Binding Axioms}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="pages:AxiomViewModel">
+                      <Border Classes="row">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                          <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" FontSize="{StaticResource FontSizeBody}" Text="{Binding Text}" />
+                          <Button Grid.Column="1"
+                                  Classes="icon"
+                                  VerticalAlignment="Center"
+                                  Command="{Binding DropCommand}"
+                                  ToolTip.Tip="Remove"
+                                  AutomationProperties.Name="Remove axiom">
+                            <Path Data="M4,4 L12,12 M12,4 L4,12" />
+                          </Button>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ContentControl.ContentTemplate>
+        </ContentControl>
       </StackPanel>
     </StackPanel>
   </ScrollViewer>

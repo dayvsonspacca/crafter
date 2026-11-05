@@ -1,6 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:projectsViews="using:Crafter.Desktop.Projects"
              xmlns:namer="using:Crafter.Presentation.Projects.Namer"
              xmlns:controls="using:Crafter.Desktop.Controls"
              x:Class="Crafter.Desktop.Projects.ProjectNamerView"
@@ -13,15 +12,15 @@
     </Style>
   </UserControl.Styles>
 
-  <controls:Modal Title="{Binding Title}" IsCompact="{Binding !IsAdding}" Dismissed="Dismiss">
+  <controls:Modal Title="Add Project" Dismissed="Dismiss">
     <DockPanel Margin="20,22,20,20">
       <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,24,0,0">
-        <Button Classes="ghost" Content="{Binding Retreat}" Command="{Binding BackCommand}" />
-        <Button Classes="primary" Content="{Binding Confirm}" Command="{Binding FinishCommand}" />
+        <Button Classes="ghost" Content="Back" Command="{Binding BackCommand}" />
+        <Button Classes="primary" Content="Add" Command="{Binding FinishCommand}" />
       </StackPanel>
 
       <StackPanel Spacing="18">
-        <StackPanel Spacing="8" IsVisible="{Binding IsAdding}">
+        <StackPanel Spacing="8">
           <TextBlock Classes="group" Text="Folder" />
           <Border Padding="12,10"
                   CornerRadius="6"
@@ -55,55 +54,6 @@
           <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Name" />
           <TextBlock Classes="about" Text="How Crafter shows this project." />
           <TextBox x:Name="NameBox" FontSize="{StaticResource FontSizeContent}" Text="{Binding Name}" AutomationProperties.Name="Name" />
-        </StackPanel>
-
-        <StackPanel Spacing="8" IsVisible="{Binding !IsAdding}">
-          <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" Text="Project icon" />
-          <TextBlock Classes="about" Text="Any image. Crafter keeps a copy in the project." />
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <Border Width="44"
-                    Height="44"
-                    CornerRadius="10"
-                    ClipToBounds="True"
-                    BorderThickness="1"
-                    BorderBrush="{DynamicResource BorderBrush}"
-                    Background="{DynamicResource SurfaceBrush}">
-              <Panel>
-                <Image Source="{Binding PreviewFile, Converter={x:Static projectsViews:IconFileConverter.Instance}}" Stretch="UniformToFill" IsVisible="{Binding HasPreview}" />
-                <TextBlock HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           FontFamily="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource ForegroundBrush}"
-                           Text="{Binding Letter}"
-                           IsVisible="{Binding !HasPreview}" />
-              </Panel>
-            </Border>
-            <Button Classes="ghost" VerticalAlignment="Center" Content="Choose…" Command="{Binding ChooseIconCommand}" />
-            <Button Classes="ghost" VerticalAlignment="Center" Content="Remove" Command="{Binding RemoveIconCommand}" IsVisible="{Binding HasPreview}" />
-          </StackPanel>
-        </StackPanel>
-
-        <StackPanel Spacing="8" IsVisible="{Binding !IsAdding}">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" VerticalAlignment="Center" Text="Summary" />
-            <Button Grid.Column="1"
-                    Classes="ghost"
-                    Content="{Binding InheritLabel}"
-                    Command="{Binding InheritCommand}"
-                    IsVisible="{Binding CanInherit}" />
-          </Grid>
-          <TextBlock Classes="about"
-                     TextWrapping="Wrap"
-                     Text="What the project is, read by its agent before every chat. Rules go in its axioms. A chat takes a change when its session starts again." />
-          <TextBox Height="180"
-                   AcceptsReturn="True"
-                   TextWrapping="Wrap"
-                   VerticalContentAlignment="Top"
-                   Text="{Binding Summary}"
-                   PlaceholderText="What it is, its stack, how it is laid out and the commands it runs with."
-                   AutomationProperties.Name="Summary" />
         </StackPanel>
       </StackPanel>
     </DockPanel>

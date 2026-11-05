@@ -7,9 +7,10 @@ using Crafter.Presentation.Library;
 
 namespace Crafter.Presentation.Projects;
 
-// What the project in front hands its agent, opened from the status bar: the library skills it gets,
-// the defaults among them already ticked, and the axioms it follows in every chat.
+// What a project hands its agent, on its page: the library skills it gets, the defaults among them
+// already ticked, and the axioms it follows in every chat.
 public sealed partial class ProjectBriefViewModel(
+    Project project,
     LibraryViewModel library,
     Func<Project, Skill, bool> has,
     Action<Project, Skill, bool> give,
@@ -17,26 +18,11 @@ public sealed partial class ProjectBriefViewModel(
     Func<Project, string, bool> hold,
     Func<Project, string, bool> drop) : ObservableObject
 {
-    private Project? project;
-
-    [ObservableProperty]
-    public partial bool IsOpen { get; set; }
-
-    [ObservableProperty]
-    public partial string Title { get; private set; } = string.Empty;
-
     [ObservableProperty]
     public partial bool HasSkills { get; private set; }
 
     [ObservableProperty]
     public partial bool HasAxioms { get; private set; }
-
-    // The window shows one tab at a time; it opens on the skills.
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsSkills))]
-    public partial bool ShowsAxioms { get; private set; }
-
-    public bool ShowsSkills => !ShowsAxioms;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddAxiomCommand))]
@@ -46,53 +32,38 @@ public sealed partial class ProjectBriefViewModel(
 
     public ObservableCollection<AxiomViewModel> Axioms { get; } = [];
 
-    public Project? Project => project;
+    public Project Project { get; private set; } = project;
 
-    public void Open(Project shown)
+    public void Describe(Project described) => Project = described;
+
+    // Shows the library's skills again, after it synced or its defaults changed.
+    public void Stock()
     {
-        project = shown;
-        Title = shown.Name.Text;
         Skills.Clear();
         foreach (var skill in library.Skills)
         {
-            Skills.Add(new SkillChoiceViewModel(skill, library.IsDefault(skill), has(shown, skill), given => give(shown, skill, given)));
+            Skills.Add(new SkillChoiceViewModel(skill, library.IsDefault(skill), has(Project, skill), given => give(Project, skill, given)));
         }
 
         HasSkills = Skills.Count > 0;
-        NewAxiom = string.Empty;
-        Recall();
-        ShowsAxioms = false;
-        IsOpen = true;
     }
 
     // Shows the axioms again, after they changed from elsewhere, like an agent's proposal.
     public void Recall()
     {
         Axioms.Clear();
-        if (project is { } shown)
+        foreach (var axiom in axiomsOf(Project))
         {
-            foreach (var axiom in axiomsOf(shown))
-            {
-                Axioms.Add(new AxiomViewModel(axiom, Drop));
-            }
+            Axioms.Add(new AxiomViewModel(axiom, Drop));
         }
 
         HasAxioms = Axioms.Count > 0;
     }
 
-    [RelayCommand]
-    public void Close() => IsOpen = false;
-
-    [RelayCommand]
-    private void ShowSkillsTab() => ShowsAxioms = false;
-
-    [RelayCommand]
-    private void ShowAxiomsTab() => ShowsAxioms = true;
-
     [RelayCommand(CanExecute = nameof(CanAdd))]
     private void AddAxiom()
     {
-        if (project is { } shown && hold(shown, NewAxiom))
+        if (hold(Project, NewAxiom))
         {
             NewAxiom = string.Empty;
             Recall();
@@ -103,7 +74,7 @@ public sealed partial class ProjectBriefViewModel(
 
     private void Drop(AxiomViewModel axiom)
     {
-        if (project is { } shown && drop(shown, axiom.Text))
+        if (drop(Project, axiom.Text))
         {
             Recall();
         }

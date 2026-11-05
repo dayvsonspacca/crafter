@@ -5,6 +5,7 @@ using Crafter.Core.Preferences;
 using Crafter.Core.Projects;
 using Crafter.Presentation.Conversations.Messages;
 using Crafter.Presentation.Desks;
+using Crafter.Presentation.Projects;
 using Crafter.Presentation.Tests.Fakes;
 using Crafter.Testing;
 using Microsoft.Extensions.Time.Testing;
@@ -62,6 +63,6 @@ public sealed class ProjectDeskViewModelTest
         var crew = new Crew([agent]);
         crew.Hire([agent.Id]);
 
-        return new DeskFactory(store ?? new ChatsInMemory(), crew, new PreferenceBook(new PreferencesInMemory(UserPreferences.Default("/home/hero"))), new ClipboardInMemory(), new FakeTimeProvider(Noon)).Make(Crafter, _ => Task.CompletedTask);
+        return new DeskFactory(store ?? new ChatsInMemory(), crew, new PreferenceBook(new PreferencesInMemory(UserPreferences.Default("/home/hero"))), new ClipboardInMemory(), new FakeTimeProvider(Noon)).Make(Crafter, new ProjectDetailsViewModel(Crafter, new EditorInMemory(), new ScriptedPicker(null)));
     }
 }
