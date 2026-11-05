@@ -14,6 +14,8 @@ public sealed class ScriptedAgent(string id = "stand-in") : IAgent, IKeepsHistor
 
     public string Summary => $"Stands in for {id}.";
 
+    public IReadOnlyList<string> InstructionFiles { get; init; } = [];
+
     public Func<IAgentSession> Sessions { get; init; } = () => new ScriptedSession(new Finished());
 
     public Readiness Readiness { get; init; } = new Ready("Ready", "1.0");

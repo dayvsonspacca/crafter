@@ -11,6 +11,9 @@ public interface IAgent
 
     string Summary { get; }
 
+    // The instructions files this agent reads on its own in a project, which Crafter turns off.
+    IReadOnlyList<string> InstructionFiles { get; }
+
     IReadOnlyList<Setting> Settings(Configuration configuration);
 
     Task<Readiness> Check(Configuration configuration, CancellationToken stop = default);

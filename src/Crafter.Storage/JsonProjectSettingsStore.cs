@@ -6,16 +6,14 @@ using Crafter.Core.Projects;
 
 namespace Crafter.Storage;
 
-public sealed class JsonProjectSettingsStore : IProjectSettingsStore
+// Instructions are the files agents read on their own, in the order one is preferred over another.
+public sealed class JsonProjectSettingsStore(IReadOnlyList<string>? instructions = null) : IProjectSettingsStore
 {
     private const string Home = ".crafter";
 
     private const string Icon = "icon";
 
     private const string Summary = "summary.md";
-
-    // The instructions files agents read on their own, in the order one is preferred over another.
-    private static readonly string[] Instructions = ["AGENTS.md", "CLAUDE.md", Path.Combine(".claude", "CLAUDE.md")];
 
     private static readonly JsonTypeInfo<SettingsEntry> Shape = (JsonTypeInfo<SettingsEntry>)new JsonSerializerOptions(ProjectSettingsJson.Default.Options)
     {
@@ -101,7 +99,7 @@ public sealed class JsonProjectSettingsStore : IProjectSettingsStore
     }
 
     public AgentInstructions? FindInstructions(string folder) =>
-        Instructions.Select(name => Read(Path.Combine(folder, name)) is { } text ? new AgentInstructions(name, text) : null).FirstOrDefault(found => found is not null);
+        (instructions ?? [AgentInstructions.Shared]).Select(name => Read(Path.Combine(folder, name)) is { } text ? new AgentInstructions(name, text) : null).FirstOrDefault(found => found is not null);
 
     // A file's text without its surrounding blank space; a missing, empty or unreadable one is none.
     private static string? Read(string file)

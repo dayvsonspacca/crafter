@@ -60,7 +60,7 @@ public sealed class JsonProjectSettingsStoreTest : IDisposable
     [Fact]
     public void FindsTheAgentsInstructionsTheProjectBrings()
     {
-        var store = new JsonProjectSettingsStore();
+        var store = new JsonProjectSettingsStore(["AGENTS.md", "CLAUDE.md"]);
         Assert.Null(store.FindInstructions(folder));
 
         System.IO.File.WriteAllText(Path.Combine(folder, "CLAUDE.md"), "Crafter is my IDE.\n");

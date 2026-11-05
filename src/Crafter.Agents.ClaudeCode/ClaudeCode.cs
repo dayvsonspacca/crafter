@@ -43,6 +43,8 @@ public sealed class ClaudeCode(
 
     public string Summary => "Anthropic's coding agent";
 
+    public IReadOnlyList<string> InstructionFiles { get; } = ["CLAUDE.md", Path.Combine(".claude", "CLAUDE.md")];
+
     public IReadOnlyList<Setting> Settings(Configuration configuration) =>
     [
         new Choice(

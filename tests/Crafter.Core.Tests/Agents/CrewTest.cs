@@ -10,6 +10,14 @@ public sealed class CrewTest
     private static readonly ScriptedAgent Codex = new("codex");
 
     [Fact]
+    public void ReadsTheSharedInstructionsFileFirstAndThenEachAgentsOwn()
+    {
+        var crew = new Crew([new ScriptedAgent("claude-code") { InstructionFiles = ["CLAUDE.md"] }, new ScriptedAgent("codex") { InstructionFiles = ["AGENTS.md", "CODEX.md"] }]);
+
+        Assert.Equal(["AGENTS.md", "CLAUDE.md", "CODEX.md"], crew.InstructionFiles);
+    }
+
+    [Fact]
     public void StartsHiringWithNobodyHired()
     {
         var crew = new Crew([Claude, Codex]);

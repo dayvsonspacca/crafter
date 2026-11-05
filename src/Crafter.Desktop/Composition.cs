@@ -45,7 +45,7 @@ public static class Composition
             axioms: project => workbench is { } shown ? OnUi(() => shown.AxiomsOf(project)) : [],
             summary: project => workbench is { } shown ? OnUi(() => shown.SummaryOf(project)) : null)]);
         var preferences = new PreferenceBook(new JsonPreferencesStore(Path.Combine(Config, "preferences.json"), UserPreferences.Default(Home)));
-        var bookshelf = new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(), time.GetLocalNow);
+        var bookshelf = new Bookshelf(new JsonBookshelfStore(Path.Combine(Config, "projects.json")), new JsonProjectSettingsStore(crew.InstructionFiles), time.GetLocalNow);
         var picker = new FolderPickerViewModel(preferences, bookshelf);
         var setup = new SetupViewModel(crew, preferences, clipboard);
         var branches = new GitBranches();

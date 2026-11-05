@@ -1,3 +1,5 @@
+using Crafter.Core.Projects;
+
 namespace Crafter.Core.Agents;
 
 public sealed class Crew
@@ -20,6 +22,9 @@ public sealed class Crew
     public IReadOnlyList<IAgent> Hired => hired;
 
     public bool IsHiring => hired.Count == 0;
+
+    // Every instructions file an agent on the roster reads, the one shared by all of them first.
+    public IReadOnlyList<string> InstructionFiles => [.. roster.SelectMany(agent => agent.InstructionFiles).Prepend(AgentInstructions.Shared).Distinct()];
 
     public IAgent Default => hired.Count > 0 ? hired[0] : roster[0];
 
