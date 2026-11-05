@@ -246,6 +246,37 @@ public sealed class CrafterAbilitiesTest : IDisposable
     }
 
     [Fact]
+    public void AProjectsAgentAddsCompletesAndRemovesItsTodos()
+    {
+        Assert.Equal("Crafter now has todo #1: Draw the panel", abilities.AddTodo(crafter.Folder, null, " Draw the panel ").Text);
+        abilities.AddTodo(crafter.Folder, null, "Cite a todo");
+
+        Assert.Equal("Todo #1 of Crafter is done: Draw the panel", abilities.CompleteTodo(crafter.Folder, null, 1).Text);
+        Assert.Equal("Todo #1 of Crafter was already done.", abilities.CompleteTodo(crafter.Folder, null, 1).Text);
+        Assert.False(abilities.RemoveTodo(crafter.Folder, null, 2).IsError);
+
+        var listed = JsonNode.Parse(abilities.ListTodos(crafter.Folder, null).Text)!.AsArray();
+        Assert.Single(listed);
+        Assert.Equal(1, listed[0]!["number"]!.GetValue<int>());
+        Assert.True(listed[0]!["done"]!.GetValue<bool>());
+        Assert.Equal([new Todo(1, "Draw the panel", IsDone: true)], workbench.Desk!.Aside!.Todos.Todos.Select(todo => todo.Todo));
+    }
+
+    [Fact]
+    public void RefusesTodosOfAnotherProjectANumberItLacksOrNoText()
+    {
+        Assert.True(abilities.AddTodo(crafter.Folder, lorekeeper.Folder, "Draw the map").IsError);
+        Assert.True(abilities.AddTodo(crafter.Folder, null, " ").IsError);
+        Assert.True(abilities.CompleteTodo(crafter.Folder, null, 9).IsError);
+        Assert.True(abilities.RemoveTodo(crafter.Folder, null, null).IsError);
+        Assert.True(abilities.ListTodos(crafter.Folder, lorekeeper.Folder).IsError);
+
+        Assert.False(abilities.AddTodo(workbench.Home.Folder, lorekeeper.Folder, "Draw the map").IsError);
+        Assert.Equal([new Todo(1, "Draw the map")], workbench.TodosOf(lorekeeper));
+        Assert.Empty(workbench.TodosOf(crafter));
+    }
+
+    [Fact]
     public void RemovesAnAxiom()
     {
         workbench.Hold(lorekeeper, "Always write tests");

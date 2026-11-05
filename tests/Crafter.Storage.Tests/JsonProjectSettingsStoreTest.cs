@@ -41,6 +41,36 @@ public sealed class JsonProjectSettingsStoreTest : IDisposable
     }
 
     [Fact]
+    public void KeepsTheTodosInAFileOfTheirOwn()
+    {
+        var store = new JsonProjectSettingsStore();
+        var todos = Path.Combine(folder, ".crafter", "todos.json");
+        Assert.Empty(store.LoadTodos(folder));
+
+        store.SaveTodos(folder, [new Todo(1, "Draw the panel", IsDone: true), new Todo(3, "Cite a todo")]);
+
+        Assert.Equal([new Todo(1, "Draw the panel", IsDone: true), new Todo(3, "Cite a todo")], store.LoadTodos(folder));
+        Assert.Contains("\"text\": \"Draw the panel\"", System.IO.File.ReadAllText(todos));
+
+        store.SaveTodos(folder, []);
+
+        Assert.Empty(store.LoadTodos(folder));
+        Assert.False(System.IO.File.Exists(todos));
+    }
+
+    [Fact]
+    public void SetsUnreadableTodosAside()
+    {
+        var todos = Path.Combine(folder, ".crafter", "todos.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(todos)!);
+        System.IO.File.WriteAllText(todos, "{ not json");
+
+        Assert.Empty(new JsonProjectSettingsStore().LoadTodos(folder));
+        Assert.False(System.IO.File.Exists(todos));
+        Assert.Single(Directory.GetFiles(Path.GetDirectoryName(todos)!, "todos.json.*.unreadable"));
+    }
+
+    [Fact]
     public void KeepsTheSummaryInAMarkdownFileOfItsOwn()
     {
         var store = new JsonProjectSettingsStore();

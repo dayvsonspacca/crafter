@@ -17,4 +17,10 @@ public interface IProjectSettingsStore
     void SaveSummary(string folder, string? summary);
 
     AgentInstructions? FindInstructions(string folder);
+
+    // The todos travel with the project too, in a file of their own since they change all day.
+    IReadOnlyList<Todo> LoadTodos(string folder);
+
+    // No todos take the file away.
+    void SaveTodos(string folder, IReadOnlyList<Todo> todos);
 }

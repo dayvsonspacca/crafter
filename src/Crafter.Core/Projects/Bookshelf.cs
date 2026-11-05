@@ -117,6 +117,53 @@ public sealed class Bookshelf
         return true;
     }
 
+    // A shelved project's todos, in the order they were jotted down.
+    public IReadOnlyList<Todo> TodosOf(Project project) =>
+        Shelves(project) ? settings.LoadTodos(project.Folder) : [];
+
+    // A todo takes the number after the highest the project holds; a blank one is none.
+    public Todo? Jot(Project project, string text)
+    {
+        var words = text.Trim();
+        if (!Shelves(project) || words.Length == 0)
+        {
+            return null;
+        }
+
+        var held = TodosOf(project);
+        var jotted = new Todo(held.Count > 0 ? held.Max(todo => todo.Number) + 1 : 1, words);
+        settings.SaveTodos(project.Folder, [.. held, jotted]);
+
+        return jotted;
+    }
+
+    // Marks a todo done, or not done again; a todo already so changes nothing.
+    public bool Tick(Project project, int number, bool done)
+    {
+        var held = TodosOf(project);
+        if (held.FirstOrDefault(todo => todo.Number == number) is not { } ticked || ticked.IsDone == done)
+        {
+            return false;
+        }
+
+        settings.SaveTodos(project.Folder, [.. held.Select(todo => todo == ticked ? todo with { IsDone = done } : todo)]);
+
+        return true;
+    }
+
+    public bool Scrap(Project project, int number)
+    {
+        var held = TodosOf(project);
+        if (!held.Any(todo => todo.Number == number))
+        {
+            return false;
+        }
+
+        settings.SaveTodos(project.Folder, [.. held.Where(todo => todo.Number != number)]);
+
+        return true;
+    }
+
     public AgentInstructions? InstructionsIn(Project project) => settings.FindInstructions(project.Folder);
 
     public Project Edit(Project project, ProjectName name, IconChange change)

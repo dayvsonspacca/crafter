@@ -16,10 +16,11 @@ using Crafter.Presentation.Preferences;
 using Crafter.Presentation.Projects;
 using Crafter.Presentation.Projects.Namer;
 using Crafter.Presentation.Status;
+using Crafter.Presentation.Todos;
 
 namespace Crafter.Presentation;
 
-public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper, IProjectEditor
+public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper, IProjectEditor, ITodoKeeper
 {
     private readonly Bookshelf bookshelf;
 
@@ -58,13 +59,11 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper,
         Status = status;
         Preferences.Library.Changed += (_, _) =>
         {
-            Recount();
             foreach (var desk in desks.Values)
             {
-                desk.Overview.Brief?.Stock();
+                desk.Aside?.Brief.Stock();
             }
         };
-        Status.BriefWanted += (_, _) => Show(ProjectTab.Skills);
         Preferences.PropertyChanged += Follow;
         Setup.PropertyChanged += Follow;
         if (!Setup.IsPicking)
@@ -73,6 +72,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper,
         }
 
         IsSidebarVisible = true;
+        IsAsideVisible = true;
         Restock();
         Open(Home);
     }
@@ -112,6 +112,13 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper,
 
     public bool ShowsSidebar => IsSidebarVisible;
 
+    // The panel on the right, with the todos, skills and axioms of the project in front.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsAside))]
+    public partial bool IsAsideVisible { get; set; }
+
+    public bool ShowsAside => IsAsideVisible && Desk?.Aside is not null;
+
     public Project? Current
     {
         get;
@@ -119,8 +126,6 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper,
         {
             field = value;
             Status.Watch(value);
-            Status.ShowsBrief = value is not null && value != Home;
-            Recount();
             OnPropertyChanged();
             OnPropertyChanged(nameof(Heading));
         }
@@ -129,7 +134,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper,
     public string? Heading => ShowsSetup ? "Setup" : Current?.Name.Text;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsConversation), nameof(ShowsSidebar))]
+    [NotifyPropertyChangedFor(nameof(ShowsConversation), nameof(ShowsSidebar), nameof(ShowsAside))]
     public partial ProjectDeskViewModel? Desk { get; set; }
 
     public void OpenChat(int place) => Desk?.SelectAt(place);
@@ -172,7 +177,9 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper,
                 : deskFactory.Make(
                     project,
                     new ProjectDetailsViewModel(project, this, Picker),
-                    new ProjectBriefViewModel(project, Preferences.Library, (shown, skill) => bookshelf.Has(shown, skill.Id), Give, AxiomsOf, Hold, Drop),
+                    new ProjectAsideViewModel(
+                        new TodoListViewModel(project, this),
+                        new ProjectBriefViewModel(project, Preferences.Library, (shown, skill) => bookshelf.Has(shown, skill.Id), Give, AxiomsOf, Hold, Drop)),
                     () => SkillsFor(project));
             desks[project] = desk;
         }
@@ -300,27 +307,59 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper,
 
     public bool Drop(Project project, string axiom) => Changed(project, bookshelf.Drop(project, axiom));
 
-    public void Give(Project project, Skill skill, bool given)
+    public void Give(Project project, Skill skill, bool given) => bookshelf.Give(project, skill.Id, given);
+
+    public IReadOnlyList<Todo> TodosOf(Project project) => bookshelf.TodosOf(project);
+
+    public Todo? Jot(Project project, string text)
     {
-        bookshelf.Give(project, skill.Id, given);
-        Recount();
+        var jotted = bookshelf.Jot(project, text);
+        if (jotted is not null)
+        {
+            Retodo(project);
+        }
+
+        return jotted;
+    }
+
+    public bool Tick(Project project, int number, bool done) => Retodo(project, bookshelf.Tick(project, number, done));
+
+    public bool Scrap(Project project, int number) => Retodo(project, bookshelf.Scrap(project, number));
+
+    // A todo cited with no chat in front starts one for it.
+    public void Cite(Project project, Todo todo)
+    {
+        if (!desks.TryGetValue(project, out var desk))
+        {
+            return;
+        }
+
+        if (desk.Selected is null)
+        {
+            desk.NewChat();
+        }
+
+        desk.Selected?.Cite(todo);
     }
 
     private bool Changed(Project project, bool changed)
     {
         if (changed)
         {
-            Recount();
-            desks.GetValueOrDefault(project)?.Overview.Brief?.Recall();
+            desks.GetValueOrDefault(project)?.Aside?.Brief.Recall();
         }
 
         return changed;
     }
 
-    private void Recount()
+    private bool Retodo(Project project, bool changed = true)
     {
-        Status.Skills = Current is { } shown ? SkillsFor(shown).Count : 0;
-        Status.Axioms = Current is { } held ? bookshelf.AxiomsOf(held).Count : 0;
+        if (changed)
+        {
+            desks.GetValueOrDefault(project)?.Aside?.Todos.Recall();
+        }
+
+        return changed;
     }
 
     public int OpenChats(Project project) => desks.GetValueOrDefault(project)?.Count ?? 0;
@@ -393,6 +432,9 @@ public sealed partial class WorkbenchViewModel : ObservableObject, IShelfKeeper,
 
     [RelayCommand]
     private void ToggleSidebar() => IsSidebarVisible = !IsSidebarVisible;
+
+    [RelayCommand]
+    private void ToggleAside() => IsAsideVisible = !IsAsideVisible;
 
     [RelayCommand]
     private void TogglePreferences() => Preferences.IsOpen = !Preferences.IsOpen;

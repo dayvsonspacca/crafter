@@ -8,8 +8,8 @@ using Crafter.Presentation.Library;
 namespace Crafter.Presentation.Abilities;
 
 // What Home's agent can do to Crafter: add, create, open and remove projects, rename them, change
-// their icons, set their axioms and summaries, and read and write the skills library. A project's
-// agent can only propose axioms and a summary for its own project. Answers are JSON for the agent to read.
+// their icons, set their axioms, summaries and todos, and read and write the skills library. A project's
+// agent can only propose axioms and a summary, and keep the todos, for its own project. Answers are JSON for the agent to read.
 // A relative folder is read from the projects root set in Preferences.
 public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewModel library, IBranches branches)
 {
@@ -31,7 +31,7 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
     {
         if (Proposer(caller, folder) is not { } project)
         {
-            return Refusal(caller, folder, "axioms");
+            return Refusal(caller, folder, "A project's agent proposes axioms for its own project only.");
         }
 
         if (string.IsNullOrWhiteSpace(axiom))
@@ -61,7 +61,7 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
     {
         if (Proposer(caller, folder) is not { } project)
         {
-            return Refusal(caller, folder, "a summary");
+            return Refusal(caller, folder, "A project's agent proposes a summary for its own project only.");
         }
 
         if (string.IsNullOrWhiteSpace(summary))
@@ -84,6 +84,67 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
         workbench.Summarize(project, text);
 
         return new Told($"{project.Name.Text} now has the summary; its chats read it from their next session.");
+    }
+
+    public Told ListTodos(string caller, string? folder)
+    {
+        if (Proposer(caller, folder) is not { } project)
+        {
+            return Refusal(caller, folder, "A project's agent keeps the todos of its own project only.");
+        }
+
+        return Json(new JsonArray([.. workbench.TodosOf(project).Select(todo => (JsonNode)new JsonObject
+        {
+            ["number"] = todo.Number,
+            ["text"] = todo.Text,
+            ["done"] = todo.IsDone,
+        })]));
+    }
+
+    public Told AddTodo(string caller, string? folder, string? text)
+    {
+        if (Proposer(caller, folder) is not { } project)
+        {
+            return Refusal(caller, folder, "A project's agent keeps the todos of its own project only.");
+        }
+
+        return !string.IsNullOrWhiteSpace(text) && workbench.Jot(project, text) is { } jotted
+            ? new Told($"{project.Name.Text} now has todo #{jotted.Number}: {jotted.Text}")
+            : Told.Failed("A todo needs its text.");
+    }
+
+    public Told CompleteTodo(string caller, string? folder, int? number)
+    {
+        if (Proposer(caller, folder) is not { } project)
+        {
+            return Refusal(caller, folder, "A project's agent keeps the todos of its own project only.");
+        }
+
+        if (workbench.TodosOf(project).FirstOrDefault(todo => todo.Number == number) is not { } todo)
+        {
+            return Told.Failed($"{project.Name.Text} has no todo #{number}; list_todos gives the numbers.");
+        }
+
+        return workbench.Tick(project, todo.Number, done: true)
+            ? new Told($"Todo #{todo.Number} of {project.Name.Text} is done: {todo.Text}")
+            : new Told($"Todo #{todo.Number} of {project.Name.Text} was already done.");
+    }
+
+    public Told RemoveTodo(string caller, string? folder, int? number)
+    {
+        if (Proposer(caller, folder) is not { } project)
+        {
+            return Refusal(caller, folder, "A project's agent keeps the todos of its own project only.");
+        }
+
+        if (workbench.TodosOf(project).FirstOrDefault(todo => todo.Number == number) is not { } todo)
+        {
+            return Told.Failed($"{project.Name.Text} has no todo #{number}; list_todos gives the numbers.");
+        }
+
+        workbench.Scrap(project, todo.Number);
+
+        return new Told($"Removed todo #{todo.Number} from {project.Name.Text}: {todo.Text}");
     }
 
     public Told RemoveAxiom(string? folder, string? axiom)
@@ -290,7 +351,7 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
 
     private const string Unlinked = "No library repository is linked; link one in Preferences → Library.";
 
-    // Home names the project; a project's agent proposes for its own, and only for it.
+    // Home names the project; a project's agent proposes and keeps todos for its own, and only for it.
     private Project? Proposer(string caller, string? folder)
     {
         if (caller == workbench.Home.Folder)
@@ -303,9 +364,9 @@ public sealed class CrafterAbilities(WorkbenchViewModel workbench, LibraryViewMo
         return own is not null && (Under(folder) is not { } named || named == own.Folder) ? own : null;
     }
 
-    private Told Refusal(string caller, string? folder, string what) =>
+    private Told Refusal(string caller, string? folder, string elsewhere) =>
         caller == workbench.Home.Folder ? Told.Failed($"No project lives in {folder}; list_projects gives the folders.")
-        : workbench.Projects.Any(each => each.Folder == caller) ? Told.Failed($"A project's agent proposes {what} for its own project only.")
+        : workbench.Projects.Any(each => each.Folder == caller) ? Told.Failed(elsewhere)
         : Told.Failed("Your project is no longer in Crafter.");
 
     private Project? Find(string? folder) =>

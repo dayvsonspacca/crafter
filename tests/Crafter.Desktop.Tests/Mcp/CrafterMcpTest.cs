@@ -45,11 +45,11 @@ public sealed class CrafterMcpTest : IDisposable
             using var http = new HttpClient();
 
             var server = Assert.Single(mcp.ServersFor(workbench.Home, elsewhere));
-            Assert.Equal(["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill", "propose_axiom", "propose_summary"], server.FreeTools);
+            Assert.Equal(["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill", "propose_axiom", "propose_summary", "list_todos", "add_todo", "complete_todo", "remove_todo"], server.FreeTools);
 
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
             Assert.Equal(
-                ["list_projects", "add_project", "create_project", "open_project", "remove_project", "rename_project", "set_project_icon", "propose_axiom", "propose_summary", "remove_axiom", "library_status", "sync_library", "list_skills", "read_skill", "save_skill"],
+                ["list_projects", "add_project", "create_project", "open_project", "remove_project", "rename_project", "set_project_icon", "propose_axiom", "propose_summary", "remove_axiom", "list_todos", "add_todo", "complete_todo", "remove_todo", "library_status", "sync_library", "list_skills", "read_skill", "save_skill"],
                 tools.Select(tool => tool!["name"]!.GetValue<string>()));
 
             var listed = await Ask(http, server, "tools/call", new JsonObject { ["name"] = "list_projects", ["arguments"] = new JsonObject() });
@@ -75,11 +75,11 @@ public sealed class CrafterMcpTest : IDisposable
             _ = chat.CraftCommand.ExecuteAsync(null);
 
             var server = Assert.Single(mcp.ServersFor(crafter, begun[^1]));
-            Assert.Equal(["propose_axiom", "propose_summary"], server.FreeTools);
+            Assert.Equal(["propose_axiom", "propose_summary", "list_todos", "add_todo", "complete_todo", "remove_todo"], server.FreeTools);
             Assert.Equal(TimeSpan.FromMinutes(30), server.Patience);
             Assert.NotEqual(mcp.ServersFor(crafter, elsewhere)[0].Token, server.Token);
             var tools = (await Ask(http, server, "tools/list"))["result"]!["tools"]!.AsArray();
-            Assert.Equal(["propose_axiom", "propose_summary"], tools.Select(tool => tool!["name"]!.GetValue<string>()));
+            Assert.Equal(["propose_axiom", "propose_summary", "list_todos", "add_todo", "complete_todo", "remove_todo"], tools.Select(tool => tool!["name"]!.GetValue<string>()));
             var initialized = await Ask(http, server, "initialize", new JsonObject { ["protocolVersion"] = "2025-06-18" });
             Assert.Equal(CrafterMcp.ProjectInstructions, initialized["result"]!["instructions"]!.GetValue<string>());
 

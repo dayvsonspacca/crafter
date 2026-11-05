@@ -66,6 +66,15 @@
       </StackPanel>
 
       <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Classes="icon"
+                Margin="0,0,8,0"
+                VerticalAlignment="Center"
+                Command="{Binding ToggleAsideCommand}"
+                IsVisible="{Binding !ShowsSetup}"
+                ToolTip.Tip="Toggle Todos, Skills and Axioms · Ctrl+Alt+B"
+                AutomationProperties.Name="Toggle Panel">
+          <Path Data="M2.5,3.5 H13.5 V12.5 H2.5 Z M9.5,3.5 V12.5" />
+        </Button>
         <Button x:Name="MinimizeButton" Classes="control" AutomationProperties.Name="Minimize" Click="Minimize">
           <Path Data="M3.5,8.5 L12.5,8.5" />
         </Button>

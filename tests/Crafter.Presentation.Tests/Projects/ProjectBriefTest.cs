@@ -70,19 +70,17 @@ public sealed class ProjectBriefTest : IDisposable
         Assert.Equal([Commit], workbench.SkillsFor(crafter));
         Assert.Equal([Commit], workbench.SkillsFor(lorekeeper));
         Assert.Equal(["commit"], saved.Saved.DefaultSkills);
-        Assert.Equal("1 skill", workbench.Status.BriefLabel);
     }
 
     [Fact]
     public void AGivenSkillReachesOnlyItsProject()
     {
-        workbench.Status.ShowBriefCommand.Execute(null);
+        Aside.ShowSkillsCommand.Execute(null);
 
         Brief.Skills.Single(choice => choice.Skill == Migrations).IsGiven = true;
 
         Assert.Equal([Migrations], workbench.SkillsFor(crafter));
         Assert.Empty(workbench.SkillsFor(lorekeeper));
-        Assert.Equal("1 skill", workbench.Status.BriefLabel);
     }
 
     [Fact]
@@ -91,26 +89,29 @@ public sealed class ProjectBriefTest : IDisposable
         library.MakeDefault(Commit, isDefault: true);
 
         workbench.Open(workbench.Home);
-        workbench.Status.ShowBriefCommand.Execute(null);
 
         Assert.Equal([Commit], workbench.SkillsFor(workbench.Home));
-        Assert.False(workbench.Status.ShowsBrief);
         Assert.True(Overview.IsHome);
-        Assert.Null(Overview.Brief);
+        Assert.Null(workbench.Desk!.Aside);
+        Assert.False(workbench.ShowsAside);
         Assert.True(Overview.ShowsChats);
     }
 
     [Fact]
-    public void TheStatusBarOpensTheProjectsSkills()
+    public void ThePanelBesideTheChatHoldsTheProjectsSkills()
     {
         workbench.NewChatCommand.Execute(null);
+
+        Aside.ShowSkillsCommand.Execute(null);
+
         Assert.False(workbench.Desk!.ShowsOverview);
-
-        workbench.Status.ShowBriefCommand.Execute(null);
-
-        Assert.True(workbench.Desk.ShowsOverview);
-        Assert.True(Overview.ShowsSkills);
+        Assert.True(workbench.ShowsAside);
+        Assert.True(Aside.ShowsSkills);
         Assert.Equal(2, Brief.Skills.Count);
+
+        workbench.ToggleAsideCommand.Execute(null);
+
+        Assert.False(workbench.ShowsAside);
     }
 
     [Fact]
@@ -130,7 +131,7 @@ public sealed class ProjectBriefTest : IDisposable
     {
         library.MakeDefault(Commit, isDefault: true);
 
-        Overview.ShowSkillsCommand.Execute(null);
+        Aside.ShowSkillsCommand.Execute(null);
 
         var commit = Brief.Skills.Single(choice => choice.Skill == Commit);
         Assert.True(commit.IsDefault);
@@ -158,8 +159,8 @@ public sealed class ProjectBriefTest : IDisposable
     [Fact]
     public void AddsAndRemovesAxiomsOnTheirTab()
     {
-        Overview.ShowAxiomsCommand.Execute(null);
-        Assert.True(Overview.ShowsAxioms);
+        Aside.ShowAxiomsCommand.Execute(null);
+        Assert.True(Aside.ShowsAxioms);
         Assert.False(Brief.AddAxiomCommand.CanExecute(null));
 
         Brief.NewAxiom = "Never add comments";
@@ -169,19 +170,17 @@ public sealed class ProjectBriefTest : IDisposable
         Assert.Equal(string.Empty, Brief.NewAxiom);
         Assert.Equal(["Never add comments"], workbench.AxiomsOf(crafter));
         Assert.Empty(workbench.AxiomsOf(lorekeeper));
-        Assert.Equal("1 axiom", workbench.Status.BriefLabel);
 
         Brief.Axioms[0].DropCommand.Execute(null);
 
         Assert.Empty(Brief.Axioms);
         Assert.Empty(workbench.AxiomsOf(crafter));
-        Assert.Equal("No skills or axioms", workbench.Status.BriefLabel);
     }
 
     [Fact]
     public void TheAxiomsTabShowsAnAxiomHeldFromElsewhere()
     {
-        Overview.ShowAxiomsCommand.Execute(null);
+        Aside.ShowAxiomsCommand.Execute(null);
 
         workbench.Hold(crafter, "Always write tests");
 
@@ -257,7 +256,9 @@ public sealed class ProjectBriefTest : IDisposable
 
     private ProjectOverviewViewModel Overview => workbench.Desk!.Overview;
 
-    private ProjectBriefViewModel Brief => Overview.Brief!;
+    private ProjectAsideViewModel Aside => workbench.Desk!.Aside!;
+
+    private ProjectBriefViewModel Brief => Aside.Brief;
 
     private ProjectDetailsViewModel Details => Overview.Details!;
 

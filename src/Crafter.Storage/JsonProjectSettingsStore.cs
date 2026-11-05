@@ -15,6 +15,13 @@ public sealed class JsonProjectSettingsStore(IReadOnlyList<string>? instructions
 
     private const string Summary = "summary.md";
 
+    private const string Todos = "todos.json";
+
+    private static readonly JsonTypeInfo<List<TodoEntry>> TodosShape = (JsonTypeInfo<List<TodoEntry>>)new JsonSerializerOptions(ProjectSettingsJson.Default.Options)
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    }.GetTypeInfo(typeof(List<TodoEntry>));
+
     private static readonly JsonTypeInfo<SettingsEntry> Shape = (JsonTypeInfo<SettingsEntry>)new JsonSerializerOptions(ProjectSettingsJson.Default.Options)
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -98,6 +105,47 @@ public sealed class JsonProjectSettingsStore(IReadOnlyList<string>? instructions
         }
     }
 
+    // A todo without words or with a number another holds is left out; an unreadable file is set aside.
+    public IReadOnlyList<Todo> LoadTodos(string folder)
+    {
+        var file = Path.Combine(folder, Home, Todos);
+        if (!File.Exists(file))
+        {
+            return [];
+        }
+
+        try
+        {
+            return [.. (JsonSerializer.Deserialize(File.ReadAllText(file), TodosShape) ?? [])
+                .Where(entry => entry.Number > 0 && !string.IsNullOrWhiteSpace(entry.Text))
+                .DistinctBy(entry => entry.Number)
+                .Select(entry => new Todo(entry.Number, entry.Text.Trim(), entry.Done))];
+        }
+        catch (JsonException)
+        {
+            JsonFile.SetAside(file);
+
+            return [];
+        }
+        catch (Exception unreachable) when (unreachable is IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
+
+    public void SaveTodos(string folder, IReadOnlyList<Todo> todos)
+    {
+        var file = Path.Combine(folder, Home, Todos);
+        if (todos.Count == 0)
+        {
+            File.Delete(file);
+        }
+        else
+        {
+            JsonFile.Write(file, JsonSerializer.Serialize([.. todos.Select(todo => new TodoEntry(todo.Number, todo.Text, todo.IsDone))], TodosShape));
+        }
+    }
+
     public AgentInstructions? FindInstructions(string folder) =>
         (instructions ?? [AgentInstructions.Shared]).Select(name => Read(Path.Combine(folder, name)) is { } text ? new AgentInstructions(name, text) : null).FirstOrDefault(found => found is not null);
 
@@ -119,9 +167,12 @@ public sealed class JsonProjectSettingsStore(IReadOnlyList<string>? instructions
 
 internal sealed record SettingsEntry(string Name, string? Icon, List<string>? Axioms = null);
 
+internal sealed record TodoEntry(int Number, string Text, bool Done = false);
+
 [JsonSourceGenerationOptions(
     WriteIndented = true,
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(SettingsEntry))]
+[JsonSerializable(typeof(List<TodoEntry>))]
 internal sealed partial class ProjectSettingsJson : JsonSerializerContext;

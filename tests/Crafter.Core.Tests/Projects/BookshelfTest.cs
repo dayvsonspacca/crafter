@@ -257,6 +257,51 @@ public sealed class BookshelfTest
     }
 
     [Fact]
+    public void JotsTodosNumberedInTurnInTheProjectsOwnFolder()
+    {
+        var settings = new SettingsInMemory();
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning)), settings, () => Morning);
+
+        Assert.Equal(new Todo(1, "Draw the panel"), bookshelf.Jot(Crafter, " Draw the panel "));
+        Assert.Equal(new Todo(2, "Cite a todo"), bookshelf.Jot(Crafter, "Cite a todo"));
+        Assert.Null(bookshelf.Jot(Crafter, " "));
+
+        Assert.Equal([new Todo(1, "Draw the panel"), new Todo(2, "Cite a todo")], bookshelf.TodosOf(Crafter));
+        Assert.Equal(bookshelf.TodosOf(Crafter), settings.LoadTodos(Crafter.Folder));
+        Assert.Empty(bookshelf.TodosOf(Beacon));
+    }
+
+    [Fact]
+    public void TicksAndScrapsATodoByItsNumber()
+    {
+        var bookshelf = new Bookshelf(new ShelfInMemory(new Shelved(Crafter, Morning)), new SettingsInMemory(), () => Morning);
+        bookshelf.Jot(Crafter, "Draw the panel");
+        bookshelf.Jot(Crafter, "Cite a todo");
+
+        Assert.True(bookshelf.Tick(Crafter, 1, done: true));
+        Assert.False(bookshelf.Tick(Crafter, 1, done: true));
+        Assert.False(bookshelf.Tick(Crafter, 7, done: true));
+        Assert.Equal([new Todo(1, "Draw the panel", IsDone: true), new Todo(2, "Cite a todo")], bookshelf.TodosOf(Crafter));
+
+        Assert.True(bookshelf.Tick(Crafter, 1, done: false));
+        Assert.False(bookshelf.TodosOf(Crafter)[0].IsDone);
+
+        Assert.True(bookshelf.Scrap(Crafter, 1));
+        Assert.False(bookshelf.Scrap(Crafter, 1));
+        Assert.Equal([new Todo(2, "Cite a todo")], bookshelf.TodosOf(Crafter));
+        Assert.Equal(new Todo(3, "Ship it"), bookshelf.Jot(Crafter, "Ship it"));
+    }
+
+    [Fact]
+    public void JotsNoTodoForAProjectOffTheShelf()
+    {
+        var bookshelf = new Bookshelf(new ShelfInMemory(), new SettingsInMemory(), () => Morning);
+
+        Assert.Null(bookshelf.Jot(Crafter, "Draw the panel"));
+        Assert.Empty(bookshelf.TodosOf(Crafter));
+    }
+
+    [Fact]
     public void GivesAndTakesASkillAndKeepsItThroughReopening()
     {
         var store = new ShelfInMemory(new Shelved(Crafter, Morning), new Shelved(Beacon, Morning));

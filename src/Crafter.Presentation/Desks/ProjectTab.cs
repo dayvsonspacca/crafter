@@ -4,6 +4,4 @@ public enum ProjectTab
 {
     Chats,
     Details,
-    Skills,
-    Axioms,
 }

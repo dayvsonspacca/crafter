@@ -7,6 +7,7 @@ using Crafter.Core.Agents.Options;
 using Crafter.Core.Conversations;
 using Crafter.Core.Conversations.Replies;
 using Crafter.Core.Library;
+using Crafter.Core.Projects;
 using Crafter.Core.Preferences;
 using Crafter.Presentation.Conversations.Background;
 using Crafter.Presentation.Conversations.Composing;
@@ -221,6 +222,19 @@ public sealed partial class ConversationViewModel : ObservableObject
         OnPropertyChanged(nameof(HasAttached));
     }
 
+    // A todo of the project, cited once however often it is handed over.
+    public void Cite(Todo todo)
+    {
+        if (Attached.Any(each => each.Todo?.Number == todo.Number))
+        {
+            return;
+        }
+
+        attachments.Attach(todo);
+        Attached.Add(new AttachmentViewModel(todo, Detach));
+        OnPropertyChanged(nameof(HasAttached));
+    }
+
     // Escape stops the agent and hands the prompt back to edit; with nothing running, a second
     // Escape soon after the first clears the draft and its attachments.
     public void Escape()
@@ -337,8 +351,8 @@ public sealed partial class ConversationViewModel : ObservableObject
         var prompt = again is null ? composed with { Skills = [.. given.Where(skill => called.Contains(skill.Id))] } : composed;
 
         var asked = again is null
-            ? new YourMessageViewModel(prompt, Draft.Trim(), [.. Attached.Where(each => each.IsFile).Select(each => each.Name)])
-            : new YourMessageViewModel(prompt, again.Text, again.Files);
+            ? new YourMessageViewModel(prompt, Draft.Trim(), [.. Attached.Where(each => each.IsFile).Select(each => each.Name)], [.. attachments.Todos])
+            : new YourMessageViewModel(prompt, again.Text, again.Files, again.Todos);
         var answer = Answer(woken: false);
 
         if (again is null)
@@ -502,6 +516,10 @@ public sealed partial class ConversationViewModel : ObservableObject
         else if (attachment.File is { } file)
         {
             attachments.Detach(file);
+        }
+        else if (attachment.Todo is { } todo)
+        {
+            attachments.Detach(todo);
         }
 
         Attached.Remove(attachment);

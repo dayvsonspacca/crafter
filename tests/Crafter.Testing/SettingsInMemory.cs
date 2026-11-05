@@ -42,4 +42,10 @@ public sealed class SettingsInMemory : IProjectSettingsStore
     }
 
     public AgentInstructions? FindInstructions(string folder) => Instructions.GetValueOrDefault(folder);
+
+    private readonly Dictionary<string, IReadOnlyList<Todo>> todos = [];
+
+    public IReadOnlyList<Todo> LoadTodos(string folder) => todos.GetValueOrDefault(folder) ?? [];
+
+    public void SaveTodos(string folder, IReadOnlyList<Todo> kept) => todos[folder] = kept;
 }

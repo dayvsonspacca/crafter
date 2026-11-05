@@ -36,6 +36,20 @@
             </Thumb.Template>
           </Thumb>
         </Panel>
+        <Panel DockPanel.Dock="Right" IsVisible="{Binding ShowsAside}">
+          <desks:ProjectAsideView x:Name="Aside" Width="300" DataContext="{Binding Desk.Aside}" />
+          <Thumb Width="4"
+                 HorizontalAlignment="Left"
+                 Cursor="SizeWestEast"
+                 DragDelta="ResizeAside"
+                 AutomationProperties.Name="Resize panel">
+            <Thumb.Template>
+              <ControlTemplate>
+                <Border Background="Transparent" />
+              </ControlTemplate>
+            </Thumb.Template>
+          </Thumb>
+        </Panel>
         <Panel>
           <DockPanel IsVisible="{Binding ShowsConversation}">
             <desks:ProjectDeskView DockPanel.Dock="Top" DataContext="{Binding Desk}" />

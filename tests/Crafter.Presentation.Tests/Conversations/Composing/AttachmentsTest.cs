@@ -1,4 +1,5 @@
 using Crafter.Core.Conversations;
+using Crafter.Core.Projects;
 using Crafter.Presentation.Conversations.Composing;
 
 namespace Crafter.Presentation.Tests.Conversations.Composing;
@@ -46,6 +47,24 @@ public sealed class AttachmentsTest
         attachments.Attach("@\"/tmp/my notes.txt\"");
 
         Assert.Equal("Read these\n\n@docs/plan.pdf @\"/tmp/my notes.txt\"", attachments.Compose("Read these")?.Text);
+    }
+
+    [Fact]
+    public void SendsTodosAsALineEachAfterTheFiles()
+    {
+        attachments.Attach("@docs/plan.pdf");
+        attachments.Attach(new Todo(3, "Draw the panel"));
+        attachments.Attach(new Todo(5, "Cite a todo"));
+
+        Assert.Equal("Do these\n\n@docs/plan.pdf\n\nTodo #3: Draw the panel\nTodo #5: Cite a todo", attachments.Compose("Do these")?.Text);
+    }
+
+    [Fact]
+    public void SendsATodoWithoutWordsAsItsLine()
+    {
+        attachments.Attach(new Todo(3, "Draw the panel"));
+
+        Assert.Equal("Todo #3: Draw the panel", attachments.Compose(" ")?.Text);
     }
 
     [Fact]

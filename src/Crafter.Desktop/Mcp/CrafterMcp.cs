@@ -14,7 +14,7 @@ using Crafter.Presentation.Conversations;
 namespace Crafter.Desktop.Mcp;
 
 // Crafter as a tool server. Home's agent, the one place Crafter is managed from, gets every tool;
-// a project's agent gets only propose_axiom and propose_summary, for its own project. Each session
+// a project's agent gets only propose_axiom, propose_summary and the todo tools, for its own project. Each session
 // gets a token of its own, so a proposal is asked about in the chat it came from. Tools run on the UI
 // thread, so the sidebar, the library, the axioms and the summaries show what they did right away.
 public sealed class CrafterMcp : IDisposable
@@ -24,8 +24,8 @@ public sealed class CrafterMcp : IDisposable
     public const string Instructions =
         "You are Home, the chat the user runs Crafter from. Crafter is the desktop app this session runs in: "
             + "it keeps a list of projects, each a folder with its own chats and agents, and a library of skills in a git repository. "
-            + "Each project also has a summary, what the project is, and axioms, the rules its agent follows in every chat. "
-            + "When the user asks about their projects, their summaries, their axioms or the skills library, use these tools; Crafter's own files are not yours to edit.";
+            + "Each project also has a summary, what the project is, axioms, the rules its agent follows in every chat, and todos, what is left to do in it. "
+            + "When the user asks about their projects, their summaries, their axioms, their todos or the skills library, use these tools; Crafter's own files are not yours to edit.";
 
     public const string ProjectInstructions =
         "Crafter, the app this session runs in, keeps this project's axioms: the rules its agent follows in every chat, listed in your system prompt. "
@@ -33,18 +33,26 @@ public sealed class CrafterMcp : IDisposable
             + "short and in the imperative, like \"Never add comments\". The user approves or declines it in the chat. "
             + "Don't propose what is already an axiom, nor what only holds for the task at hand. "
             + "Crafter also keeps this project's summary, also in your system prompt: what the project is, its stack, its layout and the commands it runs with, not rules. "
-            + "When you learn something lasting about the project that the summary lacks or gets wrong, propose the whole new summary with propose_summary; the user approves it the same way.";
+            + "When you learn something lasting about the project that the summary lacks or gets wrong, propose the whole new summary with propose_summary; the user approves it the same way. "
+            + "Crafter keeps this project's todos too, each with a number, and the user may cite one in a message as \"Todo #3: …\". "
+            + "Read them with list_todos; when you finish a todo, mark it with complete_todo. Add one with add_todo when the user asks you to note something for later, "
+            + "and remove one with remove_todo when the user drops it.";
 
     private const string Proposing = "propose_axiom";
 
     private const string Summarizing = "propose_summary";
 
+    private static readonly string[] Todos = ["list_todos", "add_todo", "complete_todo", "remove_todo"];
+
     // What a project's agent reaches.
-    private static readonly string[] Proposals = [Proposing, Summarizing];
+    private static readonly string[] ProjectTools = [Proposing, Summarizing, .. Todos];
 
     // Proposing is free on the agent's side because Crafter asks the user itself, whatever the chat's
-    // mode lets the agent do unasked.
-    private static readonly string[] Free = ["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill", .. Proposals];
+    // mode lets the agent do unasked. Todos are the user's notes and the agent's alike, so they are free too.
+    private static readonly string[] Free = ["list_projects", "open_project", "library_status", "sync_library", "list_skills", "read_skill", .. ProjectTools];
+
+    // The one argument that is a whole number rather than text.
+    private const string Numbered = "number";
 
     private static readonly TimeSpan Patience = TimeSpan.FromMinutes(30);
 
@@ -77,7 +85,7 @@ public sealed class CrafterMcp : IDisposable
             return [new ToolServer(Name, endpoint, TokenFor(project, session), Free, Patience)];
         }
 
-        return OnUi(() => Shelved(project.Folder)) ? [new ToolServer(Name, endpoint, TokenFor(project, session), Proposals, Patience)] : [];
+        return OnUi(() => Shelved(project.Folder)) ? [new ToolServer(Name, endpoint, TokenFor(project, session), ProjectTools, Patience)] : [];
     }
 
     public void Dispose() => server.Dispose();
@@ -116,7 +124,7 @@ public sealed class CrafterMcp : IDisposable
 
     private bool Shelved(string folder) => workbench.Projects.Any(project => project.Folder == folder);
 
-    private bool Reaches(string caller, string tool) => caller == workbench.Home.Folder || Proposals.Contains(tool);
+    private bool Reaches(string caller, string tool) => caller == workbench.Home.Folder || ProjectTools.Contains(tool);
 
     private string InstructionsFor(string caller) => caller == workbench.Home.Folder ? Instructions : ProjectInstructions;
 
@@ -201,6 +209,36 @@ public sealed class CrafterMcp : IDisposable
             ReadOnly: false,
             call => Run(() => abilities.RemoveAxiom(call.Text("folder"), call.Text("axiom")))),
         new(
+            "list_todos",
+            "Lists a project's todos: number, text and whether each is done.",
+            Schema(("folder", "Home only: the project's folder, as list_projects gives it. A project's agent leaves it out and reads its own project's.", false)),
+            ReadOnly: true,
+            call => Run(() => abilities.ListTodos(call.Caller, call.Text("folder")))),
+        new(
+            "add_todo",
+            "Adds a todo to a project: one thing left to do, in a short sentence. It shows at once in the panel beside the chat, with the number it gets.",
+            Schema(
+                ("text", "What is left to do, in a short sentence.", true),
+                ("folder", "Home only: the project's folder, as list_projects gives it. A project's agent leaves it out and adds to its own project.", false)),
+            ReadOnly: false,
+            call => Run(() => abilities.AddTodo(call.Caller, call.Text("folder"), call.Text("text")))),
+        new(
+            "complete_todo",
+            "Marks a project's todo done, once the work it asks for is finished.",
+            Schema(
+                (Numbered, "The todo's number, as list_todos gives it or as cited, like 3 for Todo #3.", true),
+                ("folder", "Home only: the project's folder, as list_projects gives it. A project's agent leaves it out.", false)),
+            ReadOnly: false,
+            call => Run(() => abilities.CompleteTodo(call.Caller, call.Text("folder"), call.Number(Numbered)))),
+        new(
+            "remove_todo",
+            "Removes a todo from a project, done or not, when it is no longer wanted.",
+            Schema(
+                (Numbered, "The todo's number, as list_todos gives it or as cited, like 3 for Todo #3.", true),
+                ("folder", "Home only: the project's folder, as list_projects gives it. A project's agent leaves it out.", false)),
+            ReadOnly: false,
+            call => Run(() => abilities.RemoveTodo(call.Caller, call.Text("folder"), call.Number(Numbered)))),
+        new(
             "library_status",
             "The skills library: its repository, when it last synced and at which commit, how many skills it holds and the folders it could not read.",
             Schema(),
@@ -261,7 +299,7 @@ public sealed class CrafterMcp : IDisposable
         ["type"] = "object",
         ["properties"] = new JsonObject(fields.Select(field => KeyValuePair.Create(
             field.Name,
-            (JsonNode?)new JsonObject { ["type"] = "string", ["description"] = field.Description }))),
+            (JsonNode?)new JsonObject { ["type"] = field.Name == Numbered ? "integer" : "string", ["description"] = field.Description }))),
         ["required"] = new JsonArray([.. fields.Where(field => field.Required).Select(field => (JsonNode)field.Name)]),
     };
 }

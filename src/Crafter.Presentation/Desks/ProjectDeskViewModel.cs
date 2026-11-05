@@ -36,7 +36,7 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
         Crew crew,
         PreferenceBook preferences,
         ProjectDetailsViewModel? details,
-        ProjectBriefViewModel? brief,
+        ProjectAsideViewModel? aside,
         IClipboard clipboard,
         TimeProvider time,
         Func<IReadOnlyList<Skill>>? skills = null)
@@ -57,12 +57,16 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
             Add(new Chat(record.Id, agent.Id, record.Title, conversation), agent);
         }
 
-        Overview = new ProjectOverviewViewModel(this, crew, details, brief, time);
+        Overview = new ProjectOverviewViewModel(this, crew, details, time);
+        Aside = aside;
     }
 
     public Project Project { get; private set; }
 
     public ProjectOverviewViewModel Overview { get; }
+
+    // Home has no todos, skills to choose or axioms, so no panel on the right.
+    public ProjectAsideViewModel? Aside { get; }
 
     public bool ShowsOverview => Selected is null;
 
@@ -130,6 +134,7 @@ public sealed partial class ProjectDeskViewModel : ObservableObject, IChatKeeper
     {
         Project = described;
         Overview.Describe(described);
+        Aside?.Describe(described);
         foreach (var chat in Chats)
         {
             chat.ProjectName = described.Name.Text;

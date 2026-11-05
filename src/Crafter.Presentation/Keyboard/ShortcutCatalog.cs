@@ -9,6 +9,7 @@ public static class ShortcutCatalog
         new("Workbench",
         [
             new("Toggle the sidebar", WorkbenchShortcuts.ToggleSidebar.Keys),
+            new("Toggle the todos, skills and axioms panel", WorkbenchShortcuts.ToggleAside.Keys),
             new("Open Preferences", WorkbenchShortcuts.TogglePreferences.Keys),
         ]),
         new("Projects",

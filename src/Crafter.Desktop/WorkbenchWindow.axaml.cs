@@ -16,6 +16,10 @@ public sealed partial class WorkbenchWindow : Window
 
     private const double SidebarMax = 320;
 
+    private const double AsideMin = 240;
+
+    private const double AsideMax = 480;
+
     private readonly ShortcutHandler shortcuts = new();
 
     private bool leaving;
@@ -63,6 +67,7 @@ public sealed partial class WorkbenchWindow : Window
         shortcuts.On(ProjectShortcuts.Close, () => viewModel.CloseCommand.Execute(null));
         shortcuts.On(ProjectShortcuts.Edit, () => viewModel.EditCurrentCommand.Execute(null));
         shortcuts.On(WorkbenchShortcuts.ToggleSidebar, () => viewModel.ToggleSidebarCommand.Execute(null));
+        shortcuts.On(WorkbenchShortcuts.ToggleAside, () => viewModel.ToggleAsideCommand.Execute(null));
         shortcuts.On(WorkbenchShortcuts.TogglePreferences, () => viewModel.TogglePreferencesCommand.Execute(null));
         shortcuts.On(ChatShortcuts.New, () => viewModel.NewChatCommand.Execute(null));
         shortcuts.On(ChatShortcuts.Close, () => viewModel.CloseChatCommand.Execute(null));
@@ -85,6 +90,9 @@ public sealed partial class WorkbenchWindow : Window
 
     private void ResizeSidebar(object? sender, VectorEventArgs e) =>
         Sidebar.Width = Math.Clamp(Sidebar.Width + e.Vector.X, SidebarMin, SidebarMax);
+
+    private void ResizeAside(object? sender, VectorEventArgs e) =>
+        Aside.Width = Math.Clamp(Aside.Width - e.Vector.X, AsideMin, AsideMax);
 
     private void Press(object? sender, KeyEventArgs e)
     {

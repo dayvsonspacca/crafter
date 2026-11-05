@@ -5,6 +5,7 @@
              xmlns:composing="using:Crafter.Presentation.Conversations.Composing"
              xmlns:folders="using:Crafter.Presentation.Folders"
              xmlns:core="using:Crafter.Core.Conversations"
+             xmlns:projects="using:Crafter.Core.Projects"
              xmlns:conversationViews="using:Crafter.Desktop.Conversations"
              xmlns:controls="using:Crafter.Desktop.Controls"
              xmlns:prose="using:Crafter.Desktop.Prose"
@@ -278,6 +279,11 @@
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
+    <Style Selector="Border.file TextBlock.number">
+      <Setter Property="Margin" Value="0,0,6,0" />
+      <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    </Style>
     <Style Selector="Border.picture.sent">
       <Setter Property="Width" Value="120" />
       <Setter Property="Height" Value="90" />
@@ -404,6 +410,13 @@
                         <TextBlock Text="{Binding Name}" />
                       </DockPanel>
                     </Border>
+                    <Border Classes="file" IsVisible="{Binding IsTodo}" ToolTip.Tip="{Binding Name}">
+                      <DockPanel>
+                        <Path DockPanel.Dock="Left" Data="M2.5,2.5 H13.5 V13.5 H2.5 Z M5,8.2 L7,10.2 L11,6" />
+                        <TextBlock DockPanel.Dock="Left" Classes="number" Text="{Binding Label}" />
+                        <TextBlock Text="{Binding Name}" />
+                      </DockPanel>
+                    </Border>
                     <Button Classes="unattach" Content="×" Command="{Binding RemoveCommand}" AutomationProperties.Name="{Binding Name, StringFormat='Remove {0}'}" />
                   </Panel>
                 </DataTemplate>
@@ -501,6 +514,24 @@
                                 <DockPanel>
                                   <Path DockPanel.Dock="Left" Data="M4.5,1.5 H9.5 L12.5,4.5 V14.5 H4.5 Z M9.5,1.5 V4.5 H12.5" />
                                   <TextBlock Text="{Binding}" />
+                                </DockPanel>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl ItemsSource="{Binding Todos}" IsVisible="{Binding HasTodos}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                              <WrapPanel ItemSpacing="8" LineSpacing="8" />
+                            </ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="projects:Todo">
+                              <Border Classes="file" ToolTip.Tip="{Binding Text}">
+                                <DockPanel>
+                                  <Path DockPanel.Dock="Left" Data="M2.5,2.5 H13.5 V13.5 H2.5 Z M5,8.2 L7,10.2 L11,6" />
+                                  <TextBlock DockPanel.Dock="Left" Classes="number" Text="{Binding Number, StringFormat='#{0}'}" />
+                                  <TextBlock Text="{Binding Text}" />
                                 </DockPanel>
                               </Border>
                             </DataTemplate>

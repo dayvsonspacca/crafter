@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Crafter.Core.Conversations;
+using Crafter.Core.Projects;
 
 namespace Crafter.Presentation.Conversations.Composing;
 
@@ -16,11 +17,16 @@ public sealed partial class Attachments
     // Files go to the agent as @ references after the words, the way a typed mention does.
     private readonly List<string> files = [];
 
+    // Todos go after the files, a line each with the number an agent completes it by.
+    private readonly List<Todo> todos = [];
+
     private int last;
 
     public IReadOnlyList<Picture> Pictures => pictures;
 
     public IReadOnlyList<string> Files => files;
+
+    public IReadOnlyList<Todo> Todos => todos;
 
     public string Paste(string text)
     {
@@ -44,24 +50,22 @@ public sealed partial class Attachments
 
     public void Detach(string file) => files.Remove(file);
 
+    public void Attach(Todo todo) => todos.Add(todo);
+
+    public void Detach(Todo todo) => todos.Remove(todo);
+
     public Prompt? Compose(string draft)
     {
         var text = Pastes().Replace(draft, found => pasted.TryGetValue(int.Parse(found.Groups[1].Value), out var full) ? full : found.Value).Trim();
-        if (text.Length == 0 && pictures.Count == 0 && files.Count == 0)
+        if (text.Length == 0 && pictures.Count == 0 && files.Count == 0 && todos.Count == 0)
         {
             return null;
         }
 
-        var references = string.Join(' ', files);
-        var words = (text.Length > 0, files.Count > 0) switch
-        {
-            (true, true) => $"{text}\n\n{references}",
-            (true, false) => text,
-            (false, true) => references,
-            _ => Unworded(pictures.Count),
-        };
+        string[] parts = [text, string.Join(' ', files), string.Join('\n', todos)];
+        var words = string.Join("\n\n", parts.Where(part => part.Length > 0));
 
-        return new Prompt(words, [.. pictures]);
+        return new Prompt(words.Length > 0 ? words : Unworded(pictures.Count), [.. pictures]);
     }
 
     public void Clear()
@@ -69,6 +73,7 @@ public sealed partial class Attachments
         pasted.Clear();
         pictures.Clear();
         files.Clear();
+        todos.Clear();
     }
 
     private static string Unworded(int count) => count == 1 ? "(1 picture attached)" : $"({count} pictures attached)";
