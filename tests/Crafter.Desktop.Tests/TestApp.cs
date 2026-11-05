@@ -5,6 +5,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using Crafter.Desktop.Prose;
+using SkiaSharp;
 
 namespace Crafter.Desktop.Tests;
 
@@ -31,7 +32,13 @@ public sealed class TestApp : Application
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<TestApp>()
         .UseSkia()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
-        .With(new FontManagerOptions { DefaultFamilyName = "Noto Sans" });
+        .With(new FontManagerOptions { DefaultFamilyName = Sans });
+
+    // Text is laid out for real, so the tests need a sans the machine has: GNOME's own when it is
+    // there, else the first of the common ones.
+    private static string Sans =>
+        new[] { "Adwaita Sans", "Noto Sans", "DejaVu Sans", "Liberation Sans", "FreeSans" }
+            .FirstOrDefault(family => SKFontManager.Default.GetFontFamilies().Contains(family)) ?? "Adwaita Sans";
 
     public override void Initialize()
     {
