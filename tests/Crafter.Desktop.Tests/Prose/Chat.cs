@@ -101,7 +101,7 @@ internal sealed class Chat
 
     private static Point Mid(Point one, Point other) => new((one.X + other.X) / 2, (one.Y + other.Y) / 2);
 
-    private static void Settle()
+    public static void Settle()
     {
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();

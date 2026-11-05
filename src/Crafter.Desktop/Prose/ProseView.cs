@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Md = Crafter.Markdown;
 
@@ -53,11 +54,42 @@ public sealed class ProseView : Decorator
         Md.Paragraph paragraph => Text(paragraph.Fragments, group, "paragraph"),
         Md.ItemList list => ListOf(list, group ?? list, depth),
         Md.Quote quote => Classed(new Border { Child = Stack(quote.Blocks, group, depth, BlockSpacing) }, "prose-quote"),
-        Md.Code code => Classed(new Border { Child = Sideways(Plain(code.Text, group, "code")) }, "prose-code"),
+        Md.Code { Language: "markdown" or "md" } code => Drafted(code, group, depth),
+        Md.Code code => Source(code, group),
         Md.Table table => TableOf(table),
         Md.Rule => Classed(new Rectangle(), "prose-rule"),
         _ => new Panel(),
     };
+
+    private static Border Source(Md.Code code, object? group) =>
+        Classed(new Border { Child = Sideways(Plain(code.Text, group, "code")) }, "prose-code");
+
+    // Markdown an agent writes out, like a summary or a README, reads drawn; its source is a click away.
+    private static StackPanel Drafted(Md.Code code, object? group, int depth)
+    {
+        var drawn = Classed(new Border { Child = Stack(Md.Prose.Parse(code.Text), group, depth, BlockSpacing) }, "prose-preview");
+        var source = Source(code, group);
+        source.IsVisible = false;
+
+        var preview = Classed(new Button { Content = "Preview" }, "chip", "chosen");
+        var raw = Classed(new Button { Content = "Source" }, "chip");
+        void Show(bool drawing)
+        {
+            drawn.IsVisible = drawing;
+            source.IsVisible = !drawing;
+            preview.Classes.Set("chosen", drawing);
+            raw.Classes.Set("chosen", !drawing);
+        }
+
+        preview.Click += (_, _) => Show(drawing: true);
+        raw.Click += (_, _) => Show(drawing: false);
+
+        var switches = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, HorizontalAlignment = HorizontalAlignment.Right };
+        switches.Children.Add(preview);
+        switches.Children.Add(raw);
+
+        return new StackPanel { Spacing = 6, Children = { switches, drawn, source } };
+    }
 
     private static Grid ListOf(Md.ItemList list, object group, int depth)
     {
